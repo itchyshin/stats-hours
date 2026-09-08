@@ -15,7 +15,7 @@ repo="${PUBLIC_REPO:-itchyshin/stats-hours}"
 pattern_file="${SCRUB_PATTERN_FILE:-$root/.scrub-pattern}"
 # tools/recreate-public.sh publishes exactly one squashed commit — that is the "what was published"
 # this check holds the public repo to.
-expected_commits="${PUBLIC_EXPECTED_COMMITS:-1}"
+expected_commits="${PUBLIC_EXPECTED_COMMITS:-}"
 
 # An empty or missing pattern file would match every line or none — either way it lies.
 [ -s "$pattern_file" ] || { echo "verify-public: no pattern file at $pattern_file (it is git-ignored; create it locally first) — refusing to continue" >&2; exit 2; }
@@ -69,10 +69,19 @@ if git clone -q --bare "https://github.com/$repo.git" "$t/r" 2>/dev/null; then
   if [ "$n" -eq 0 ]; then
     echo "FAIL: the public repo has no commits at all (never pushed, or the push failed) — this is not a clean bill of health, it is nothing having been checked"
     ok=0
-  elif [ "$n" -ne "$expected_commits" ]; then
-    echo "FAIL: expected exactly $expected_commits commit(s) (the one squashed commit), found $n"
+  elif [ -n "${PUBLIC_EXPECTED_COMMITS:-}" ] && [ "$n" -ne "$expected_commits" ]; then
+    echo "FAIL: expected exactly $expected_commits commit(s), found $n"
     ok=0
   fi
+  # Why the count is no longer pinned to one. The first publication puts a single
+  # squashed commit on the public repo, and asserting "exactly 1" was right that
+  # day. Every later update ADDS a commit (see tools/publish-update.sh), so a
+  # hard 1 would fail every honest update and teach a reader to ignore the check.
+  # The property that actually matters is the line above this block: every commit
+  # in the published history is free of the pattern, whatever the count. Zero
+  # commits is still a failure, because that is nothing having been checked
+  # rather than a clean result. Set PUBLIC_EXPECTED_COMMITS to assert an exact
+  # number when you know what it should be.
 else
   echo "could not clone the public repo to check its history"
   ok=0

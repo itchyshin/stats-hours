@@ -12,7 +12,7 @@ deck: "One engine for the whole climb, a fence around two subjects that belong i
 status_tag: Draft
 status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. Every number and figure on this page comes from running that code when the site was built, not from typing. The prose is still being revised."
 provenance: "One short block of code runs on this page when the site is built. It asks the software which version is loaded, reads the exact engine snapshot every chapter uses from a file kept with the book, and prints today's date; none of those three is typed by hand. Everything else on the page is prose. The four references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
-caveat: "A preface describes a book that is not finished. The climb is thirteen rungs; ten of them, plus this preface and a coda, make up version 1, and all ten are written and their code runs. Where this page says what a rung does, it is describing the plan for the whole climb (linked from the landing page), not necessarily a chapter you can read today."
+caveat: "A preface describes a book that is not finished. The climb is thirteen rungs; ten of them, plus this preface and a coda, make up version 1, and all ten are written and their code runs. Where this page says what a rung does, it is describing the plan for the whole climb (shown below, and linked from the landing page), not necessarily a chapter you can read today."
 footer_note: "Stats Hours with Itchy · Preface · the preface to a planned 13 rungs, ten in version 1, plus a coda · draft; code last run 2026-09-07"
 ---
 
@@ -41,8 +41,11 @@ comes from code that ran, not from a keyboard.
 The book is not organised by topic. It is organised by **constants**. Each rung frees one thing
 the rung before it held fixed: the shape of the noise, then the spread, then the correlation
 between rows, then the slope, then the assumption that groups are independent of one another. The
-diagram on [the landing page](../index.html) draws the whole climb; it is the one picture worth looking at before
-you start, and I will not redraw it here.
+diagram below draws the whole climb; it is the one picture worth looking at before you start.
+
+![The climb — thirteen rungs, one engine, each rung freeing one thing the rung before it held fixed.](img/the-climb.svg){.climb}
+
+The same drawing is linked from [the landing page](../index.html), if that is where you arrived first.
 
 That structure is the reason for one engine. If the software changes at the same moment the model
 does, you cannot tell which of the two moved the number. A chapter that fits a random intercept (a

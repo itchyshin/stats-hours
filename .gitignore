@@ -27,3 +27,10 @@ docs/img/_selftest*
 *.quarto_ipynb
 .claude/skills/
 .scrub-pattern
+
+# Quarto leaves a copy of a chapter figure directory beside the source when a
+# single-file render is interrupted or run outside the project. The real copy
+# lives under the output directory and is what ships; these are intermediates,
+# and without this line a future "git add -A" commits them.
+book/*_files/
+site_libs/

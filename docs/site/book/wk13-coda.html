@@ -21,10 +21,44 @@ ul.task-list li input[type="checkbox"] {
   vertical-align: middle;
 }
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-html/tabby.min.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -33,6 +67,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="../site_libs/quarto-html/quarto-html-5276476b5bdb9cfe1f92c505466e0bf3.min.css" rel="stylesheet" append-hash="true" data-mode="light">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../tools/theme/stats-hours.css">
@@ -55,26 +92,77 @@ ul.task-list li input[type="checkbox"] {
       <span>Draft</span>
     </p>
     <h1>Where you go next</h1>
-    <p class="deck">A coda, not a rung: nothing is fitted here. Every constant the climb freed one at a time is waiting for you one level up, and two of them already have their chapter numbers.</p>
+    <p class="deck">A coda, not a rung: no new constant is freed here. One figure below refits a model Class 2 already ran, to show what rung eleven means; the rest is prose, and the constants still waiting are one level up, two of them with chapter numbers already.</p>
     <div class="status">
       <span class="tag">Draft</span>
-      <p>Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page runs no code and prints no numbers. The prose is still being revised.</p>
+      <p>Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page fits one model, in one code cell, to draw its one figure — the same location-scale model Class 2 fitted, refitted here on the same archived sparrows — and otherwise runs no code and prints no other numbers. The prose is still being revised.</p>
     </div>
     <p class="meta">
       <b>Engines</b> DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
-      <b>Provenance</b> This page runs no code and prints no numbers. It is prose, and it makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers.<br>
+      <b>Provenance</b> This page fits one model, once, in one Julia cell: the location-scale model Class 2 already fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted here on the same 171 archived Lundy Island sparrows so the rung-eleven figure and the numbers beside it come from this page’s own run. It makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers.<br>
       <b>Caveat</b> The two rungs described here as version two are an outline, not written chapters; the plan for the whole climb is linked from <a href="../index.html">the landing page</a>. The two engine limitations mentioned below are known and have been reported to the engine’s authors; they may have been fixed by the time you read this, so check the engine’s own page for their current state.
     </p>
   </div>
 </header>
 
 <div class="wrap">
-<p>This is a coda, not a rung. Every other page in this book freed something the page before it held fixed; this one frees nothing, fits nothing, and prints no numbers. It is here because the climb has a shape, and the shape does not stop where the book does.</p>
+<p>This is a coda, not a rung. Every other page in this book freed something the page before it held fixed; this one frees no new constant — the one model behind its one figure is a model Class 2 already fitted. It is here because the climb has a shape, and the shape does not stop where the book does.</p>
 <p>What you have been doing for ten chapters is taking a constant out of a model and letting the data have an opinion about it. The noise had one shape; you let the family choose it. The spread was a fixed function of the mean; you let a predictor into it. Rows were strangers; they stopped being strangers. Slopes were shared; they stopped being shared. Groups were independent of one another; you handed the model a matrix saying how they are related.</p>
 <p>There are more constants. You have been looking at four of them all book without being told.</p>
 <hr>
 <h2 id="the-same-constants-reappear" class="anchored">The same constants reappear</h2>
 <p><strong>σ — the spread of the noise — held at one number.</strong> In Class 4 you moved the spread — but you moved it to <em>repair</em> something: the family had lied about how much scatter a given mean allows, and letting σ depend on a predictor was the fix. The next rung asks the question the other way round. Suppose the spread is what you actually care about. Suppose the interesting biology is that one group is more variable than another, at the same mean; that a treatment does not shift the average and does tighten the distribution; that predictability is the trait. Then σ is not a nuisance to be repaired, it is the estimand — the quantity you set out to estimate — and it gets a linear predictor (a right-hand side of its own, the sum of predictor effects that every model in this book has had for the mean), standard errors and an interval of its own, exactly as the mean does. That is <strong>rung eleven, modelling the spread itself</strong>, and the family of models it belongs to has been in the literature for two decades under the name location–scale — location is the mean, scale is the spread, and both get a model (Rigby &amp; Stasinopoulos 2005). You already know how to read its output: you have been reading a <code>mu</code> block and a <code>sigma</code> block side by side since Class 4.</p>
+<p>Rung eleven is not hypothetical in this book. Class 2 already fit exactly this model on exactly this question, and showed the σ side of it only as a peek. Fit it again here, on the same 171 archived Lundy Island sparrows, so what follows comes from this page’s own run and not from a memory of Class 2’s.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fit_mu <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows);</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>fit_ls <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex), <span class="pp">@formula</span>(sigma <span class="op">~</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>.(<span class="fu">coef</span>(fit_ls, <span class="op">:</span>sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>2-element Vector{Float64}:
+ 1.3757070292392783
+ 1.056016793235814</code></pre>
+</div>
+</div>
+<p>Females vary by about 1.38 mm around their line; males by about 1.45 mm — a little more, not less, the same finding Class 2 reported. Adding <code>Sex</code> to σ moves the AIC by 1.75 against the mean-only model — it does not pay for itself — and the male:female ratio of spread comes out at 1.056, 95% interval [0.854, 1.306], an interval that still sits on both sides of 1. Refit on the same birds, the verdict has not moved: not disproved, not detected.</p>
+<div id="cell-fig-coda-location-scale" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>zspread <span class="op">=</span> <span class="fl">4</span> <span class="op">*</span> <span class="fu">max</span>(sigma_ls[<span class="fl">1</span>], sigma_ls[<span class="fl">1</span>] <span class="op">*</span> sigma_ls[<span class="fl">2</span>])</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>zgrid   <span class="op">=</span> <span class="fu">range</span>(coda_center <span class="op">-</span> zspread, coda_center <span class="op">+</span> zspread, length <span class="op">=</span> <span class="fl">400</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dens_f  <span class="op">=</span> Distributions.<span class="fu">pdf</span>.(Distributions.<span class="fu">Normal</span>(coda_center, sigma_ls[<span class="fl">1</span>]), zgrid)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>dens_m  <span class="op">=</span> Distributions.<span class="fu">pdf</span>.(Distributions.<span class="fu">Normal</span>(coda_center, sigma_ls[<span class="fl">1</span>] <span class="op">*</span> sigma_ls[<span class="fl">2</span>]), zgrid)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">760</span>, <span class="fl">420</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"wing length (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"density"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> <span class="fu">WilkinsonTicks</span>(<span class="fl">4</span>), title <span class="op">=</span> <span class="st">"same mean, different spread"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax1, [coda_center]; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), linestyle <span class="op">=</span> <span class="op">:</span>dash,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"same mean, by construction"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax1, zgrid, dens_f; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"female (σ ≈ </span><span class="sc">$</span>(coda_sigma_f)<span class="st"> mm)"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax1, zgrid, dens_m; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"male (σ ≈ </span><span class="sc">$</span>(coda_sigma_m)<span class="st"> mm)"</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>]; xticks <span class="op">=</span> ([<span class="fl">1</span>], [<span class="st">"male : female"</span>]), ylabel <span class="op">=</span> <span class="st">"residual-SD ratio"</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the ratio"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">1.5</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax2, [<span class="fl">1.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax2, [<span class="fl">1</span>], [coda_lo], [coda_hi]; whiskerwidth <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>], [coda_ratio]; markersize <span class="op">=</span> <span class="fl">16</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside both axes, below, so it can never hide a group or crowd either</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># panel (reviewer: pond P05 sat under it)</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">2</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>], ax1; framevisible <span class="op">=</span> <span class="cn">false</span>, orientation <span class="op">=</span> <span class="op">:</span>horizontal)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div id="fig-coda-location-scale" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-coda-location-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk13-coda_files/figure-html/fig-coda-location-scale-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coda-location-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Rung eleven, drawn from a real fit rather than described: the location-scale model Class 2 fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted on this page on the same 171 archived Lundy Island sparrows. Left: each sex’s fitted residual spread around the line, as Normal curves centred on the same value — the model’s own fitted mean wing length for a female at the sample’s mean tarsus — by construction, so only spread differs in this panel; the real fitted means do differ by sex (males have longer wings on average, carried by the μ side of the model, not shown here), which is a different, separate finding from the one this figure is about. Right: the male:female ratio of that spread, with its 95% interval; the dashed line marks equal dispersion. The interval straddles it: the male curve is a little wider, but this sample cannot tell that apart from no difference at all.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <p><strong>The second response, set to absent.</strong> Every model in this book has one thing on the left of the tilde, the <code>~</code> in the formula that separates the response from what predicts it. That is a constant too, and it is the one people notice least, because a spreadsheet with two measured columns invites you to fit two models and compare the two answers — which is not the same analysis and does not answer the same question. Fit them jointly and a new parameter appears that neither separate fit contains: the correlation between the two responses, after everything on the right of the tilde has had its say. Then free <em>that</em>: let the correlation itself depend on a predictor, so that two traits can be tightly coupled in one environment and loose in another. That is <strong>rung twelve</strong>, and it is the last one in the plan, because once the correlation between two responses is a thing you model rather than a thing you assume, there is very little left in an introduction that is still nailed down.</p>
 <p><strong>The effect-size row.</strong> Here is the same idea in a different building. Change what a row of your data frame <em>is</em>: not an animal, but a published study’s estimate of an effect. The model looks familiar — an intercept, maybe a moderator or two (a predictor that explains why studies differ), a random effect over studies — and one thing is new and changes everything. Each row arrives with its own sampling variance — how uncertain that study’s estimate is — already known, computed from that study’s sample size rather than estimated from the data. So the model has a variance you must not estimate sitting immediately beside variances you must, and every heterogeneity statistic you have ever read — the numbers, such as I², that say how much studies disagree beyond chance — is a statement about the ratio between them. Everything you learned in Class 8 about <em>which</em> estimator produced a variance component (the share of the variation assigned to one source, such as differences between studies) applies with more force here, not less, because the quantity people actually publish is a ratio of variance components.</p>
 <p><strong>The phylogeny as a relatedness matrix.</strong> And here is the same idea again. Class 10 hands the model a matrix that says how the levels of a random effect are related, and a phylogeny is one of the four faces that single idea wears — beside a pedigree (a family tree of known parents), a spatial neighbourhood, and a taxonomy. So the <em>machinery</em> of comparative biology is already in your hands when you finish this book. What is not is the discipline built on top of it: which tree, whose tree, what to do when the tree is uncertain or the trait is not continuous or the branch lengths are a guess. That is a field, not a chapter, and it is the same field as the paragraph above it — non-independence from shared ancestry and non-independence from shared effect sizes are one statistical problem in two sets of clothes (Hadfield &amp; Nakagawa 2010). They belong together in a second book, and that is where they are going.</p>

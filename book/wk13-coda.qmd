@@ -8,10 +8,10 @@ status: draft
 created: 2026-09-07
 engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, coda, location-scale, bivariate, meta-analysis, phylogeny, scope, DRM.jl]
-deck: "A coda, not a rung: nothing is fitted here. Every constant the climb freed one at a time is waiting for you one level up, and two of them already have their chapter numbers."
+deck: "A coda, not a rung: no new constant is freed here. One figure below refits a model Class 2 already ran, to show what rung eleven means; the rest is prose, and the constants still waiting are one level up, two of them with chapter numbers already."
 status_tag: Draft
-status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page runs no code and prints no numbers. The prose is still being revised."
-provenance: "This page runs no code and prints no numbers. It is prose, and it makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
+status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page fits one model, in one code cell, to draw its one figure — the same location-scale model Class 2 fitted, refitted here on the same archived sparrows — and otherwise runs no code and prints no other numbers. The prose is still being revised."
+provenance: "This page fits one model, once, in one Julia cell: the location-scale model Class 2 already fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted here on the same 171 archived Lundy Island sparrows so the rung-eleven figure and the numbers beside it come from this page's own run. It makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
 caveat: "The two rungs described here as version two are an outline, not written chapters; the plan for the whole climb is linked from the landing page. The two engine limitations mentioned below are known and have been reported to the engine's authors; they may have been fixed by the time you read this, so check the engine's own page for their current state."
 footer_note: "Stats Hours with Itchy · Coda · the coda to a planned 13 rungs, ten in version 1 · draft, 2026-09-07"
 ---
@@ -19,8 +19,9 @@ footer_note: "Stats Hours with Itchy · Coda · the coda to a planned 13 rungs, 
 # Where you go next
 
 This is a coda, not a rung. Every other page in this book freed something the page before it held
-fixed; this one frees nothing, fits nothing, and prints no numbers. It is here because the climb has
-a shape, and the shape does not stop where the book does.
+fixed; this one frees no new constant — the one model behind its one figure is a model Class 2
+already fitted. It is here because the climb has a shape, and the shape does not stop where the book
+does.
 
 What you have been doing for ten chapters is taking a constant out of a model and letting the data
 have an opinion about it. The noise had one shape; you let the family choose it. The spread was a
@@ -46,6 +47,91 @@ standard errors and an interval of its own, exactly as the mean does. That is **
 belongs to has been in the literature for two decades under the name location–scale — location is
 the mean, scale is the spread, and both get a model (Rigby & Stasinopoulos 2005). You already know how to read its output: you have been reading a `mu` block and
 a `sigma` block side by side since Class 4.
+
+Rung eleven is not hypothetical in this book. Class 2 already fit exactly this model on exactly this
+question, and showed the σ side of it only as a peek. Fit it again here, on the same 171 archived
+Lundy Island sparrows, so what follows comes from this page's own run and not from a memory of
+Class 2's.
+
+```{julia}
+#| label: coda-setup
+#| echo: false
+#| output: false
+# tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.
+include("../tools/figures.jl")
+using DRM, DataFrames, CSV, Statistics, CairoMakie
+import Distributions
+set_theme!(theme_itchy(:light))
+
+# Class 2's own recipe for the archived file, applied again here rather than
+# read from Class 2's own copy, so this page depends on nothing but the archive.
+raw = CSV.read("../data/2012/MBodySize.csv", DataFrame)
+raw.Sex = ifelse.(raw.Sex .== "F", "female", "male")
+sparrows = select(raw, :BirdID, :Sex, :Tarsus, :Wing)
+```
+
+```{julia}
+fit_mu = drm(bf(@formula(Wing ~ Tarsus + Sex)), Gaussian(); data = sparrows);
+fit_ls = drm(bf(@formula(Wing ~ Tarsus + Sex), @formula(sigma ~ Sex)), Gaussian(); data = sparrows);
+exp.(coef(fit_ls, :sigma))
+```
+
+```{julia}
+#| echo: false
+#| output: false
+sigma_ls     = exp.(coef(fit_ls, :sigma))
+coda_sigma_f = round(sigma_ls[1]; digits = 2)
+coda_sigma_m = round(sigma_ls[1] * sigma_ls[2]; digits = 2)
+coda_aic_gap = round(aic(fit_ls) - aic(fit_mu); digits = 2)
+
+ct         = coeftable(fit_ls)
+coda_row   = findfirst(==("sigma: Sex: male"), ct.rownms)
+coda_b     = ct.cols[1][coda_row]
+coda_se    = ct.cols[2][coda_row]
+coda_ratio = round(exp(coda_b); digits = 3)
+coda_lo    = round(exp(coda_b - 1.96 * coda_se); digits = 3)
+coda_hi    = round(exp(coda_b + 1.96 * coda_se); digits = 3)
+
+mu_b        = coef(fit_ls, :mu)
+coda_center = mu_b[1] + mu_b[2] * mean(sparrows.Tarsus)
+```
+
+Females vary by about `{julia} coda_sigma_f` mm around their line; males by about
+`{julia} coda_sigma_m` mm — a little more, not less, the same finding Class 2 reported. Adding `Sex`
+to σ moves the AIC by `{julia} coda_aic_gap` against the mean-only model — it does not pay for
+itself — and the male:female ratio of spread comes out at `{julia} coda_ratio`, 95% interval
+[`{julia} coda_lo`, `{julia} coda_hi`], an interval that still sits on both sides of 1. Refit on the
+same birds, the verdict has not moved: not disproved, not detected.
+
+```{julia}
+#| label: fig-coda-location-scale
+#| fig-cap: "Rung eleven, drawn from a real fit rather than described: the location-scale model Class 2 fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted on this page on the same 171 archived Lundy Island sparrows. Left: each sex's fitted residual spread around the line, as Normal curves centred on the same value — the model's own fitted mean wing length for a female at the sample's mean tarsus — by construction, so only spread differs in this panel; the real fitted means do differ by sex (males have longer wings on average, carried by the μ side of the model, not shown here), which is a different, separate finding from the one this figure is about. Right: the male:female ratio of that spread, with its 95% interval; the dashed line marks equal dispersion. The interval straddles it: the male curve is a little wider, but this sample cannot tell that apart from no difference at all."
+zspread = 4 * max(sigma_ls[1], sigma_ls[1] * sigma_ls[2])
+zgrid   = range(coda_center - zspread, coda_center + zspread, length = 400)
+dens_f  = Distributions.pdf.(Distributions.Normal(coda_center, sigma_ls[1]), zgrid)
+dens_m  = Distributions.pdf.(Distributions.Normal(coda_center, sigma_ls[1] * sigma_ls[2]), zgrid)
+
+fig = Figure(size = (760, 420))
+ax1 = Axis(fig[1, 1]; xlabel = "wing length (mm)", ylabel = "density",
+    xticks = WilkinsonTicks(4), title = "same mean, different spread")
+vlines!(ax1, [coda_center]; color = (:grey, 0.6), linestyle = :dash,
+    label = "same mean, by construction")
+lines!(ax1, zgrid, dens_f; linewidth = 2.5, label = "female (σ ≈ $(coda_sigma_f) mm)")
+lines!(ax1, zgrid, dens_m; linewidth = 2.5, label = "male (σ ≈ $(coda_sigma_m) mm)")
+
+ax2 = Axis(fig[1, 2]; xticks = ([1], ["male : female"]), ylabel = "residual-SD ratio",
+    title = "the ratio")
+xlims!(ax2, 0.5, 1.5)
+hlines!(ax2, [1.0]; linestyle = :dash, color = (:grey, 0.6))
+rangebars!(ax2, [1], [coda_lo], [coda_hi]; whiskerwidth = 14, color = Cycled(1))
+scatter!(ax2, [1], [coda_ratio]; markersize = 16, color = Cycled(1))
+
+# legend outside both axes, below, so it can never hide a group or crowd either
+# panel (reviewer: pond P05 sat under it)
+Legend(fig[2, 1:2], ax1; framevisible = false, orientation = :horizontal)
+
+fig
+```
 
 **The second response, set to absent.** Every model in this book has one thing on the left of the
 tilde, the `~` in the formula that separates the response from what predicts it. That is a constant too, and it is the one people notice least, because a spreadsheet with two

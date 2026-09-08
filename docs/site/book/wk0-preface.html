@@ -97,7 +97,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <p class="meta">
       <b>Engines</b> DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
       <b>Provenance</b> One short block of code runs on this page when the site is built. It asks the software which version is loaded, reads the exact engine snapshot every chapter uses from a file kept with the book, and prints today’s date; none of those three is typed by hand. Everything else on the page is prose. The four references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers.<br>
-      <b>Caveat</b> A preface describes a book that is not finished. The climb is thirteen rungs; ten of them, plus this preface and a coda, make up version 1, and all ten are written and their code runs. Where this page says what a rung does, it is describing the plan for the whole climb (linked from <a href="../index.html">the landing page</a>), not necessarily a chapter you can read today.
+      <b>Caveat</b> A preface describes a book that is not finished. The climb is thirteen rungs; ten of them, plus this preface and a coda, make up version 1, and all ten are written and their code runs. Where this page says what a rung does, it is describing the plan for the whole climb (shown below, and linked from <a href="../index.html">the landing page</a>), not necessarily a chapter you can read today.
     </p>
   </div>
 </header>
@@ -108,7 +108,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>It is a reboot of <em>Statistical Models with R: An Introduction with Sparrows</em>, drafted in 2009–2010 (the recovered files are dated November 2009 to March 2010) and never published. What survives from that draft is the shape: an office hour rather than a lecture, a small cast who each own an organism, real birds off a real island, and the habit of leaving the mistakes in. What changed is the engine and the language, and the fact that every number in this version comes from code that ran, not from a keyboard.</p>
 <hr>
 <h2 id="why-one-engine" class="anchored">Why one engine</h2>
-<p>The book is not organised by topic. It is organised by <strong>constants</strong>. Each rung frees one thing the rung before it held fixed: the shape of the noise, then the spread, then the correlation between rows, then the slope, then the assumption that groups are independent of one another. The diagram on <a href="../index.html">the landing page</a> draws the whole climb; it is the one picture worth looking at before you start, and I will not redraw it here.</p>
+<p>The book is not organised by topic. It is organised by <strong>constants</strong>. Each rung frees one thing the rung before it held fixed: the shape of the noise, then the spread, then the correlation between rows, then the slope, then the assumption that groups are independent of one another. The diagram below draws the whole climb; it is the one picture worth looking at before you start.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img src="img/the-climb.svg" class="climb img-fluid"></p>
+<figcaption>The climb — thirteen rungs, one engine, each rung freeing one thing the rung before it held fixed.</figcaption>
+</figure>
+</div>
+<p>The same drawing is linked from <a href="../index.html">the landing page</a>, if that is where you arrived first.</p>
 <p>That structure is the reason for one engine. If the software changes at the same moment the model does, you cannot tell which of the two moved the number. A chapter that fits a random intercept (a separate baseline for each group of rows) in a new package and reports a different standard error — the uncertainty attached to an estimate — has taught you nothing, because you cannot say whether the recipe that turns data into the number (the estimator) changed, or only the printing did. Holding the engine still is what makes the model the only moving part.</p>
 <p>There is a second reason, less tidy and more honest. The climb needs models that can allow for unequal effort or exposure per row (offsets), that let the scatter itself be modelled rather than fixed (dispersion), that can be told how the groups in the data are related to one another (structured random effects), and that end in a heritability — how much of a trait’s variation is inherited — all done the same way, from the data alone with no prior beliefs fed in (frequentist), all in one frame. That combination is awkward to assemble in Julia today out of the general-purpose packages, which is precisely why these two engines exist. A book that stitched five packages together would spend its teaching time on the stitching.</p>
 <p><strong>The cost, stated plainly.</strong> You will finish this book knowing this engine, not the ecosystem. <code>lme4</code>, the R package most people use for mixed models — models that carry a random effect, such as the random intercept above, alongside the ordinary predictors — is what your co-authors use and what the referee will ask about; <code>GLM.jl</code> and <code>MixedModels.jl</code>, the usual Julia packages for these models, are what a Julia colleague reaches for first. Here they appear only in comparison boxes, never as the taught path. That is a real loss and it was weighed before it was accepted.</p>
@@ -198,7 +205,7 @@ What it is not is a surprise on page two hundred.</p></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>engine   : DRM.jl 0.7.1
 snapshot : 4d9248f88
-built    : 2026-09-07</code></pre>
+built    : 2026-09-08</code></pre>
 </div>
 </div>
 <div class="line"><span class="who eddie">Eddie</span><p>You could have typed all three of those.</p></div>
@@ -206,7 +213,7 @@ built    : 2026-09-07</code></pre>
 was not. Nothing in that block is typed: the version came from the
 package that is loaded, the snapshot label came from a file on disk, and
 the date is the date. If you are reading a copy of this page built some
-later day, it says so itself — this one was built on 2026-09-07, running
+later day, it says so itself — this one was built on 2026-09-08, running
 DRM.jl 0.7.1, engine snapshot 4d9248f88.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>And if the engine had not loaded?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Then there would be no page. That is the whole design.</p></div>
