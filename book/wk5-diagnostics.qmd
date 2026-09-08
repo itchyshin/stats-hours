@@ -309,7 +309,7 @@ q95_se = std([quantile(rand(rng_q, null_out, length(null_out)), 0.95) for _ in 1
 
 ```{julia}
 #| label: fig-null-envelope
-#| fig-cap: "The two null distributions for the same count — points outside the worm plot's ±2SE envelope, over 2000 simulated worlds each. Each panel keeps its own x-scale, on purpose: forcing them onto one shared axis squashes the correct null flat against the naive one's much longer tail, and the axis itself is then the first thing worth reading — one runs out past a hundred, the other barely past ten. The dashed line in each panel is that null's own 95th percentile. It is the ratio of those two dashed lines, not either alone, that is the fivefold gap the prose names."
+#| fig-cap: "The two null distributions for the same count — points outside the worm plot's ±2SE envelope, over 2000 simulated worlds each. Each panel keeps its own x-scale, on purpose: forcing them onto one shared axis squashes the correct null flat against the naive one's much longer tail, and the axis itself is then the first thing worth reading — one runs out past a hundred, the other stops well short of it. The dashed line in each panel is that null's own 95th percentile. It is the ratio of those two dashed lines, not either alone, that is the fivefold gap the prose names."
 fig = Figure(size = (700, 320))
 for (j, (nm, v)) in enumerate((("no model, normal samples", naive_out),
                                 ("simulate -> refit -> residuals", null_out)))

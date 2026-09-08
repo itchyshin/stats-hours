@@ -792,7 +792,7 @@ cover1 = count(i -> w1.lo[i] <= truth1 <= w1.hi[i], 1:n_rep) / n_rep
 
 ```{julia}
 #| label: fig-reml-price
-#| fig-cap: "World 1 (genes only, no brood): the mean estimated h² by maximum likelihood and by REML across the same 500 simulated datasets, each with a 95% interval for that MEAN (±z × its own Monte Carlo SE — an interval for how well the average is known, not for a single dataset). The dashed line is the truth used to simulate the data. Both intervals are far narrower than the gap between them and the truth: a measured, repeatable shift, not Monte Carlo noise."
+#| fig-cap: "World 1 (genes only, no brood): the mean estimated h² by maximum likelihood and by REML across the same 500 simulated datasets, each with a 95% interval for that MEAN (±z × its own Monte Carlo SE — an interval for how well the average is known, not for a single dataset). The dashed line is the truth used to simulate the data. ML's interval sits clear of the truth, which is the point: its shift is measured and repeatable, not Monte Carlo noise. REML's interval still covers the truth, as it should."
 mc_ci(v) = (mean(v) - z95 * mcse(v), mean(v) + z95 * mcse(v))
 ci_ml, ci_reml = mc_ci(w1.est), mc_ci(w1.est_reml)
 col_ml, col_reml = Makie.wong_colors()[1], Makie.wong_colors()[2]
