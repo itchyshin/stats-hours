@@ -1,0 +1,36 @@
+---
+title: "Stats Hours with Itchy"
+---
+
+# Stats Hours with Itchy
+
+An open-access statistics book that teaches the whole climb — from the straight line through a cloud of
+points to models that know which animals are related, and how much of a trait is inherited
+(heritability) — **in one engine**, one piece of fitting software used for every model in the
+book: [`drmTMB`](https://github.com/itchyshin/drmTMB) in R and
+[`DRM.jl`](https://github.com/itchyshin/DRM.jl) in Julia. It is a reboot of *Statistical Models with
+R: An Introduction with Sparrows* (drafted 2009–2010, never published), keeping its office-hours cast, its
+running organisms, and its habit of leaving the mistakes in.
+
+![The climb — thirteen rungs, one engine, each rung freeing one thing the rung before it held fixed.](book/img/the-climb.svg){.climb}
+
+## Read the chapters
+
+<ul class="chapters">
+  <li><a href="book/wk0-preface.html">Preface — why one engine, and what this book will not cover</a><span class="status">Draft</span></li>
+  <li><a href="book/wk1-base-camp.html">Class 1 — base camp</a><span class="status">Draft</span></li>
+  <li><a href="book/wk2-linear-models.html">Class 2 — one line through a cloud of sparrows</a><span class="status">Draft</span></li>
+  <li><a href="book/wk3-glms.html">Class 3 — the shape of the noise</a><span class="status">Draft</span></li>
+  <li><a href="book/wk4-overdispersion.html">Class 4 — when the family lies about the spread</a><span class="status">Draft</span></li>
+  <li><a href="book/wk5-diagnostics.html">Class 5 — is the model any good?</a><span class="status">Draft</span></li>
+  <li><a href="book/wk6-random-intercepts.html">Class 6 — rows are not strangers</a><span class="status">Draft</span></li>
+  <li><a href="book/wk7-random-slopes.html">Class 7 — not everyone shares a slope</a><span class="status">Draft</span></li>
+  <li><a href="book/wk8-reml-vs-ml.html">Class 8 — same model, two answers</a><span class="status">Draft</span></li>
+  <li><a href="book/wk9-glmms.html">Class 9 — both at once</a><span class="status">Draft</span></li>
+  <li><a href="book/wk10-relatedness.html">Class 10 — not even the groups are strangers</a><span class="status">Draft</span></li>
+  <li><a href="book/appendix-a-simulation.html">Appendix A — simulation as a way of thinking</a><span class="status">Draft</span></li>
+  <li><a href="book/wk13-coda.html">Coda — where you go next</a><span class="status">Draft</span></li>
+</ul>
+
+<p>All ten classes planned for version 1, with Appendix A, the preface and the coda. Every number and figure on these pages was produced by running the code shown beside it, and every chapter has been read by a statistician whose job was to find fault with it. Everything else so far is a plan; see
+<a href="https://github.com/itchyshin/stats-hours/blob/main/docs/the-climb.md">the full outline</a>.</p>

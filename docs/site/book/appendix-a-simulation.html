@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Appendix A: simulation as a way of thinking – Stats Hours with Itchy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-html-5276476b5bdb9cfe1f92c505466e0bf3.min.css" rel="stylesheet" append-hash="true" data-mode="light">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../tools/theme/stats-hours.css">
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">Appendix A: simulation as a way of thinking</h1>
+
+</header>
+
+
+<header class="mast">
+  <div class="mast-inner">
+    <p class="kicker">
+      <span><a href="../index.html">Stats Hours with Itchy</a></span><span class="sep">/</span>
+      <span>Appendix A</span><span class="sep">/</span>
+      <span>Draft</span>
+    </p>
+    <h1>Appendix A: simulation as a way of thinking</h1>
+    <p class="deck">The thread every chapter has been pulling since Class 2 without naming it: draw new data from what the model claims, and watch how much an estimate can wander before you decide to trust it.</p>
+    <div class="status">
+      <span class="tag">Draft</span>
+      <p>All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft.</p>
+    </div>
+    <p class="meta">
+      <b>Engines</b> DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Provenance</b> Every code block and printed result below was run, start to finish, when this page was made; nothing is typed from memory.<br>
+      <b>Caveat</b> From the second beat onward the data are the real 2012 sparrows (data/2012/MBodySize.csv, 171 house sparrows, Lundy Island, provenance in data/2012/README.md). The opening generator is a simulated flock of sparrows built to look like that file; it is here as the appendix’s first worked example of what a seed does.
+    </p>
+  </div>
+</header>
+
+<div class="wrap">
+<blockquote>
+<p><strong>A note on what this appendix is.</strong> It is not a rung. It does not free a constant the way each class does. It gathers a thread that runs through every class from Class 2 on, where the “Julia stuff” ends with one cell that draws new data from the fitted model and refits it. Here the thread gets a room of its own: what a seed actually promises, what it means to simulate what a model claims, what “coverage” means as a property you can check by counting, and the parametric bootstrap as an interval built the same way.</p>
+</blockquote>
+<hr>
+<h2 id="objectives" class="anchored">Objectives</h2>
+<p>By the end of this appendix you should be able to:</p>
+<ol type="1">
+<li>Say what a random seed actually promises, and what happens the moment you change one digit of it.</li>
+<li>Draw new data from a fitted model, refit, and watch a coefficient wander, without mistaking the wander for noise you introduced by hand.</li>
+<li>Define coverage as a property of a procedure, not of one interval, and attach a Monte Carlo standard error to any coverage fraction you report.</li>
+<li>Build a parametric bootstrap interval from a set of refits, and say in one sentence when it and the ordinary estimate-plus-or-minus-two-standard-errors interval part company.</li>
+</ol>
+<hr>
+<h2 id="the-class" class="anchored">The class</h2>
+<p class="scene">Itchy’s office, later in the week. TOTO has a laptop and a mug that says
+“p &lt; 0.05 or it didn’t happen”, which nobody has had the heart to
+correct. MOMO is reading something on her phone. EDDIE is standing,
+because Eddie always stands.</p>
+<div class="line"><span class="who itchy">Itchy</span><p>Before the real sparrows, I want a flock I built myself, because a flock
+you built is the one place you know the truth. Here is a recipe for one
+hundred and sixteen sparrows: wing from tarsus and sex, plus noise.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Made-up birds.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Made-up on purpose, and made-up in a way I can repeat, which is the
+point of the next ten minutes. It is where a promise gets made that the
+rest of this appendix is about keeping, or breaking on purpose.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Why one you can repeat?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Watch.</p></div>
+<h3 id="a-seed-is-a-promise" class="anchored">A seed is a promise</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Here is the recipe. The first line, <code>Random.seed!(316)</code>, is
+the one to keep your eye on. Watch what comes back.</p></div>
+<div id="cell-sparrow-generator-a" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">316</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fl">116</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sex    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>tarsus <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>wing   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>flock_a <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus, digits <span class="op">=</span> <span class="fl">2</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(flock_a, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator-a" class="cell-output cell-output-display" data-execution_count="3">
+<div><div style="float: left;"><span>3×4 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">BirdID</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Sex</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Tarsus</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Wing</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Int64">Int64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">male</td>
+<td style="text-align: right;">18.51</td>
+<td style="text-align: right;">80.6</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">male</td>
+<td style="text-align: right;">18.49</td>
+<td style="text-align: right;">79.7</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">female</td>
+<td style="text-align: right;">18.12</td>
+<td style="text-align: right;">81.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>Those are the made-up birds.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Those are the made-up birds, and here is the point of them. Without
+looking at the first run, I am going to run the identical code again.</p></div>
+<div id="cell-sparrow-generator-b" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">316</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sex2    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>tarsus2 <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex2 <span class="op">.==</span> <span class="st">"male"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>wing2   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus2 <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex2 <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>flock_b <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex2,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus2, digits <span class="op">=</span> <span class="fl">2</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing2,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_b.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator-b" class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>true</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>true. Every one of 116 birds, identical to the decimal place. The first
+bird’s wing was 80.6 mm both times. That is the whole promise a seed
+makes: not “random”, but “reproducible on purpose”. Anyone with this
+file, this Julia version and this line gets my exact flock back,
+forever.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So it is not really random.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is exactly as random as a shuffled deck someone photographed before
+they shuffled it. The shuffle is real. The photograph means we can all
+argue about the same deck. Now watch me break the promise on purpose, by
+changing one digit.</p></div>
+<div id="cell-sparrow-generator-c" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">317</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sex3    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>tarsus3 <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex3 <span class="op">.==</span> <span class="st">"male"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>wing3   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus3 <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex3 <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>flock_c <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex3,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus3, digits <span class="op">=</span> <span class="fl">2</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing3,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_c.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator-c" class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>false</code></pre>
+</div>
+</div>
+<div class="line"><span class="who eddie">Eddie</span><p><code>316</code> to <code>317</code>. One digit.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>One digit, and false. The first bird went from 80.6 mm to 77.5 mm, and
+every bird after it is a different bird too, not a slightly adjusted
+version of the old one. There is no such thing as “close” here. A seed
+either reproduces a flock exactly, or it hands you a flock that shares
+nothing with the last one except the recipe that built it. That is the
+whole of what a seed is, and it is the fact this entire appendix depends
+on: I am about to draw two hundred flocks on purpose, and I need every
+one of you to be able to get the same two hundred back.</p></div>
+<hr>
+<h2 id="simulate-what-the-model-claims" class="anchored">Simulate what the model claims</h2>
+<div class="line"><span class="who itchy">Itchy</span><p>Enough of the made-up birds. Load the real ones.</p></div>
+<div id="cell-load-real-data" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(sparrows)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="load-real-data" class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>171</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>This is <code>fit1</code> from Class 2.</p></div>
+<div id="cell-fit-appA" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fit_appA <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>true_slope <span class="op">=</span> <span class="fu">coef</span>(fit_appA, <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftable</span>(fit_appA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-appa" class="cell-output cell-output-display cell-output-markdown" data-execution_count="11">
+<table class="caption-top">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 8%">
+<col style="width: 14%">
+<col style="width: 13%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: right;">Std.Error</th>
+<th style="text-align: right;">z</th>
+<th style="text-align: left;">Pr(&gt;|z|)</th>
+<th style="text-align: left;">Lower 95%</th>
+<th style="text-align: right;">Upper 95%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">mu: (Intercept)</td>
+<td style="text-align: right;">55.4569</td>
+<td style="text-align: right;">3.56377</td>
+<td style="text-align: right;">15.56</td>
+<td style="text-align: left;">&lt;1e-53</td>
+<td style="text-align: left;">48.472</td>
+<td style="text-align: right;">62.4417</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">mu: Tarsus</td>
+<td style="text-align: right;">1.20311</td>
+<td style="text-align: right;">0.191294</td>
+<td style="text-align: right;">6.29</td>
+<td style="text-align: left;">&lt;1e-09</td>
+<td style="text-align: left;">0.828182</td>
+<td style="text-align: right;">1.57804</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">sigma: (Intercept)</td>
+<td style="text-align: right;">0.631739</td>
+<td style="text-align: right;">0.0540738</td>
+<td style="text-align: right;">11.68</td>
+<td style="text-align: left;">&lt;1e-30</td>
+<td style="text-align: left;">0.525757</td>
+<td style="text-align: right;">0.737722</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The tarsus slope is 1.203. In Class 2 we treated that as the answer and
+moved on. Here I want to treat it as a claim, and ask the model to
+defend it. If the model is right about how these birds were generated,
+and I draw brand-new birds from that same claim, refitting should give
+me back something close to 1.203, wobbling by an amount the model itself
+can tell me about.</p></div>
+<div id="cell-refit-200" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">100100</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit_appA; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_once</span>(y)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> y)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    ci <span class="op">=</span> <span class="fu">confint</span>(f)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    (slope <span class="op">=</span> <span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>], lower <span class="op">=</span> ci[<span class="fl">2</span>].lower, upper <span class="op">=</span> ci[<span class="fl">2</span>].upper)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>refits <span class="op">=</span> <span class="fu">with_logger</span>(<span class="fu">NullLogger</span>()) <span class="cf">do</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    [<span class="fu">refit_once</span>(sims[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [r.slope for r <span class="kw">in</span> refits]</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>los    <span class="op">=</span> [r.lower for r <span class="kw">in</span> refits]</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>his    <span class="op">=</span> [r.upper for r <span class="kw">in</span> refits]</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(slopes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="refit-200" class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>200</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>Two hundred fits from two hundred flocks that do not exist.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two hundred flocks the model itself says could have existed, which is a
+different thing from not existing. Mean of the refitted slopes: 1.188.
+Spread of the refitted slopes: 0.196. That spread is not a mistake and
+not noise I introduced. It is what “uncertainty in a slope” actually
+looks like when you stop trusting one number and watch two hundred.</p></div>
+<div id="cell-fig-slope-wander" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig1 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig1[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"refitted tarsus slope"</span>, ylabel <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the slope, redrawn 200 times"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax1, slopes; bins <span class="op">=</span> <span class="fl">25</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax1, [true_slope]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"fitted slope"</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax1; position <span class="op">=</span> <span class="op">:</span>rt)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>fig1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div id="fig-slope-wander" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-slope-wander-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="appendix-a-simulation_files/figure-html/fig-slope-wander-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-slope-wander-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Tarsus slope refitted on 200 parametric draws from the fitted model; vertical line at the original fitted slope.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who eddie">Eddie</span><p>It is centred on the real fit.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It should be. The real fit <em>is</em> the generator. That is the whole
+trick of “simulate what the model claims”: you are not testing whether
+the model is correct about the birds, you are testing whether the model
+is being consistent with itself, which is a smaller claim and a useful
+one on its own.</p></div>
+<h3 id="the-trap-once" class="anchored">The trap, once</h3>
+<div class="line"><span class="who toto">Toto</span><p><em>(comparing numbers)</em> The raw spread of one simulated column does
+not match σ.</p></div>
+<div id="cell-subtraction-trap" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>raw_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>dev_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>dev_all  <span class="op">=</span> [<span class="fu">std</span>(sims[<span class="op">:</span>, k] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA)) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>dev_mean <span class="op">=</span> <span class="fu">mean</span>(dev_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="subtraction-trap" class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>1.8793004431400513</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>σ is 1.881. The raw spread of that one simulated column is 2.286, which
+looks nothing like it, and if you stopped there you would conclude the
+model cannot reproduce its own noise. It can. Each simulated column
+still carries <code>fit_appA</code>’s fitted mean, tarsus and all, so
+its raw spread is close to the <em>raw</em> wing spread, not σ. Subtract
+the fitted mean first, and only then are you looking at noise alone:
+2.124. That is not σ to the decimal place, and it should not be: it is
+one column of two hundred, and a single column’s spread wobbles around σ
+by chance. Do it for all two hundred and average, and it lands on 1.879,
+a hair from σ and no longer at the mercy of which column you happened to
+pick. One subtraction, one trap avoided, and I want you to feel where it
+bites: it looks exactly like a broken model until you remember what a
+simulated column actually contains.</p></div>
+<hr>
+<h2 id="coverage-as-a-check-on-an-interval" class="anchored">Coverage as a check on an interval</h2>
+<div class="line"><span class="who momo">Momo</span><p>Every refit came with a confidence interval. Two hundred of them,
+sitting there unused.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Not unused. About to earn their keep. A 95 percent interval is usually
+described to students as “we are 95 percent confident the true value is
+in here”, which is not what it means and cannot be checked from one
+interval alone. Here is what it actually claims, and here is why we can
+check it: if I build this same kind of interval on flock after flock
+drawn from a known truth, the <em>procedure</em> should catch that truth
+about 95 times in 100. Not this interval. The procedure.</p></div>
+<blockquote>
+<p class="scene">coverage = (1/R) Σ 1[low_r ≤ β ≤ high_r], SE(coverage) = sqrt( coverage
+· (1 − coverage) / R )</p>
+</blockquote>
+<div class="line"><span class="who itchy">Itchy</span><p><em>R</em> replicates, one indicator per replicate for “did this
+interval catch the true slope”, averaged. We know the true slope here,
+because we chose it: it is <code>fit_appA</code>’s own slope, the thing
+every one of the two hundred flocks was drawn to be consistent with. The
+interval <code>confint</code> gives you is the plain kind, the estimate
+plus or minus about two standard errors; statisticians call it a Wald
+interval, that is the name you will meet in other people’s methods
+sections, and we will meet a rival to it in a minute. “Nominal” in the
+printout is the rate the interval claims for itself.</p></div>
+<div id="coverage-check" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>covered <span class="op">=</span> [(lo <span class="op">&lt;=</span> true_slope <span class="op">&lt;=</span> hi) for (lo, hi) <span class="kw">in</span> <span class="fu">zip</span>(los, his)]</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>nrep <span class="op">=</span> <span class="fu">length</span>(covered)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>coverage_rate <span class="op">=</span> <span class="fu">mean</span>(covered)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>mcse_cov <span class="op">=</span> <span class="fu">sqrt</span>(coverage_rate <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> coverage_rate) <span class="op">/</span> nrep)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"replicates                         : %d</span><span class="sc">\n</span><span class="st">"</span>, nrep)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval covers slope : %.4f  +/- %.4f  (nominal: 0.9500)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        coverage_rate, mcse_cov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>replicates                         : 200
+plain (Wald) interval covers slope : 0.9350  +/- 0.0174  (nominal: 0.9500)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>0.935. That is not <code>0.95</code>.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is not exactly <code>0.95</code>, and it should not be. That
+plus-or-minus is the Monte Carlo standard error: the wobble in the
+fraction that comes only from having used two hundred flocks rather than
+infinitely many. 0.935 with a Monte Carlo standard error of 0.0174 is
+what “consistent with 95 percent” looks like at two hundred replicates.
+Report a coverage fraction without its own standard error and you have
+handed someone a number with no way to tell noise from a real problem.
+That is a rule for the rest of this course, not only for today.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>So a coverage study is just this, run at the scale of a real question.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Exactly this, at the scale of a real question, and usually asking “does
+the interval still cover when I change something about the design”, not
+“does it cover at all”. The rival to it I promised is next.</p></div>
+<hr>
+<h2 id="the-parametric-bootstrap" class="anchored">The parametric bootstrap</h2>
+<div class="line"><span class="who itchy">Itchy</span><p>The two hundred refits are also, quietly, an interval of their own. Not
+from the standard errors this time; from where the estimates themselves
+landed: the value that two and a half percent of the refitted slopes
+fall below, and the value that two and a half percent fall above. That
+is a bootstrap interval, and “parametric” because the new flocks came
+from the fitted model rather than from reshuffling the real rows.</p></div>
+<blockquote>
+<p class="scene">bootstrap interval = [ Q₀.₀₂₅(slope₁, …, slope_R), Q₀.₉₇₅(slope₁, …,
+slope_R) ]</p>
+</blockquote>
+<div id="bootstrap-ci" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>boot_lo, boot_hi <span class="op">=</span> <span class="fu">quantile</span>(slopes, [<span class="fl">0.025</span>, <span class="fl">0.975</span>])</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>wald <span class="op">=</span> <span class="fu">confint</span>(fit_appA)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>wald_lo, wald_hi <span class="op">=</span> wald[<span class="fl">2</span>].lower, wald[<span class="fl">2</span>].upper</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, wald_lo, wald_hi)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bootstrap interval    : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, boot_lo, boot_hi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>plain (Wald) interval : [0.8282, 1.5780]
+bootstrap interval    : [0.8329, 1.5728]</code></pre>
+</div>
+</div>
+<div id="cell-fig-wald-vs-boot" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fig2 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig2[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"Wald"</span>, <span class="st">"bootstrap"</span>]),</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"tarsus slope"</span>, title <span class="op">=</span> <span class="st">"two ways to an interval"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax2, [<span class="fl">1</span>], [wald_lo], [wald_hi]; whiskerwidth <span class="op">=</span> <span class="fl">12</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>], [true_slope]; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax2, [<span class="fl">2</span>], [boot_lo], [boot_hi]; whiskerwidth <span class="op">=</span> <span class="fl">12</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">2</span>], [<span class="fu">mean</span>(slopes)]; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>fig2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<div id="fig-wald-vs-boot" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-wald-vs-boot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="appendix-a-simulation_files/figure-html/fig-wald-vs-boot-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wald-vs-boot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Wald interval on the real fit against the parametric-bootstrap interval, both from the same 200 refits.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>Wald gives 0.828 to 1.578. Bootstrap gives 0.833 to 1.573. Those are
+almost the same interval.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They are, here, and that agreement is itself the finding, not a
+formality on the way to a more interesting one. One honest sentence, and
+hold on to it: the two intervals agree closely exactly when the thing
+being estimated is far from any boundary and its sampling distribution —
+the spread of values the estimate would take if you repeated the study
+over and over — is close to symmetric, the way a slope from a hundred
+and seventy-one birds is; they pull apart hardest for a parameter that
+is skewed, or pinned against a wall it cannot cross, and that is not a
+hypothetical case; it is what Class 8 asks you to estimate.</p></div>
+<hr>
+<h2 id="where-this-thread-earns-its-keep" class="anchored">Where this thread earns its keep</h2>
+<div class="line"><span class="who toto">Toto</span><p>So all of this was practice.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>All of this was practice on a parameter with nowhere awkward to go. A
+slope can be negative, positive, anything on the real line, and its
+sampling distribution knows it. A variance component cannot be negative,
+and when the truth sits at or near zero the estimate piles up exactly on
+the boundary, and the naive test built for the easy case gets the wrong
+answer with total confidence. You already have the tool for that. It is
+the function <code>simulate</code> called on a fitted model, refit two
+hundred or two thousand times, and counted, exactly as above. Class 8
+runs precisely this procedure on a variance component instead of a
+slope, and that is where a naive test would have quietly lied to you,
+and where the correction earns a whole class instead of an appendix.</p></div>
+<div class="line"><span class="who momo">Momo</span><p><em>(closing the laptop)</em> A seed, a refit loop and a count. That is
+most of what statistics turns out to be.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Most of what <em>checking</em> statistics turns out to be, which is not
+the same claim, but it is the one I actually believe.</p></div>
+<hr>
+<h2 id="summary" class="anchored">Summary</h2>
+<h3 id="stats-stuff" class="anchored">Stats stuff</h3>
+<ul>
+<li><strong>A seed is a promise, not an apology.</strong> <code>Random.seed!(k)</code> fixes the sequence the computer’s random-number recipe produces (it is a recipe, which is why it can be repeated); the same seed on the same code reproduces the same data exactly, anywhere, forever. Change one digit of the seed and every downstream number changes, with nothing “close” about the result.</li>
+<li><strong>Simulate what the model claims.</strong> Treat the fitted model as a generator of new data, draw from it, and refit. This checks the model’s internal consistency, not whether it is the correct model for the world; a coefficient’s spread across refits is what “uncertainty in that coefficient” concretely looks like.</li>
+<li><strong>The fitted-subtraction trap.</strong> A simulated response still carries the model’s fitted mean structure. Its raw spread reflects that mean structure, not σ alone; subtract the fitted values first before comparing spreads, or a correct model will look broken.</li>
+<li><strong>Coverage.</strong> A property of a <em>procedure</em>, checked by repetition: across many draws from a known truth, what fraction of the resulting intervals actually contain that truth. Never report a coverage fraction without its own Monte Carlo standard error, <code>sqrt(p(1 − p)/R)</code>.</li>
+<li><strong>The parametric bootstrap.</strong> An interval built from where a set of refits actually land (empirical quantiles of the estimate), rather than from a standard error and a normal reference. It agrees closely with a Wald interval when the estimator is far from a boundary and roughly symmetric, and diverges from it when the estimator is not, which is exactly the situation Class 8’s variance component is in.</li>
+</ul>
+<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<ul>
+<li><code>Random.seed!(k)</code>: fixes the global random-number generator’s state. Call it once, immediately before the code whose randomness you want reproducible. The book’s own code, in every class, does not touch the global generator at all — they build an explicit <code>MersenneTwister(k)</code> and pass it as <code>rng</code> to <code>rand</code> and <code>simulate</code>, so a cell’s reproducibility does not depend on what ran before it.</li>
+<li><code>rand(collection, n)</code>: <code>n</code> draws with replacement from a collection, here <code>["female", "male"]</code>.</li>
+<li><code>simulate(fit; nsim = k)</code> (the keyword is spelled as in R): <code>k</code> fresh response draws from a fitted model, <code>nobs × k</code>, conditional on the fitted mean and dispersion structure.</li>
+<li><code>fitted(fit)</code>, <code>sigma(fit)</code>: the fitted mean vector and the residual scale, needed to check a simulated column against the model it came from.</li>
+<li><code>confint(fit)</code>: per-parameter <code>(lower, upper)</code> named tuples; index by parameter position within the relevant sub-model.</li>
+<li><code>with_logger(NullLogger()) do ... end</code>: run a block, here two hundred refits, without the repeated convergence chatter each one would otherwise print.</li>
+<li><code>mean</code>, <code>std</code>, <code>quantile(v, [p1, p2])</code>: from <code>Statistics</code>, the building blocks of both the coverage count and the bootstrap interval.</li>
+<li><code>@printf</code>: from <code>Printf</code>, for reporting a rate or an interval with a stated number of decimal places rather than whatever Julia’s default show happens to choose.</li>
+</ul>
+<hr>
+<h2 id="further-reading" class="anchored">Further reading</h2>
+<p class="aside">Graded by depth.</p>
+<ol type="1">
+<li><strong>Sandve, G. K., Nekrutenko, A., Taylor, J. &amp; Hovig, E. (2013) “Ten simple rules for reproducible computational research”, <em>PLoS Computational Biology</em> 9(10):e1003285.</strong> Start here, not with the mathematics. Rule 1 is essentially “for every result, keep the seed”, which is the whole first half of this appendix in one sentence written for a much wider audience than statisticians.</li>
+<li><strong>Efron, B. (1979) “Bootstrap methods: another look at the jackknife”, <em>The Annals of Statistics</em> 7(1).</strong> The paper that invented the idea this appendix’s fourth beat uses: build an interval from where resampled or resimulated estimates actually land, rather than from a formula and a normal reference. Read it for the original motivating examples, which are smaller and stranger than the method’s later reputation suggests.</li>
+<li><strong>Davison, A. C. &amp; Hinkley, D. V. (1997) <em>Bootstrap Methods and Their Application</em>, Cambridge University Press.</strong> The standard book-length treatment, including the parametric case used here (resampling from a fitted model rather than from the data directly) and a careful account of when a bootstrap interval and a Wald interval should be expected to disagree.</li>
+<li><strong>Morris, T. P., White, I. R. &amp; Crowther, M. J. (2019) “Using simulation studies to evaluate statistical methods”, <em>Statistics in Medicine</em> 38(11):2074-2102.</strong> How to turn “simulate and refit” from a demonstration into a real study: what to vary, what to record, and how to report a coverage fraction properly, with its Monte Carlo standard error, every time.</li>
+</ol>
+<hr>
+<h2 id="exercises" class="anchored">Exercises</h2>
+<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has read this appendix and nothing past it.</p>
+<ol type="1">
+<li><p><strong>Break the promise carefully.</strong> Run the appendix’s sparrow generator with <code>Random.seed!(316)</code> and again with <code>Random.seed!(3160)</code>. Report whether the two flocks match. Then explain in one sentence why “0” appended to a seed is just as different a seed as any other digit, even though it looks like a small change.</p></li>
+<li><p><strong>Simulate your own model.</strong> Fit <code>Wing ~ Tarsus + Sex</code> from Class 2 (<code>fit2</code>), simulate 200 new flocks from it, and refit each. Report the mean and spread of the refitted <code>Sex</code> coefficient. Is the spread bigger or smaller than the tarsus slope’s spread in this appendix, and can you say why using the standard errors Class 2 already printed?</p></li>
+<li><p><strong>Coverage at a different level.</strong> Using the same 200 refits from this appendix, compute the coverage of the 80 percent interval instead of the 95 percent one (you will need <code>confint</code> at a different level, or to build the interval from the standard error and a different critical value by hand). Report the coverage with its Monte Carlo standard error and say whether it is closer to nominal or further from it than the 95 percent case, and whether that surprises you.</p></li>
+<li><p><strong>Bootstrap versus Wald, on purpose.</strong> Using <code>fit2</code> from Class 2, simulate and refit 200 times, then compare the Wald and bootstrap intervals for the <code>Sex</code> coefficient, the way this appendix did for the tarsus slope. Report both intervals. Are they closer together or further apart than the tarsus-slope pair, and does that match the “far from a boundary, roughly symmetric” rule this appendix gave for when the two should agree?</p></li>
+<li><p><strong>A seed of your own choosing.</strong> Pick a seed using any rule you like (a birthday, a phone number, the current year), simulate 200 flocks from <code>fit_appA</code>, and report the coverage of the 95 percent interval you get. Then repeat with a different seed. Do the two coverage fractions agree to within their Monte Carlo standard errors? Write one sentence about what would have to be true for them not to.</p></li>
+</ol>
+
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
+
+</div>
+<nav class="chapter-nav" aria-label="Chapter">
+  <a class="chapter-nav-link prev" href="wk10-relatedness.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 10 · Not even the groups are strangers</span></a><a class="chapter-nav-link next" href="wk13-coda.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Coda · Where you go next</span></a>
+</nav>
+<footer>
+  Stats Hours with Itchy · Appendix A of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
+  Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
+</footer>
+</div>
+
+<script>
+// Highlight REPL prompts and error lines without shipping a syntax highlighter.
+document.querySelectorAll('pre code').forEach(function (block) {
+  if (block.querySelector('span')) return; // hand-marked blocks stay as authored
+  var html = block.innerHTML
+    .replace(/^(julia&gt; )/gm, '<span class="p">$1</span>')
+    .replace(/^(ERROR: .*)$/gm, '<span class="err">$1</span>');
+  block.innerHTML = html;
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+  tabsets.forEach(function(tabset) {
+    const tabby = new Tabby('#' + tabset.id);
+  });
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+
+
+
+
+</body></html>

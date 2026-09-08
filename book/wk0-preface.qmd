@@ -1,0 +1,269 @@
+---
+title: "Why one engine, and what this book will not cover"
+book: Stats Hours with Itchy
+chapter: 0
+kicker: Preface
+type: book-chapter
+status: draft
+created: 2026-09-07
+engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+tags: [book, preface, scope, one-engine, reproducibility, DRM.jl]
+deck: "One engine for the whole climb, a fence around two subjects that belong in a different book, and a rule about numbers: nothing on a page is typed in — every one of them comes from code you can see, run on the spot."
+status_tag: Draft
+status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. Every number and figure on this page comes from running that code when the site was built, not from typing. The prose is still being revised."
+provenance: "One short block of code runs on this page when the site is built. It asks the software which version is loaded, reads the exact engine snapshot every chapter uses from a file kept with the book, and prints today's date; none of those three is typed by hand. Everything else on the page is prose. The four references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
+caveat: "A preface describes a book that is not finished. The climb is thirteen rungs; ten of them, plus this preface and a coda, make up version 1, and all ten are written and their code runs. Where this page says what a rung does, it is describing the plan for the whole climb (linked from the landing page), not necessarily a chapter you can read today."
+footer_note: "Stats Hours with Itchy · Preface · the preface to a planned 13 rungs, ten in version 1, plus a coda · draft; code last run 2026-09-07"
+---
+
+# Why one engine, and what this book will not cover
+
+This is a statistics book with one engine in it.
+
+Not one language — there are two, R and Julia — but one *engine*: a single pair of twinned
+packages, [`drmTMB`](https://github.com/itchyshin/drmTMB) in R and
+[`DRM.jl`](https://github.com/itchyshin/DRM.jl) in Julia, that fit every model from the first
+straight line to the last relatedness matrix — a table of how related every pair of animals is.
+Nothing is swapped out halfway. When you reach the
+chapter where rows stop being strangers, you do not also learn a new package, a new formula
+grammar and a new summary layout on the same morning.
+
+It is a reboot of *Statistical Models with R: An Introduction with Sparrows*, drafted in 2009–2010 (the recovered files are dated November 2009 to March 2010) and
+never published. What survives from that draft is the shape: an office hour rather than a lecture,
+a small cast who each own an organism, real birds off a real island, and the habit of leaving the
+mistakes in. What changed is the engine and the language, and the fact that every number in this version
+comes from code that ran, not from a keyboard.
+
+---
+
+## Why one engine
+
+The book is not organised by topic. It is organised by **constants**. Each rung frees one thing
+the rung before it held fixed: the shape of the noise, then the spread, then the correlation
+between rows, then the slope, then the assumption that groups are independent of one another. The
+diagram on [the landing page](../index.html) draws the whole climb; it is the one picture worth looking at before
+you start, and I will not redraw it here.
+
+That structure is the reason for one engine. If the software changes at the same moment the model
+does, you cannot tell which of the two moved the number. A chapter that fits a random intercept (a
+separate baseline for each group of rows) in a new package and reports a different standard error —
+the uncertainty attached to an estimate — has taught you nothing, because you cannot say whether the
+recipe that turns data into the number (the estimator) changed, or only the printing did. Holding the engine still is what makes
+the model the only moving part.
+
+There is a second reason, less tidy and more honest. The climb needs models that can allow for
+unequal effort or exposure per row (offsets), that let the scatter itself be modelled rather than
+fixed (dispersion), that can be told how the groups in the data are related to one another
+(structured random effects), and that end in a heritability — how much of a trait's variation is
+inherited — all done the same way, from the data alone with no prior beliefs fed in (frequentist),
+all in one frame. That combination is
+awkward to assemble in Julia today out of the general-purpose packages, which is precisely why
+these two engines exist. A book that stitched five packages together would spend its teaching time
+on the stitching.
+
+**The cost, stated plainly.** You will finish this book knowing this engine, not the ecosystem.
+`lme4`, the R package most people use for mixed models — models that carry a random effect, such as
+the random intercept above, alongside the ordinary predictors — is what your co-authors use and what
+the referee will ask about; `GLM.jl` and `MixedModels.jl`, the usual Julia packages for these models,
+are what a Julia colleague reaches for first. Here they appear only in comparison
+boxes, never as the taught path. That is a real loss and it was weighed before it was accepted.
+
+A box has to earn its place, and there are only two kinds:
+
+- a **translation box** — "in R you would write…" — where an R-trained reader would otherwise be
+  actively misled, not merely inconvenienced. There is at most one or two in a chapter, and almost
+  none early on;
+- a **disagreement box**, where two correct implementations of the same model print different
+  numbers, with a named mechanism and a boundary you can compute. These are the best pages in the
+  book. Class 8 turns on one.
+
+What you will not find is a box that says the same thing twice in two languages. Writing every
+chapter in both costs more class time than it returns — a finding about split attention that is
+older than either language and does not care which two you pick (Chandler & Sweller 1991). One
+example translated carefully beats forty translated automatically.
+
+**Where this book sits.** It is Julia for the working statistician coming from R. It is not Julia
+for data science; there are good books for that, and the shelf is crowded at the bottom of the
+climb and empty at the top of it. If you want a tour of the data ecosystem, this is the wrong
+book. If you want to fit a model for counts or yes/no outcomes measured on groups of related
+individuals, allow for unequal effort, know exactly which method produced each number, and be able
+to defend it, keep going.
+
+---
+
+## What this book will not cover
+
+**Meta-analysis and phylogenetic comparative methods.** Meta-analysis combines the results of
+many published studies; phylogenetic comparative methods compare species while allowing for their
+shared ancestry. Both are mentioned. Neither gets a
+chapter, and the omission is deliberate rather than an oversight: they are the same statistical
+problem wearing different clothes — non-independence that arrives when several published estimates come from the same study, and
+non-independence that arrives from shared ancestry — and they belong together in a second book
+rather than split across the back of this one.
+
+Read that fence precisely. Class 10 *does* teach a model in which the groups are told how related
+they are to one another, and a species tree (a phylogeny) is one of the four forms that idea takes. What is fenced off is the
+field around it: the comparative question, the tree and its uncertainty, the effect-size
+literature, the machinery for combining published estimates. You will meet the matrix. You will
+not be taught the discipline that lives on it.
+
+**Rungs eleven and twelve.** Version one of this book climbs to rung ten and stops. Modelling the
+spread itself, and two responses at once with a correlation that varies, are held for a second
+version. The coda says what they are and why they are the same argument continued rather than a
+new one.
+
+**Bayesian inference** — the approach where you state what you believed before seeing the data and
+let the data update it. The engines do not do that; they work from the data alone (frequentist).
+Every interval in this book is a confidence interval — a range built so that, were the study
+repeated many times, it would catch the true value a stated share of the time — and every fit is
+found by maximum likelihood or its close relative, restricted maximum likelihood, two ways of
+choosing the best-fitting values; Class 8 is about exactly which of those two you got and were
+never asked to choose. That is a scope
+decision, not a verdict on the alternative.
+
+**Installation.** Class 1 teaches everything the language asks of you — files, data frames (tables
+of data), pictures, and reading a wall of red text — and skips the install. Today the two engines
+are installed straight from their GitHub pages, which takes a paragraph of instructions; it becomes
+a single line the day they are published in the official package lists. Writing that paragraph now means writing it twice.
+
+---
+
+## How to read it
+
+**The cast.** Each chapter is an office hour, and each person in it owns a running dataset, so you
+can follow one organism the whole way up.
+
+| | | |
+|---|---|---|
+| **Itchy** | the lecturer | house sparrows |
+| **Toto** | the novice, who types the mistakes everyone makes | water fleas |
+| **Momo** | the sceptic, arriving from SPSS, who asks what the syntax is buying | tadpoles |
+| **Eddie** | the advanced peer | dunnocks |
+| **Jaro** | a statistician friend, who arrives for the hard weeks | — |
+
+**The dialogue.** The lesson is a conversation, and it looks like this on the page:
+
+**Momo:** So a preface is where the author explains why the book is short of everything I wanted.
+
+**Itchy:** A preface is where the author says what is missing *before* you have paid for it. Yours
+is a fair complaint and it is answered above. What it is not is a surprise on page two hundred.
+
+**Momo:** And the parts where I am wrong?
+
+**Itchy:** Stay in. Especially those.
+
+Toto's mistakes are not decorative. They are the mistakes people actually make, in the order
+people actually make them, and the correction is usually the point of the section.
+
+**The errors stay in.** When a piece of code fails in this book, it fails on the page: a real Julia error,
+raised by the real engine, printed where it happened. Nothing is a screenshot of a failure. Class 1
+breaks things on purpose four times, because reading the message afterwards is the skill that
+decides whether a reader arriving from R stays or bounces, and there is a literature saying so
+plainly (Barik et al. 2017, cited in that chapter).
+
+**Two threads run the length of the climb**, and they are not the same kind of thing.
+
+The first is Julia itself. Basic Julia is not an appendix and not a prerequisite — it is Class 1,
+taught with the same data you model in Class 2.
+
+The second is **simulation**. From Class 2 onward, most chapters end their "Julia stuff" with one
+short block of code that acts out what the model claims: draw new data from the fitted model, refit it, and watch
+the estimate wander (Classes 7 and 8 carry theirs in the body of the hour instead). It is not a rung, because a rung frees a constant and this is a way of
+thinking rather than a model; **Appendix A — simulation as a way of thinking** gathers the whole
+thread in one place: from how random numbers are made repeatable (a seed), to checking whether a
+confidence interval really catches the truth as often as it claims (coverage), to re-fitting a model
+on data it generated itself (the parametric bootstrap).
+
+**The exercises** are applied and dataset-driven, and every one of them asks you to explain your
+code in your own words, to somebody who has not opened Julia. That instruction is the exercise.
+
+**The data are real.** They are 171 house sparrows measured on Lundy Island for that course,
+plus the repeated-measures, survival and breeding files that came with them; where they came from,
+how many rows each file has, and how to check the files have not changed are written down in
+[the notes that travel with the data](https://github.com/itchyshin/stats-hours/blob/main/data/2012/README.md).
+Where a chapter needs a structure those files do not contain, it makes up data from a stated
+random-number seed — so the same numbers appear every time — *and says so at the top of the page*,
+in the Caveat line, before you read a number.
+
+**You can also run the chapters without installing anything.** Each chapter exists as
+[a notebook](https://github.com/itchyshin/stats-hours/blob/main/notebooks) you can open in a browser, and its first block installs the
+engine. How long that first install takes has so far only been timed on the author's own computer,
+not in the browser; [the notes on the reader's set-up](https://github.com/itchyshin/stats-hours/blob/main/docs/reader-environment.md)
+say so plainly.
+
+**Licences.** The text, figures and data are [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/);
+the code — everything that runs on these pages and everything that builds the site — is GPL-3, the
+same licence as `drmTMB`. `DRM.jl` uses a different open licence (MIT), so the two engines are not
+under one licence; the book's code follows the R one. [The full statement](https://github.com/itchyshin/stats-hours/blob/main/LICENSING.md)
+is short.
+
+---
+
+## Nothing here is typed in
+
+**Never invent output.** Every number, every printed table, every figure on every page of this book
+is produced when the site is built, by running the code you can see above it. Nothing is typed from
+memory, nothing is pasted from a session that is not shown, and when someone in the dialogue says a
+number, that number was computed by the code on the page a moment earlier, not remembered and typed
+in.
+
+That is the rule that does most work here, because a chapter with plausible invented numbers is
+worse than an obviously unfinished one: nobody catches it. So it is not a promise, it is a
+mechanism: the page you are reading cannot exist unless its code ran.
+
+Here is the smallest possible demonstration of it. The short block of code below asks the engine
+which version is loaded, reads the exact engine snapshot every chapter in this book uses from a file
+kept with the book, and prints today's date:
+
+```{julia}
+#| label: build-stamp
+using DRM, Dates
+
+engine_version  = string(pkgversion(DRM))
+engine_snapshot = first(strip(read("../tools/engine-pin.txt", String)), 9)
+built_on        = Dates.today()
+
+println("engine   : DRM.jl ", engine_version)
+println("snapshot : ", engine_snapshot)
+println("built    : ", built_on)
+```
+
+**Eddie:** You could have typed all three of those.
+
+**Itchy:** I could, and then the version would be right until the day it silently was not. Nothing
+in that block is typed: the version came from the package that is loaded, the snapshot label came
+from a file on disk, and the date is the date. If you are reading a copy of this page built some
+later day, it says so itself — this one was built on `{julia} built_on`, running DRM.jl
+`{julia} engine_version`, engine snapshot `{julia} engine_snapshot`.
+
+**Toto:** And if the engine had not loaded?
+
+**Itchy:** Then there would be no page. That is the whole design.
+
+---
+
+## Further reading
+
+*Four, no more, because a preface is not a syllabus. The details of all four were checked on
+2026-09-07 against OpenAlex, an open catalogue of research papers.*
+
+1. **Bezanson, J., Edelman, A., Karpinski, S. & Shah, V. B. (2017) "Julia: A Fresh Approach to
+   Numerical Computing", *SIAM Review* 59(1):65–98.** doi:10.1137/141000671. The language explained
+   by the people who built it. Read it for one idea — that a function is a family of methods chosen
+   by the types of *all* its arguments — because that idea is what makes an engine like this one
+   possible to write, and it is also what the error messages in Class 1 are printing at you.
+2. **Bolker, B. M., Brooks, M. E., Clark, C. J., Geange, S. W., Poulsen, J. R., Stevens, M. H. H. &
+   White, J.-S. S. (2009) "Generalized linear mixed models: a practical guide for ecology and
+   evolution", *Trends in Ecology & Evolution* 24(3):127–135.** doi:10.1016/j.tree.2008.10.008. The
+   paper that showed biologists, not only statisticians, that two programs fitting the same model
+   can print different numbers. Read it now for the map of where this book is going, and again after Class 8 for
+   the disagreement it describes; its software advice has aged, its practice has not.
+3. **Chandler, P. & Sweller, J. (1991) "Cognitive Load Theory and the Format of Instruction",
+   *Cognition and Instruction* 8(4):293–332.** doi:10.1207/s1532690xci0804_2. The evidence behind
+   the decision not to print every example twice. Splitting material a reader must mentally
+   integrate across two places costs comprehension; that finding is why the R boxes in this book are
+   rare and earned rather than routine.
+4. **Peng, R. D. (2011) "Reproducible Research in Computational Science", *Science*
+   334(6060):1226–1227.** doi:10.1126/science.1213847. Two pages on why code and data travelling
+   with the claim is the minimum standard, not a virtue. It is the argument this book applies to
+   itself, and the reason the rule above is a mechanism rather than a promise.

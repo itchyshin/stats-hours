@@ -1,0 +1,26 @@
+nrow: 171   ncol: 8 
+
+   BirdID Sex   Tarsus    BillL    BillW     Tail     Wing   Weight
+1 TA14502   F 18.43333 13.26667 6.533333 51.76667 71.56667 27.96667
+2 TA14505   F 18.10000 13.00000 6.133333 57.33333 76.50000 27.40000
+3 TA14506   F 18.45000 13.05000 6.200000 55.50000 75.00000 25.15000
+
+     Tarsus           Wing      
+ Min.   :16.90   Min.   :71.57  
+ 1st Qu.:18.15   1st Qu.:76.45  
+ Median :18.63   Median :77.90  
+ Mean   :18.61   Mean   :77.85  
+ 3rd Qu.:19.11   3rd Qu.:79.25  
+ Max.   :20.55   Max.   :84.00  
+
+mean wing: 77.85234 
+
+males: 82 
+
+# A tibble: 2 × 3
+  Sex   mean_wing     n
+  <chr>     <dbl> <int>
+1 F          76.6    89
+2 M          79.2    82
+
+R version: R version 4.6.0 (2026-04-24)  dplyr: 1.2.1 

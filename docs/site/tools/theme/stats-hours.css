@@ -1,0 +1,339 @@
+:root{
+  --paper:#F2F4F4; --raised:#FFFFFF; --sunk:#E7EBEA;
+  --ink:#17211F; --body:#243230; --muted:#5C6866; --faint:#8A9793;
+  --rule:#D6DBD8; --rule-soft:#E3E7E5;
+  --accent:#1F5F5B; --accent-soft:#DCEAE7;
+  --warn:#A6522C; --warn-soft:#F6EAE2; --warn-rule:#E0C3AE;
+  --code-bg:#EDF0EF; --code-ink:#1B2624;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --display:"Fraunces",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --measure:68ch;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1614; --raised:#151F1D; --sunk:#1A2523;
+    --ink:#E8EEEB; --body:#CFD9D6; --muted:#93A29E; --faint:#6E7C79;
+    --rule:#263230; --rule-soft:#1E2A28;
+    --accent:#63C1B5; --accent-soft:#16302E;
+    --warn:#DE9366; --warn-soft:#2A1D16; --warn-rule:#4A3325;
+    --code-bg:#131D1B; --code-ink:#D6E0DD;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1614; --raised:#151F1D; --sunk:#1A2523;
+  --ink:#E8EEEB; --body:#CFD9D6; --muted:#93A29E; --faint:#6E7C79;
+  --rule:#263230; --rule-soft:#1E2A28;
+  --accent:#63C1B5; --accent-soft:#16302E;
+  --warn:#DE9366; --warn-soft:#2A1D16; --warn-rule:#4A3325;
+  --code-bg:#131D1B; --code-ink:#D6E0DD;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--body);
+  font-family:var(--serif); font-size:19px; line-height:1.62;
+  font-weight:300; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:min(100%, var(--measure)); margin:0 auto; padding:0 24px 6rem}
+
+/* Quarto's own title-block-header is superseded by the masthead this filter
+   emits from front matter (or, on pages with no masthead, by an in-body H1). */
+#title-block-header{display:none}
+
+/* ---------- landing page ---------- */
+.wrap.landing{padding-top:4rem}
+.wrap.landing h1{margin-top:0}
+.climb{max-width:100%; height:auto; display:block; margin:2.5rem 0}
+ul.chapters{list-style:none; padding-left:0}
+ul.chapters li{
+  border-bottom:1px solid var(--rule-soft);
+  padding:.9rem 0; margin:0;
+}
+ul.chapters li:last-child{border-bottom:0}
+ul.chapters .status{
+  display:inline-block; font-family:var(--mono); font-size:.62rem;
+  font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--faint); margin-left:.6rem;
+}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule);
+  background:var(--raised);
+  padding:3.5rem 24px 2.25rem;
+  margin-bottom:3rem;
+}
+.mast-inner{max-width:var(--measure); margin:0 auto}
+.kicker{
+  font-family:var(--mono); font-size:.66rem; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+  display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center;
+  margin:0 0 1.1rem;
+}
+.kicker .sep{color:var(--faint)}
+.kicker a{color:inherit; text-decoration:none}
+.kicker a:hover,.kicker a:focus-visible{text-decoration:underline}
+h1{
+  font-family:var(--display); font-weight:600; font-size:clamp(2.1rem,6vw,3.3rem);
+  line-height:1.06; letter-spacing:-.02em; color:var(--ink);
+  margin:0 0 .5rem; text-wrap:balance;
+  font-variation-settings:"SOFT" 0,"WONK" 1;
+}
+.deck{
+  font-size:1.06rem; color:var(--muted); font-style:italic;
+  margin:0 0 1.75rem; max-width:52ch;
+}
+.status{
+  display:flex; gap:.7rem; align-items:flex-start;
+  border:1px solid var(--warn-rule); background:var(--warn-soft);
+  border-radius:3px; padding:.85rem 1rem; margin:0 0 1.5rem;
+}
+.status .tag{
+  font-family:var(--mono); font-size:.62rem; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--warn); white-space:nowrap; padding-top:.25rem;
+}
+.status p{margin:0; font-size:.92rem; color:var(--body); line-height:1.5}
+.meta{
+  font-family:var(--mono); font-size:.72rem; color:var(--faint);
+  line-height:1.75; border-top:1px solid var(--rule-soft); padding-top:1rem;
+}
+.meta b{color:var(--muted); font-weight:500}
+
+/* ---------- structure ---------- */
+h2{
+  font-family:var(--display); font-weight:600; font-size:1.62rem;
+  color:var(--ink); letter-spacing:-.01em; line-height:1.2;
+  margin:3.75rem 0 1.1rem; text-wrap:balance;
+}
+h2::before{
+  content:""; display:block; width:2.25rem; height:2px;
+  background:var(--accent); margin-bottom:1rem; opacity:.8;
+}
+h3{
+  font-family:var(--mono); font-weight:600; font-size:.74rem;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--accent);
+  margin:2.75rem 0 1rem;
+}
+p{margin:0 0 1.15rem}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+strong{font-weight:600; color:var(--ink)}
+em{font-style:italic}
+hr.div{
+  border:0; height:1px; background:var(--rule); margin:3rem 0;
+}
+
+/* ---------- the dialogue: the book's signature ---------- */
+.scene{
+  font-style:italic; color:var(--muted); font-size:.97rem;
+  background:var(--sunk); border-left:2px solid var(--rule);
+  padding:.9rem 1.1rem; margin:0 0 1.75rem; border-radius:0 3px 3px 0;
+}
+.line{margin:0 0 1.05rem}
+.who{
+  font-family:var(--mono); font-size:.68rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--accent);
+  display:block; margin-bottom:.15rem;
+}
+.who.toto{color:#7C6A2E}
+.who.momo{color:#6B4A82}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .who.toto{color:#C9B368}
+  :root:not([data-theme="light"]) .who.momo{color:#B999D4}
+}
+:root[data-theme="dark"] .who.toto{color:#C9B368}
+:root[data-theme="dark"] .who.momo{color:#B999D4}
+.line p{margin:0}
+.line .aside{font-style:italic; color:var(--muted)}
+@media (min-width:1080px){
+  .line{display:grid; grid-template-columns:8.5rem 1fr; gap:.35rem 1.25rem; align-items:baseline}
+  .who{text-align:right; margin:0; padding-top:.32rem; grid-column:1; grid-row:1}
+  /* Grid assigns each child its own cell, so a speech with two paragraphs put the
+     second one back in the narrow name column. Pin everything that is not the
+     speaker's name to column 2 -- by position, not by tag, so a figure, table or
+     code cell dropped into a speech cannot land in the name column either. */
+  .line > *:not(.who){grid-column:2}
+  .scene{margin-left:9.75rem}
+}
+.board{
+  font-family:var(--display); font-weight:600; font-size:1.3rem;
+  color:var(--ink); text-align:center; line-height:1.4;
+  border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+  padding:1.5rem 1rem; margin:2rem 0 2.25rem;
+}
+
+/* ---------- code ---------- */
+pre{
+  background:var(--code-bg); color:var(--code-ink);
+  border:1px solid var(--rule-soft); border-radius:3px;
+  font-family:var(--mono); font-size:.795rem; line-height:1.62;
+  padding:1rem 1.15rem; margin:0 0 1.6rem;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+}
+pre code{font:inherit; color:inherit}
+code{font-family:var(--mono); font-size:.86em; background:var(--sunk); padding:.1em .35em; border-radius:2px; color:var(--ink)}
+pre .p{color:var(--accent); font-weight:600}
+pre .err{color:var(--warn); font-weight:500}
+pre .cm{color:var(--faint)}
+
+/* ---------- collapsible "same fit in drmTMB" boxes ---------- */
+details.drmtmb{
+  border:1px solid var(--rule); border-radius:3px; background:var(--sunk);
+  padding:.7rem 1.1rem; margin:0 0 1.75rem;
+}
+details.drmtmb summary{
+  cursor:pointer; font-family:var(--mono); font-size:.68rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--accent);
+}
+details.drmtmb pre{margin:.9rem 0 0}
+details.drmtmb[open] summary{margin-bottom:.2rem}
+
+/* ---------- the one bold moment ---------- */
+.disagree{
+  border:1px solid var(--warn-rule); border-left:4px solid var(--warn);
+  background:var(--warn-soft); border-radius:0 4px 4px 0;
+  padding:1.5rem 1.5rem .35rem; margin:2.5rem 0;
+}
+.disagree .dtag{
+  font-family:var(--mono); font-size:.66rem; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--warn);
+  margin:0 0 .9rem;
+}
+.disagree h4{
+  font-family:var(--display); font-weight:600; font-size:1.22rem;
+  color:var(--ink); margin:0 0 .9rem; line-height:1.28;
+}
+.disagree pre{background:var(--raised); border-color:var(--warn-rule)}
+.disagree p{font-size:.95rem}
+.provenance{
+  font-family:var(--mono); font-size:.68rem; color:var(--muted);
+  line-height:1.65; border-top:1px solid var(--warn-rule);
+  padding:.85rem 0 1.1rem; margin-top:1.25rem;
+}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto; margin:0 0 1.5rem}
+table{border-collapse:collapse; width:100%; font-size:.86rem; font-variant-numeric:tabular-nums}
+th,td{text-align:left; padding:.5rem .8rem; border-bottom:1px solid var(--rule-soft)}
+th{
+  font-family:var(--mono); font-size:.66rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+  border-bottom:1px solid var(--rule);
+}
+td:not(:first-child){font-family:var(--mono); font-size:.8rem}
+tbody tr:last-child td{border-bottom:0}
+
+/* ---------- lists ---------- */
+ol,ul{margin:0 0 1.3rem; padding-left:1.4rem}
+li{margin-bottom:.6rem}
+ol.obj{counter-reset:o; list-style:none; padding-left:0}
+ol.obj li{
+  counter-increment:o; position:relative; padding-left:2.4rem; margin-bottom:.75rem;
+}
+ol.obj li::before{
+  content:counter(o); position:absolute; left:0; top:.12em;
+  font-family:var(--mono); font-size:.7rem; font-weight:600; color:var(--accent);
+  border:1px solid var(--rule); border-radius:50%;
+  width:1.65rem; height:1.65rem; display:grid; place-items:center;
+}
+.gloss{list-style:none; padding-left:0}
+.gloss li{
+  padding-left:0; border-bottom:1px solid var(--rule-soft);
+  padding-bottom:.7rem; margin-bottom:.7rem; font-size:.94rem;
+}
+.gloss li:last-child{border-bottom:0}
+.gloss code{font-size:.82em}
+.two{display:grid; gap:2rem}
+@media (min-width:760px){.two{grid-template-columns:1fr 1fr; gap:2.5rem}}
+
+/* ---------- author's note ---------- */
+.note{
+  border-top:2px solid var(--ink); padding-top:1.5rem; margin-top:4rem;
+}
+.note h2{margin-top:0}
+.note h2::before{display:none}
+.note p,.note li{font-size:.95rem; color:var(--muted)}
+.note strong{color:var(--ink)}
+
+/* ---------- previous/next chapter nav ---------- */
+nav.chapter-nav{
+  display:flex; flex-wrap:wrap; gap:1rem;
+  margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--rule);
+}
+.chapter-nav-link{
+  flex:1 1 auto; min-width:0; max-width:100%;
+  display:flex; flex-direction:column; gap:.3rem;
+  padding:1rem 1.15rem; border:1px solid var(--rule); border-radius:3px;
+  background:var(--raised); text-decoration:none; color:inherit;
+  transition:border-color .15s ease;
+}
+.chapter-nav-link:hover,.chapter-nav-link:focus-visible{border-color:var(--accent)}
+.chapter-nav-link.next{margin-left:auto; text-align:right; align-items:flex-end}
+.chapter-nav-dir{
+  font-family:var(--mono); font-size:.62rem; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--accent);
+}
+.chapter-nav-dest{font-family:var(--serif); font-size:.98rem; color:var(--ink); line-height:1.4}
+@media (max-width:640px){
+  nav.chapter-nav{flex-direction:column}
+  .chapter-nav-link.next{margin-left:0; text-align:left; align-items:flex-start}
+}
+
+footer{
+  margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--rule);
+  font-family:var(--mono); font-size:.7rem; color:var(--faint); line-height:1.8;
+}
+/* the chapter-nav already draws the rule and the gap; right after it, the
+   footer just needs its own smaller gap, not a second 4rem drop */
+nav.chapter-nav + footer{margin-top:1.5rem; padding-top:0; border-top:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* mobile: wide code and figures scroll inside their box, never the page */
+pre, .disagree pre { overflow-x: auto; max-width: 100%; }
+img, svg { max-width: 100%; height: auto; }
+
+/* mobile, second pass (measured at 375px: grid children and data-frame tables pushed the page to 555px) */
+.line, .line > *, .disagree, .note, .cell, .cell-output, .cell-output-display, main, article { min-width: 0; max-width: 100%; }
+.cell pre, .cell-output pre, pre { overflow-x: auto; max-width: 100%; white-space: pre; }
+table.data-frame, .cell-output table { display: block; max-width: 100%; overflow-x: auto; }
+html, body { overflow-x: hidden; }
+/* Quarto's own wrappers (theme: none drops its CSS): code cells and data-frame tables scroll inside their box */
+div.sourceCode, pre.sourceCode, div.cell-code { overflow-x: auto; max-width: 100%; }
+div.data-frame { overflow-x: auto; max-width: 100%; display: block; }
+
+/* figures: the browser default figure margin (1em 40px) pushed captions 40px past the column edge */
+figure, figure.quarto-float { margin-left: 0; margin-right: 0; max-width: 100%; }
+
+/* whole-book visual pass (2026-09-07): markdown tables scroll inside their box at 375px; long inline code wraps instead of clipping */
+.wrap table { display: block; max-width: 100%; overflow-x: auto; }
+p code, li code, td code, th code, figcaption code { white-space: normal; overflow-wrap: anywhere; }
+
+/* dark scheme: Quarto's syntax-highlighting sheet has no dark variant, so its light token colours sat at ~1.5:1 on the dark code background */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) pre, :root:not([data-theme="light"]) pre code, :root:not([data-theme="light"]) pre code.sourceCode, :root:not([data-theme="light"]) div.sourceCode { color: var(--code-ink); background: var(--code-bg); }
+  :root:not([data-theme="light"]) pre code span { color: var(--code-ink); }
+  :root:not([data-theme="light"]) pre code span.kw, :root:not([data-theme="light"]) pre code span.cf { color: #C9B368; }
+  :root:not([data-theme="light"]) pre code span.fu, :root:not([data-theme="light"]) pre code span.bu { color: #8FB8E6; }
+  :root:not([data-theme="light"]) pre code span.st, :root:not([data-theme="light"]) pre code span.ss, :root:not([data-theme="light"]) pre code span.vs { color: #A6C79A; }
+  :root:not([data-theme="light"]) pre code span.dv, :root:not([data-theme="light"]) pre code span.fl, :root:not([data-theme="light"]) pre code span.cn, :root:not([data-theme="light"]) pre code span.bn { color: #E6A08A; }
+  :root:not([data-theme="light"]) pre code span.co, :root:not([data-theme="light"]) pre code span.do, :root:not([data-theme="light"]) pre code span.an { color: #93A29E; }
+  :root:not([data-theme="light"]) pre code span.op, :root:not([data-theme="light"]) pre code span.ot, :root:not([data-theme="light"]) pre code span.sc { color: #CFD9D6; }
+  :root:not([data-theme="light"]) pre code span.er, :root:not([data-theme="light"]) pre code span.al { color: #E68A8A; }
+}
+:root[data-theme="dark"] pre, :root[data-theme="dark"] pre code, :root[data-theme="dark"] pre code.sourceCode, :root[data-theme="dark"] div.sourceCode { color: var(--code-ink); background: var(--code-bg); }
+:root[data-theme="dark"] pre code span { color: var(--code-ink); }
+:root[data-theme="dark"] pre code span.kw, :root[data-theme="dark"] pre code span.cf { color: #C9B368; }
+:root[data-theme="dark"] pre code span.fu, :root[data-theme="dark"] pre code span.bu { color: #8FB8E6; }
+:root[data-theme="dark"] pre code span.st, :root[data-theme="dark"] pre code span.ss, :root[data-theme="dark"] pre code span.vs { color: #A6C79A; }
+:root[data-theme="dark"] pre code span.dv, :root[data-theme="dark"] pre code span.fl, :root[data-theme="dark"] pre code span.cn, :root[data-theme="dark"] pre code span.bn { color: #E6A08A; }
+:root[data-theme="dark"] pre code span.co, :root[data-theme="dark"] pre code span.do, :root[data-theme="dark"] pre code span.an { color: #93A29E; }
+:root[data-theme="dark"] pre code span.op, :root[data-theme="dark"] pre code span.ot, :root[data-theme="dark"] pre code span.sc { color: #CFD9D6; }
+:root[data-theme="dark"] pre code span.er, :root[data-theme="dark"] pre code span.al { color: #E68A8A; }
+
+/* dark scheme: figures are light Makie bitmaps/SVGs; frame them as cards instead of leaving bare light boxes */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .cell-output-display img, :root:not([data-theme="light"]) figure img { background:#F2F4F4; padding:8px; border-radius:6px; border:1px solid var(--sunk); box-sizing:border-box; }
+}
+:root[data-theme="dark"] .cell-output-display img, :root[data-theme="dark"] figure img { background:#F2F4F4; padding:8px; border-radius:6px; border:1px solid var(--sunk); box-sizing:border-box; }

@@ -1,0 +1,10 @@
+name = "StatsHoursTools"
+
+[deps]
+AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DRM = "6c755ef2-eed4-4cdd-aafe-b639090bd215"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"

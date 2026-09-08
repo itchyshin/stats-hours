@@ -1,0 +1,29 @@
+# unlazy acceptance-ledger run state — never a deliverable
+.unlazy/
+.unlazy-hook-state.json
+
+# Quarto / rendered output
+_book/
+_site/
+.quarto/
+*.html
+!docs/**/*.html
+!tools/theme/repl.html
+
+# Julia / R local state
+.Rproj.user/
+.Rhistory
+.RData
+
+# OS
+.DS_Store
+.unlazy/
+.unlazy-hook-state.json
+.uinit/
+_freeze/.gitkeep
+docs/img/_selftest*
+
+/.quarto/
+*.quarto_ipynb
+.claude/skills/
+.scrub-pattern

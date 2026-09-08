@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Class 6: rows are not strangers – Stats Hours with Itchy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-html-5276476b5bdb9cfe1f92c505466e0bf3.min.css" rel="stylesheet" append-hash="true" data-mode="light">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../tools/theme/stats-hours.css">
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">Class 6: rows are not strangers</h1>
+
+</header>
+
+
+<header class="mast">
+  <div class="mast-inner">
+    <p class="kicker">
+      <span><a href="../index.html">Stats Hours with Itchy</a></span><span class="sep">/</span>
+      <span>Class 6</span><span class="sep">/</span>
+      <span>Draft</span>
+    </p>
+    <h1>Rows are not strangers</h1>
+    <p class="deck">Four hundred and fifty-nine measurements, one hundred and seventy-one sparrows, and a standard error that was wrong by nearly a quarter until somebody noticed the same bird was in the file four times.</p>
+    <div class="status">
+      <span class="tag">Draft</span>
+      <p>All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft.</p>
+    </div>
+    <p class="meta">
+      <b>Engines</b> DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Provenance</b> Every block of Julia on this page was run, and its output printed, when the page was made — including the error. Nothing is pasted in from memory. The one block of R output was run once by hand, on 2026-09-06, on the same data file, and is labelled as such where it appears.<br>
+      <b>Caveat</b> The data are real. These are the Lundy Island house sparrows of the author’s 2012 course, read directly from the archived data/2012/BodySize.csv with its repeated measurements intact (provenance in data/2012/README.md). Nothing here is simulated.
+    </p>
+  </div>
+</header>
+
+<div class="wrap">
+<blockquote>
+<p><strong>A note on the data, and it is a short one for once.</strong> Class 2 used one row per bird. This chapter uses the file that Class 2’s file was made <em>from</em>, with every measurement still in it, because the repeated measurements are the entire subject of the hour. They are real house sparrows, really measured more than once. The only thing this chapter does to them is drop the rows where the measurement of interest is missing, in a cell, in front of you.</p>
+</blockquote>
+<hr>
+<h2 id="objectives" class="anchored">Objectives</h2>
+<p>By the end of this class you should be able to:</p>
+<ol type="1">
+<li>Recognise, from the data file alone, when your rows are not independent, and say what independence was buying the model.</li>
+<li>Fit a random intercept with <code>(1 | group)</code> and read the second variance component it prints.</li>
+<li>Say what happens to a standard error when you stop pretending repeated measurements are separate individuals, and predict the direction before you fit.</li>
+<li>Compute a repeatability as a ratio of variance components, and say what it is a ratio <em>of</em>.</li>
+<li>Explain what a random intercept is by describing the shrinkage picture, without using the word “random”.</li>
+</ol>
+<hr>
+<h2 id="the-class" class="anchored">The class</h2>
+<p class="scene">Itchy’s office, 9:00 am. TOTO has arrived with a laptop and an air of
+having already done the homework, which is always the dangerous state.
+MOMO is reading the data file itself rather than the output, which is
+the safe one. EDDIE is here because Class 6 is the week he has been
+waiting for.</p>
+<div class="line"><span class="who itchy">Itchy</span><p>Class 2 gave you one line through a cloud of sparrows. Every bird was
+one dot. Today I am giving you the file that cloud was built from, and
+it has more rows in it than it has birds.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>More rows than birds.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Considerably more. We caught these birds more than once. Load it and
+look before you model, same as always.</p></div>
+<div id="cell-setup" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/BodySize.csv"</span>, DataFrame)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"rows, columns: "</span>, <span class="fu">size</span>(raw))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"distinct birds: "</span>, <span class="fu">length</span>(<span class="fu">unique</span>(raw.BirdID)))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(raw, <span class="fl">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows, columns: (460, 8)
+distinct birds: 171</code></pre>
+</div>
+<div id="setup" class="cell-output cell-output-display" data-execution_count="2">
+<div><div style="float: left;"><span>6×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">BirdID</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Sex</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Tarsus</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">BillL</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">BillW</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Tail</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Wing</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Weight</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String7">String7</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String1">String1</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String7">String7</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String3">String3</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String7">String7</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String7">String7</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">TA14502</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.8</td>
+<td style="text-align: left;">13.1</td>
+<td style="text-align: left;">6.5</td>
+<td style="text-align: left;">52.3</td>
+<td style="text-align: left;">72.7</td>
+<td style="text-align: right;">26.8</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">TA14502</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.2</td>
+<td style="text-align: left;">13.3</td>
+<td style="text-align: left;">6.6</td>
+<td style="text-align: left;">51</td>
+<td style="text-align: left;">71</td>
+<td style="text-align: right;">27.3</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">TA14502</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.3</td>
+<td style="text-align: left;">13.4</td>
+<td style="text-align: left;">6.5</td>
+<td style="text-align: left;">52</td>
+<td style="text-align: left;">71</td>
+<td style="text-align: right;">29.8</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">TA14505</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.1</td>
+<td style="text-align: left;">13</td>
+<td style="text-align: left;">6.3</td>
+<td style="text-align: left;">58</td>
+<td style="text-align: left;">75</td>
+<td style="text-align: right;">30.0</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">TA14505</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: left;">13.2</td>
+<td style="text-align: left;">6.1</td>
+<td style="text-align: left;">57</td>
+<td style="text-align: left;">77.5</td>
+<td style="text-align: right;">26.4</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">6</td>
+<td style="text-align: left;">TA14505</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">18.2</td>
+<td style="text-align: left;">12.8</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">57</td>
+<td style="text-align: left;">77</td>
+<td style="text-align: right;">25.8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The first three rows are the same bird.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The first three rows are the same bird on three different days. Fit it
+anyway. I want you to make the mistake in public, because it is the most
+common mistake in the whole of behavioural ecology and you will not
+respect it until you have made it.</p></div>
+<div id="first-attempt" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<div class="ansi-escaped-output">
+<pre>MethodError: no method matching Float64(::String7)
+
+Closest candidates are:
+  Float64(<span class="ansi-bright-red-fg">::IrrationalConstants.Sqrt4π</span>)
+  Float64(<span class="ansi-bright-red-fg">::UInt8</span>)
+  Float64(<span class="ansi-bright-red-fg">::IrrationalConstants.Quartπ</span>)
+  ...
+
+
+(stack trace omitted)</pre>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>That is not the mistake I expected to make.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>No, that is a different one, and it is real data teaching you its first
+lesson before you get to the statistics. Read the first line of the
+error and stop there: everything printed below it is Julia’s own map of
+where inside the engine it stopped, written for the engine’s authors and
+not for you. The first line says it wants a number and it was handed a
+piece of text. Momo, you were reading the file. Why is a wing length a
+piece of text?</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Because one of them is not a number. It says <code>NA</code>.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It says <code>NA</code>, in a file written in 2009, by a person, in a
+program that wrote missing values that way. Julia read the whole column
+as text because one cell in it was text, and then the model refused the
+column. Tell the reader what <code>NA</code> means and it becomes a
+number again.</p></div>
+<div id="cell-read-clean" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/BodySize.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"missing values per column:"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="fu">describe</span>(raw, <span class="op">:</span>nmissing))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">dropmissing</span>(raw, [<span class="op">:</span>Tarsus, <span class="op">:</span>Wing])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">mkpath</span>(<span class="st">"../data/ch6"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>CSV.<span class="fu">write</span>(<span class="st">"../data/ch6/sparrows-repeated.csv"</span>, sparrows)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>birds <span class="op">=</span> <span class="fu">length</span>(<span class="fu">unique</span>(sparrows.BirdID))</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>dropped <span class="op">=</span> <span class="fu">nrow</span>(raw) <span class="op">-</span> n</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"kept %d rows on %d birds; dropped %d row for a missing wing</span><span class="sc">\n</span><span class="st">"</span>, n, birds, dropped)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(sparrows[!, [<span class="op">:</span>Tarsus, <span class="op">:</span>Wing]], <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>missing values per column:
+8×2 DataFrame
+ Row │ variable  nmissing 
+     │ Symbol    Int64    
+─────┼────────────────────
+   1 │ BirdID           0
+   2 │ Sex              0
+   3 │ Tarsus           0
+   4 │ BillL            9
+   5 │ BillW            9
+   6 │ Tail            14
+   7 │ Wing             1
+   8 │ Weight           0
+kept 459 rows on 171 birds; dropped 1 row for a missing wing</code></pre>
+</div>
+<div id="read-clean" class="cell-output cell-output-display" data-execution_count="4">
+<div><div style="float: left;"><span>2×5 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">mean</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">std</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">min</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">max</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Symbol">Symbol</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">Tarsus</td>
+<td style="text-align: right;">18.6336</td>
+<td style="text-align: right;">0.771438</td>
+<td style="text-align: right;">16.8</td>
+<td style="text-align: right;">20.8</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">Wing</td>
+<td style="text-align: right;">77.863</td>
+<td style="text-align: right;">2.27455</td>
+<td style="text-align: right;">67.0</td>
+<td style="text-align: right;">88.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>459 rows. 171 birds. Momo, say the ratio out loud.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Under three measurements per bird, on average.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And not the same number for every bird, which will matter in about forty
+minutes. Count them.</p></div>
+<div id="per-bird" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>per_bird <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>counts <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(per_bird.k))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> counts</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%d birds measured %d times</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">count</span>(<span class="op">==</span>(k), per_bird.k), k)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>mean_k <span class="op">=</span> <span class="fu">mean</span>(per_bird.k)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">mean measurements per bird: %.4f</span><span class="sc">\n</span><span class="st">"</span>, mean_k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>85 birds measured 2 times
+55 birds measured 3 times
+31 birds measured 4 times
+
+mean measurements per bird: 2.6842</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>So some birds are in the file twice and some four times.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Which means that if you treat rows as individuals, some sparrows get
+four votes and some get two. Look at what that actually looks like. A
+handful of birds, picked at even intervals through the range so I am not
+choosing my evidence, with each bird’s own measurements joined up.</p></div>
+<div id="cell-fig-by-bird" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Birds at even intervals through the ordering by mean wing length, so the</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># choice of which to show is a rule and not a preference.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>bird_ids <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(sparrows.BirdID))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>bird_mean <span class="op">=</span> [<span class="fu">mean</span>(sparrows.Wing[sparrows.BirdID <span class="op">.==</span> b]) for b <span class="kw">in</span> bird_ids]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>shown <span class="op">=</span> bird_ids[<span class="fu">sortperm</span>(bird_mean)][<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">:</span><span class="fu">length</span>(bird_ids)]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the same </span><span class="sc">$</span>(<span class="fu">length</span>(shown))<span class="st"> birds, measured again and again"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">5</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.35</span>))</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(shown)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> sparrows.BirdID <span class="op">.==</span> b</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>(ax, sparrows.Tarsus[rows], sparrows.Wing[rows];</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        markersize <span class="op">=</span> <span class="fl">11</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fu">mod1</span>(i, <span class="fl">4</span>)))</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, sparrows.Tarsus[rows], sparrows.Wing[rows];</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> (Makie.<span class="fu">wong_colors</span>()[<span class="fu">mod1</span>(i, <span class="fl">7</span>)], <span class="fl">0.55</span>), linewidth <span class="op">=</span> <span class="fl">1</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="fig-by-bird" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-by-bird-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk6-random-intercepts_files/figure-html/fig-by-bird-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-by-bird-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Wing against tarsus for every measurement in grey, with a handful of birds picked at even intervals through the ordering by mean wing length highlighted in colour, each bird’s own recaptures joined in order. A bird’s joined points sit close together and move together — the repeated-measures structure the whole chapter is about, visible before any model is fitted.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who eddie">Eddie</span><p>The joined-up points are tight. A bird stays roughly where it was.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>A bird stays roughly where it was. Hold on to that sentence, because by
+the end of the hour we will have put a number on it and given the number
+a name.</p></div>
+<h3 id="the-model-that-pretends" class="anchored">The model that pretends</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>First, the model Class 2 taught you, on all 459 rows, as if they were
+459 separate sparrows.</p></div>
+<div id="cell-fit-lm" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lm_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>lm_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-lm" class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>Distributional regression fit (Gaussian)
+  nobs = 459   logLik = -988.6935   converged = true
+  Residual SD (response scale) = 2.0856   dof_residual = 456
+
+Mean model (μ):
+  H0: coefficient = 0
+                 Coef.  Std.Error        z   Pr(&gt;|z|)
+  (Intercept)  56.0685     2.3560  23.7983  3.48e-125
+  Tarsus        1.1696     0.1263   9.2586  2.071e-20
+
+Scale model (log σ):
+  H0: coefficient = 0 on log σ
+  intercept ⇔ σ = 1 (unit-dependent); slope ⇔ equal dispersion
+                Coef.  Std.Error        z    Pr(&gt;|z|)
+  (Intercept)  0.7351     0.0330  22.2718  6.941e-110</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>It worked, and the slope looks sensible. The scale block has a
+<em>p</em>-value, and I am ignoring it on purpose, because the heading
+says its null is σ = 1 and Class 2 taught me that is a question about
+millimetres rather than about birds.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The slope <em>is</em> sensible. The slope is not the problem and it will
+barely move all morning. Momo, you have been quiet.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>My problem is the sentence underneath it. Class 2 said every wing is
+drawn from its own normal distribution, the centre slides along a line,
+the width is constant. That sentence has a fourth claim hiding in it
+that nobody said out loud.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Say it out loud, then.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>That the draws are independent. That knowing one row tells you nothing
+about the next one.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p class="aside">(writes on the board)</p></div>
+<p class="board"><strong>μ is where the birds are. σ is how spread out they are. And
+every model so far has quietly added: and no two rows know each
+other.</strong></p>
+<div class="line"><span class="who itchy">Itchy</span><p>That is the constant this class frees. Not the link, not the variance
+function, not the slope. The <strong>correlation between rows, which
+every model up to now has held at zero</strong>. And in this file it is
+obviously not zero, because two rows from the same bird are two
+measurements of one wing.</p></div>
+<h3 id="the-model-that-does-not" class="anchored">The model that does not</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Here is the whole change. One term.</p></div>
+<p class="board"><strong>μ_ij = β0 + β1 x_ij + u_j, with u_j ~ N(0, σ_u²) and y_ij ~
+N(μ_ij, σ²)</strong></p>
+<div class="line"><span class="who itchy">Itchy</span><p>Measurement <em>i</em> on bird <em>j</em>. β0 the intercept, β1 the
+slope on tarsus, and u_j the bird’s own nudge up or down, drawn from a
+normal distribution centred on zero with spread σ_u. σ is the residual
+spread, doing the same job it has done since Class 2, except that now it
+is the spread <em>within</em> a bird rather than the spread of
+everything.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>One housekeeping note, because these six symbols are the ones you keep.
+<strong>β0, β1, u_j, σ_u, σ and R mean the same things for the rest of
+the book, and only the grouping changes.</strong> Today <em>j</em> is a
+bird and the repeated thing is a recapture. In Class 8 Momo brings her
+tadpoles and <em>j</em> is a pond, with the tadpoles inside it playing
+the part today’s recaptures play. Nothing in the algebra moves; you
+relabel <em>j</em> and carry on.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>So u_j is a per-bird intercept.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>u_j is a per-bird intercept that we do not estimate as 171 separate
+parameters. We estimate its <em>spread</em>. That distinction is the
+whole of Class 6 and I will come back to it when Eddie asks me the
+question he is about to ask. In code, one term in the formula.</p></div>
+<div id="cell-fit-ri" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ri_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ri_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-ri" class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>Distributional regression fit (Gaussian)
+  nobs = 459   logLik = -867.5915   converged = true
+  Residual SD (response scale) = 1.0969   dof_residual = 455
+
+Mean model (μ):
+  H0: coefficient = 0
+                 Coef.  Std.Error        z   Pr(&gt;|z|)
+  (Intercept)  56.4795     3.0547  18.4893  2.519e-76
+  Tarsus        1.1481     0.1639   7.0049  2.472e-12
+
+Scale model (log σ):
+  H0: coefficient = 0 on log σ
+  intercept ⇔ σ = 1 (unit-dependent); slope ⇔ equal dispersion
+                Coef.  Std.Error       z  Pr(&gt;|z|)
+  (Intercept)  0.0925     0.0416  2.2241   0.02614
+
+Random-effect SD (log σ_b):
+  H0: coefficient = 0 on log σ_b
+  NOT the σ_b = 0 boundary
+           Coef.  Std.Error       z   Pr(&gt;|z|)
+  BirdID  0.5620     0.0626  8.9803  2.702e-19</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>Same verb, same box, same family. And a whole new block at the bottom.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>A whole new block, and I want you to read its heading before you read
+its numbers, exactly as you did upstairs. It reports the bird-level
+spread on the log scale with a <em>z</em> and a <em>p</em>, and then it
+tells you what that test is <strong>not</strong>. Read that line out,
+Momo.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>“NOT the σ_b = 0 boundary.”</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The engine calls the bird spread σ_b, for “between”; it is the σ_u on
+the board, and I will keep calling it σ_u. That heading is the engine
+warning you off the one question you were about to ask it. You want to
+know whether the birds differ at all, and that is a question about a
+variance being zero. A boundary here means the edge of the values a
+number is allowed to take: a variance can be zero but never less, so “is
+it zero?” is a question asked from the edge, and the usual test does not
+work there. The <em>p</em>-value printed on that line is not answering
+it. The engine will not stop you misreading it, but it will tell you, in
+the heading, that you are about to.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So what do I do instead?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Today, nothing: you look at the two spreads and the ratio between them,
+which is what the hour is about, and you notice that a random intercept
+is worth having for reasons that have nothing to do with a
+<em>p</em>-value. Class 8 gives that boundary an hour of its own, and it
+is the reason the hour is needed. Now put the two fits side by side, and
+watch which numbers move.</p></div>
+<div id="side-by-side" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>b_lm, b_ri <span class="op">=</span> <span class="fu">coef</span>(lm_fit, <span class="op">:</span>mu), <span class="fu">coef</span>(ri_fit, <span class="op">:</span>mu)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>se_lm, se_ri <span class="op">=</span> <span class="fu">stderror</span>(lm_fit)[<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>], <span class="fu">stderror</span>(ri_fit)[<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-14s %12s %12s %12s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"no bird"</span>, <span class="st">"with bird"</span>, <span class="st">"ratio"</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-14s %12.4f %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta0"</span>,    b_lm[<span class="fl">1</span>],  b_ri[<span class="fl">1</span>],  b_ri[<span class="fl">1</span>] <span class="op">/</span> b_lm[<span class="fl">1</span>])</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-14s %12.4f %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta1"</span>,    b_lm[<span class="fl">2</span>],  b_ri[<span class="fl">2</span>],  b_ri[<span class="fl">2</span>] <span class="op">/</span> b_lm[<span class="fl">2</span>])</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-14s %12.4f %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"SE(beta0)"</span>, se_lm[<span class="fl">1</span>], se_ri[<span class="fl">1</span>], se_ri[<span class="fl">1</span>] <span class="op">/</span> se_lm[<span class="fl">1</span>])</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-14s %12.4f %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"SE(beta1)"</span>, se_lm[<span class="fl">2</span>], se_ri[<span class="fl">2</span>], se_ri[<span class="fl">2</span>] <span class="op">/</span> se_lm[<span class="fl">2</span>])</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>se_ratio <span class="op">=</span> se_ri[<span class="fl">2</span>] <span class="op">/</span> se_lm[<span class="fl">2</span>]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>se_shortfall <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> se_lm[<span class="fl">2</span>] <span class="op">/</span> se_ri[<span class="fl">2</span>];</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    no bird    with bird        ratio
+beta0               56.0685      56.4795       1.0073
+beta1                1.1696       1.1481       0.9816
+SE(beta0)            2.3560       3.0547       1.2966
+SE(beta1)            0.1263       0.1639       1.2974</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The slope hardly changed.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The slope hardly changed. Now read the row underneath it.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>The standard error went up by a factor of 1.3.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It went up by a factor of 1.3, which is the same thing as saying the
+first model’s standard error was 22.9% too small. Toto, what would you
+have done with the small one?</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Put it in a table. With a confidence interval around it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>With a confidence interval 22.9% too narrow, and a <em>p</em>-value to
+match, in a paper, about sparrows. That is what independence was buying
+you: confidence it had not earned.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>How much had it earned? If 459 rows are really 171 birds, the standard
+error should have been much further out than that.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Good, and that is the right instinct pushed one step too far. Turn the
+ratio back into a count.</p></div>
+<div id="effective-n" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A standard error scales like 1/sqrt(n), so a ratio of standard errors turns</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># back into the sample size the honest fit behaved as though it had.</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>n_eff <span class="op">=</span> n <span class="op">/</span> se_ratio<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ratio_if_birds <span class="op">=</span> <span class="fu">sqrt</span>(n <span class="op">/</span> birds)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows                                     : %d</span><span class="sc">\n</span><span class="st">"</span>, n)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"birds                                    : %d</span><span class="sc">\n</span><span class="st">"</span>, birds)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"effective sample size implied by the SEs : %.1f</span><span class="sc">\n</span><span class="st">"</span>, n_eff)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SE ratio we measured                     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, se_ratio)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SE ratio if every bird counted once      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, ratio_if_birds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows                                     : 459
+birds                                    : 171
+effective sample size implied by the SEs : 272.7
+SE ratio we measured                     : 1.2974
+SE ratio if every bird counted once      : 1.6384</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The truth is <strong>between the two counts</strong>, and the arithmetic
+says where. Not 459 independent measurements, not 171 either, but about
+273. If a bird really were one indivisible piece of evidence, the
+standard error would have gone up by a factor of 1.64 rather than 1.3.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So the extra measurements were worth something after all.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They were worth something, and less than they looked. A fourth capture
+of a bird you have already measured three times adds a little
+information about that bird and none at all about how many birds there
+are. Which is a sentence worth keeping when somebody offers you more
+data from the same individuals.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>Why up, though? I would like to be able to predict the direction next
+time rather than look it up.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Good. Predict it from the predictor. Ask how much of the variation in
+tarsus length sits <em>between</em> birds rather than <em>within</em>
+them.</p></div>
+<div id="tarsus-structure" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>tarsus_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Tarsus <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>tarsus_between <span class="op">=</span> <span class="fu">repeatability</span>(tarsus_fit).estimate</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"share of tarsus variation that is between birds: %.4f</span><span class="sc">\n</span><span class="st">"</span>, tarsus_between)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>share of tarsus variation that is between birds: 0.9288</code></pre>
+</div>
+</div>
+<div class="line"><span class="who eddie">Eddie</span><p>Almost all of it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Almost all of it, because a tarsus is a leg bone and a grown sparrow’s
+leg bone does not change much between captures. So the predictor is very
+nearly a <em>bird-level</em> quantity, and that is most of the reason
+the effective count we measured a moment ago sits closer to 171 than to
+459. Only most of it, though: tarsus is 92.9% between-bird and not 100%,
+so a re-measured bird does carry a little fresh information about the
+slope, which is exactly why 273 is not 171. The rule to carry away:
+<strong>when a predictor varies mostly between groups, ignoring the
+grouping makes its standard error too small.</strong> When a predictor
+varies mostly <em>within</em> groups, the same neglect can make it too
+large, and Class 7 will show you one.</p></div>
+<h3 id="what-the-second-variance-component-is-for" class="anchored">What the second variance component is for</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Now the part you came for. The fit printed two spreads. Get them out.</p></div>
+<div id="variance-components" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sigma_u <span class="op">=</span> <span class="fu">re_sd</span>(ri_fit)[<span class="op">:</span>BirdID]     <span class="co"># between-bird SD</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>sigma_e <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sigma</span>(ri_fit))       <span class="co"># within-bird SD; also the fit's printed</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="co"># "Residual SD (response scale)", which for</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                                     <span class="co"># a mixed fit is the WITHIN-group number</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_u (between birds) : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_u)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e (within a bird) : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_e)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma from the model that pretended: %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">first</span>(<span class="fu">sigma</span>(lm_fit)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sigma_u (between birds) : 1.7541 mm
+sigma_e (within a bird) : 1.0969 mm
+sigma from the model that pretended: 2.0856 mm</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>The pretending model’s σ is bigger than either of these.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Bigger than either, because it had to absorb both. One number was doing
+two jobs: how much birds differ from each other, and how much a single
+bird’s wing measurement wobbles from day to day. Those are different
+quantities, they have different biology, and a model that reports their
+sum has told you neither. Now divide.</p></div>
+<div id="repeatability" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>R_manual <span class="op">=</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> (sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># repeatability() defaults to method = :delta: the estimate plus or minus about two</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># standard errors, pushed back inside [0, 1]. Name the method: it is not the only one on offer.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit)                          <span class="co"># method = :delta, the default</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>R_prof <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit; method <span class="op">=</span> <span class="op">:</span>profile)  <span class="co"># re-maximises the likelihood</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand                   : R = %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_manual)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"delta (the default)       : R = %.4f   SE %.4f   95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>        R.estimate, R.se, R.ci.lower, R.ci.upper)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  bias estimate %.5f, bias-corrected point estimate %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>        R.bias, R.corrected)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"profile likelihood        : R = %.4f   %-11s95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>        R_prof.estimate, <span class="st">""</span>, R_prof.ci.lower, R_prof.ci.upper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>by hand                   : R = 0.7189
+delta (the default)       : R = 0.7189   SE 0.0317   95% CI 0.6556 to 0.7800
+  bias estimate -0.00109, bias-corrected point estimate 0.7178
+profile likelihood        : R = 0.7189              95% CI 0.6520 to 0.7764</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>Two intervals, and you did not tell us which one you were reporting
+until just now.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Which is the sin this whole book is about, committed by me, in a cell,
+on purpose. <code>repeatability</code> hands you one of two intervals
+and does not say which. The default is the quick one: take the ratio,
+take a standard error for it, go about two standard errors either way,
+and then push the ends back inside nought and one if they fall outside.
+Statisticians call an estimate-plus-or-minus-two-standard-errors
+interval a <strong>Wald</strong> interval, and the approximation that
+gets a standard error for a ratio out of two variances is the
+<strong>delta method</strong>. It is fast and it is the weaker of the
+two.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>And the other one?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><code>method = :profile</code> re-fits the model at each trial value of
+R and keeps the values the data cannot rule out. That takes longer, and
+it is the one documented to do what it says: ask for a 95 percent
+interval and you get one that contains the truth 95 times in 100, which
+is what <strong>coverage</strong> means. They differ here in the third
+decimal place at both ends, which is small, and they will not always be
+small: near zero or near one the pushing-back-inside does real damage.
+Report the one you asked for, by name.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>And the bias line?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>A ratio of estimates is not the estimate of the ratio, so the point
+estimate is slightly off and the engine will tell you by how much if you
+look. It is tiny here. It will not be tiny in Class 10, on six families.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Now the substance. That is <strong>repeatability</strong>, and it is the
+first quantity in this book that is not a coefficient and not a
+<em>p</em>-value. It is a <strong>ratio of variance components</strong>:
+the between-bird variance over the total. Toto, read it as a sentence
+about birds.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>About 72% of the variation in wing length is differences between birds,
+and the rest is a bird varying from itself.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is exactly right and I want you to notice how much more that tells
+you than any <em>p</em>-value in this chapter. Two warnings, both of
+which have papers behind them. First: this R is
+<strong>adjusted</strong>. It is conditional on tarsus, because tarsus
+is in the model, so it is repeatability of wing length <em>after taking
+size into account</em>. Drop the predictor and you get a different
+number.</p></div>
+<div id="adjusted-vs-not" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>plain_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>R_unadjusted <span class="op">=</span> <span class="fu">repeatability</span>(plain_fit).estimate</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adjusted for tarsus : R = %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unadjusted          : R = %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_unadjusted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>adjusted for tarsus : R = 0.7189
+unadjusted          : R = 0.7565</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>They are close.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They are close <em>here</em>, and they are not always, and the two are
+answers to different questions. The unadjusted one asks how consistent a
+bird’s wing length is. The adjusted one asks how consistent a bird is
+<em>once you know how big it is</em>. Nakagawa and Schielzeth (2010) is
+where that distinction is set out properly, and it is the paper to hand
+somebody who has just written “repeatability” in a manuscript without
+saying which one they mean.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>And the second warning?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The second is the denominator, and it is the reason Class 8 exists. Look
+again at what you just divided by.</p></div>
+<p class="board"><strong>R = σ_u² / (σ_u² + σ²). Two estimated quantities, over the sum
+of the same two estimated quantities, and not one coefficient of μ
+anywhere in it.</strong></p>
+<div class="line"><span class="who itchy">Itchy</span><p>Every number in that ratio is an estimate of a variance, and Class 2
+already showed you that different people divide sums of squares by
+different things. In Class 8 you will find out that two correct
+implementations of <em>this exact model</em> disagree about σ_u, and
+therefore about R. Today I only want you to notice that the denominator
+is contested. Do not take the third decimal place of a repeatability
+seriously until Class 8.</p></div>
+<h3 id="eddies-question" class="anchored">Eddie’s question</h3>
+<div class="line"><span class="who eddie">Eddie</span><p>Here is the thing I have never had answered. You say we do not estimate
+171 intercepts, we estimate their spread. But the model clearly knows
+something about individual birds, because it can predict them. So what
+<em>is</em> a random intercept?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is the right question and the answer is a picture rather than a
+sentence. Ask the fit for its per-bird effects and put them next to what
+each bird’s own data said, with nothing borrowed. The model’s own
+prediction for each bird has an unlovely name, BLUP, for best linear
+unbiased predictor, and it is the name you will see in other people’s
+output; I will say “the model’s prediction for the bird”, and you may
+say BLUP in papers.</p></div>
+<div id="cell-fig-shrinkage" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>blups <span class="op">=</span> <span class="fu">ranef</span>(ri_fit)[<span class="op">:</span>BirdID]         <span class="co"># the model's prediction for each bird (the BLUPs), straight from the fit</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The unshrunk per-bird effect: the average residual from the fixed part alone.</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># fitted() here is MARGINAL (X * beta, every bird effect set to zero), which is</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"># what makes averaging it within a bird the "bird on its own evidence" number.</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>resid_fixed <span class="op">=</span> sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>raw_effect <span class="op">=</span> [<span class="fu">mean</span>(resid_fixed[sparrows.BirdID <span class="op">.==</span> b]) for b <span class="kw">in</span> bird_ids]</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Birds at even intervals through the ordering, so the picture is a rule again;</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 171 tick labels would be unreadable and choosing "interesting" birds would be</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co"># choosing the evidence.</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>sel <span class="op">=</span> <span class="fu">sortperm</span>(raw_effect)[<span class="fl">1</span><span class="op">:</span><span class="fl">14</span><span class="op">:</span><span class="fu">length</span>(bird_ids)]</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>kept <span class="op">=</span> blups <span class="op">./</span> raw_effect</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>k_j <span class="op">=</span> [<span class="fu">count</span>(<span class="op">==</span>(b), sparrows.BirdID) for b <span class="kw">in</span> bird_ids]</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"birds shown: %d of %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(sel), <span class="fu">length</span>(bird_ids))</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fraction of its own signal a bird keeps: %.3f (k = %d) to %.3f (k = %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(kept), k_j[<span class="fu">argmin</span>(kept)], <span class="fu">maximum</span>(kept), k_j[<span class="fu">argmax</span>(kept)])</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_shrinkage</span>(bird_ids[sel], raw_effect[sel], blups[sel])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>birds shown: 13 of 171
+fraction of its own signal a bird keeps: 0.836 (k = 2) to 0.911 (k = 4)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<div id="fig-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk6-random-intercepts_files/figure-html/fig-shrinkage-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Shrinkage caterpillar for the sparrows: circles are each bird’s own average residual from the random-intercept fit’s marginal fitted values — what its own captures say about it, borrowing nothing; diamonds are the model’s prediction (the BLUP) for the same bird. Every diamond sits closer to the middle than its circle, and by how much depends on how many times that bird was caught.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Every circle is what a bird’s own measurements said about it, on its
+own, borrowing nothing. Every diamond is what the model predicts for
+that bird. Eddie, describe the difference.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>Every diamond is closer to the middle than its circle.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Every one, and that is what a random intercept <em>is</em>. It is the
+decision to treat the 171 birds as <strong>draws from one population of
+birds</strong> rather than as 171 unrelated strangers. Once you have
+done that, a bird with two noisy measurements is allowed to borrow
+strength from the fact that birds in general do not differ by very much,
+and gets pulled towards the average. A bird with more measurements has
+more of its own evidence and is pulled less than that, which you cannot
+see in the picture, because the birds drawn there were chosen by where
+they sit and not by how often we caught them. It is in the line printed
+above it: the fraction a bird keeps runs from 0.836 at the fewest
+captures to 0.911 at the most.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So the model distrusts small samples on purpose.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The model distrusts small samples in exactly the proportion the data say
+it should, and that proportion is σ_u² over σ_u² plus σ² over
+<em>k</em>, which is repeatability again wearing a different hat. That
+fraction has a name, the Spearman–Brown weight, borrowed from the
+psychologists who first asked how much a test’s reliability improves
+when you lengthen it: it is <em>k</em> σ_u² over <em>k</em> σ_u² plus
+σ², repeatability with the bird’s own <em>k</em> measurements put on
+top. That is why the two ideas are one chapter. Now the same fit drawn
+the other way round, as lines.</p></div>
+<div id="cell-fig-bird-lines" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"one slope, </span><span class="sc">$</span>(<span class="fu">length</span>(bird_ids))<span class="st"> intercepts"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus), length <span class="op">=</span> <span class="fl">50</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.3</span>))</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> u <span class="kw">in</span> blups</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, xs, b_ri[<span class="fl">1</span>] <span class="op">+</span> u <span class="op">.+</span> b_ri[<span class="fl">2</span>] <span class="op">.*</span> xs; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.20</span>), linewidth <span class="op">=</span> <span class="fl">0.6</span>)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_ri[<span class="fl">1</span>] <span class="op">.+</span> b_ri[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">3</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<div id="fig-bird-lines" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-bird-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk6-random-intercepts_files/figure-html/fig-bird-lines-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bird-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: One population line in bold, with a faint parallel line drawn at every bird’s own predicted intercept. All the lines share exactly the same slope; only where they cross the y-axis differs, which is the constant a random intercept leaves untouched and Class 7 goes on to free.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>They are all parallel.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>All parallel, every one of them, because we freed the intercept and left
+the slope alone. Each bird gets to sit high or low; none of them gets
+its own steepness. That is precisely the constant Class 7 frees, and the
+fact that you can see the restriction in the picture is why I drew it.</p></div>
+<h3 id="is-the-model-any-good" class="anchored">Is the model any good?</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Before anybody writes this down, look at the residuals. And be careful
+which residuals, because there are two kinds now and the software will
+hand you one of them without asking. The marginal residual is the
+distance from the population line, so it still has the bird’s own shift
+inside it. The conditional residual subtracts that shift out, and it is
+the one σ is a claim about. The worm plot is the picture Class 2 showed
+you and Class 5 taught you to read: residuals against what a normal
+distribution would give, straight along the middle if all is well. Read
+it for shape only — Class 5 showed that the naive count of points
+outside the ±2SE band is too generous by about a factor of five, so it
+is not calibrated by eye.</p></div>
+<div id="cell-fig-diagnostic" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals(fit) is MARGINAL: it still contains the bird effect, so it is NOT the</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># thing sigma describes. Subtract each bird's own BLUP to get the CONDITIONAL</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"># residual, which is what the within-bird spread is a claim about.</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(bird_ids))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>cond_resid <span class="op">=</span> <span class="fu">residuals</span>(ri_fit) <span class="op">.-</span> [blups[idx[b]] for b <span class="kw">in</span> sparrows.BirdID]</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of marginal residuals    : %.4f  (should be near %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(<span class="fu">residuals</span>(ri_fit)), <span class="fu">sqrt</span>(sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>))</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of conditional residuals : %.4f  (sigma_e is %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(cond_resid), sigma_e)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardise by the spread the residuals ACTUALLY have, not by sigma_e. Dividing</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co"># by sigma_e would guarantee an under-dispersed plot and hide the shape we came</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co"># to look at behind an error of scale we already know about.</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid); title <span class="op">=</span> <span class="st">"within-bird residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>SD of marginal residuals    : 2.0880  (should be near 2.0689)
+SD of conditional residuals : 0.9039  (sigma_e is 1.0969)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk6-random-intercepts_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Worm plot of the conditional residuals — the marginal residual with the model’s own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat and inside the ±2SE band for nearly its whole length; the one row that is not is named in the text below rather than smoothed out of the caption.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Read the shape, but do not let your eye average away the one row that
+does not belong in an average. Name it before we go on.</p></div>
+<div id="named-outlier" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> <span class="fu">argmin</span>(z)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>bad_bird <span class="op">=</span> sparrows.BirdID[worst]</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>own_wings <span class="op">=</span> sparrows.Wing[sparrows.BirdID <span class="op">.==</span> bad_bird]</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points beyond +-2: %d below, %d above (of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(z <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span>), <span class="fu">count</span>(z <span class="op">.&gt;</span> <span class="fl">2</span>), <span class="fu">length</span>(z))</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"furthest point: bird %s, standardised residual %.2f</span><span class="sc">\n</span><span class="st">"</span>, bad_bird, z[worst])</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its own wing measurements: %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">string</span>(own_wings))</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">trues</span>(n); keep[worst] <span class="op">=</span> <span class="cn">false</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>refit_drop <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e, row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(refit_drop)))</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R,       row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate, <span class="fu">repeatability</span>(refit_drop).estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>points beyond +-2: 8 below, 6 above (of 459)
+furthest point: bird TA14548, standardised residual -7.87
+its own wing measurements: [75.5, 75.0, 76.5, 67.0]
+sigma_e, row in vs out    : 1.0969 vs 1.0002
+R,       row in vs out    : 0.7189 vs 0.7531</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>TA14548. Read the line above rather than take my word for it: three
+wings within a couple of millimetres of each other, and a fourth well
+short of them. It survived the missing-data filter because tarsus was
+recorded on all four captures, so it is sitting inside this fit whether
+we discuss it or not. Drop that one row and σ moves from 1.0969 to
+1.0002, and R from 0.7189 to 0.7531 — one row out of 459, and not a
+small move. This bird, and a second one like it, get the full treatment
+next week: Class 7 names them both and sends them to an exercise. Here I
+am only asking you to read a worm plot honestly: flat and inside the
+band almost everywhere, with this one row sitting outside it on its own.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>The conditional one is smaller than σ. Is that the shrinkage?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is not, and I am glad you guessed, because the guess is the common
+one and it points the wrong way. Work out where the shortfall comes from
+instead of attributing it.</p></div>
+<div id="residual-accounting" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>k_of <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> <span class="fu">count</span>(<span class="op">==</span>(b), sparrows.BirdID) <span class="cf">for</span> b <span class="kw">in</span> bird_ids)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>ks <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(<span class="fu">values</span>(k_of)))</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># lambda_k is the Spearman-Brown weight: the share of its own signal a bird with</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"># k measurements keeps. It is also the shrinkage factor in the caterpillar.</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lambda</span>(k) <span class="op">=</span> k <span class="op">*</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> (k <span class="op">*</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>own_mean_only <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">count</span>(<span class="op">==</span>(k), <span class="fu">values</span>(k_of)) <span class="op">*</span> k <span class="op">*</span> sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k)</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>                         <span class="cf">for</span> k <span class="kw">in</span> ks) <span class="op">/</span> n)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>with_shrinkage <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">count</span>(<span class="op">==</span>(k), <span class="fu">values</span>(k_of)) <span class="op">*</span> k <span class="op">*</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>                          (sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k) <span class="op">+</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fu">lambda</span>(k))<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span><span class="op">/</span>k))</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> k <span class="kw">in</span> ks) <span class="op">/</span> n)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_e, and what you would see if each"</span>, sigma_e)</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %s</span><span class="sc">\n</span><span class="st">"</span>,   <span class="st">"  bird's own mean were known exactly:"</span>, <span class="st">"(the same number)"</span>)</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"after paying for each bird's own mean:"</span>, own_mean_only)</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"that, plus what shrinkage adds back:"</span>, with_shrinkage)</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"observed:"</span>, <span class="fu">std</span>(cond_resid))</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>()</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> ks</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"  k = %d: lambda = %.4f, sqrt(sigma_e^2 (1 - 1/k)) = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>            k, <span class="fu">lambda</span>(k), <span class="fu">sqrt</span>(sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k)))</span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sigma_e, and what you would see if each    1.0969
+  bird's own mean were known exactly:      (the same number)
+after paying for each bird's own mean:     0.8689
+that, plus what shrinkage adds back:       0.9029
+observed:                                  0.9039
+
+  k = 2: lambda = 0.8365, sqrt(sigma_e^2 (1 - 1/k)) = 0.7756
+  k = 3: lambda = 0.8847, sqrt(sigma_e^2 (1 - 1/k)) = 0.8956
+  k = 4: lambda = 0.9109, sqrt(sigma_e^2 (1 - 1/k)) = 0.9499</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Read the ladder. The big step is the third line, and it is nothing to do
+with random effects: it is Class 2’s divisor, wearing its oldest hat.
+Subtracting an estimated mean from 2 numbers leaves you residuals whose
+spread is short by a factor of the square root of one minus one over
+<em>k</em>, because one degree of freedom went into the mean. With 2
+measurements that is a 29% shortfall on its own. Shrinkage then pushes
+the number <strong>back up</strong>, not down, because a shrunk BLUP
+removes slightly <em>less</em> than the bird’s real effect and leaves a
+little of it behind in the residual.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So my guess was not just wrong, it had the sign wrong.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The sign wrong, which is the useful kind of wrong. And it tells you what
+this plot can and cannot do. It <strong>cannot</strong> tell you whether
+σ is right, because the residuals it is drawn from are short of σ by an
+amount we have just computed rather than measured. It
+<strong>can</strong> tell you whether the within-bird wobble is
+symmetric and normal-ish and free of trend, which is the assumption the
+model actually makes. So the cell standardises by the spread the
+residuals have, not by σ, and you read the shape.</p></div>
+<h3 id="what-repeatability-is-for" class="anchored">What repeatability is for</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Last piece, and it is biology rather than arithmetic. Why would anyone
+want R at all?</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>Measurement error. If I measure the same wing twice and get different
+answers, R tells me how bad my ruler is.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is one of the two uses and it is the one people forget. A
+repeatability puts a ceiling on any correlation you will ever measure
+with that trait, and I want you to get the ceiling right, because almost
+everybody gets it wrong the first time. Compute it.</p></div>
+<div id="ceiling" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R and h2 are both variance ratios over the SAME total. Under the STANDARD</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># PARTITION -- between-individual variance = additive genetic + permanent</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># environment, with no covariance between the two -- the additive part is a</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># share of the between-bird variance, never more than all of it, so h2 &lt;= R.</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Relax that partition and the bound can fail (Dohm 2002).</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>V_between <span class="op">=</span> sigma_u<span class="op">^</span><span class="fl">2</span>      <span class="co"># genes AND every other permanent thing about a bird</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>V_within  <span class="op">=</span> sigma_e<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>V_total   <span class="op">=</span> V_between <span class="op">+</span> V_within</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird variance (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between)</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"within-bird variance  (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_within)</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"total                 (mm^2)  : %.4f</span><span class="sc">\n\n</span><span class="st">"</span>, V_total)</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R  = V_between / total        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between <span class="op">/</span> V_total)</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 = V_additive / total, and V_additive &lt;= V_between, so h2 &lt;= %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>        V_between <span class="op">/</span> V_total)</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">estimator: maximum likelihood, adjusted for tarsus (the fit above)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>between-bird variance (mm^2)  : 3.0770
+within-bird variance  (mm^2)  : 1.2032
+total                 (mm^2)  : 4.2802
+
+R  = V_between / total        : 0.7189
+h2 = V_additive / total, and V_additive &lt;= V_between, so h2 &lt;= 0.7189
+
+estimator: maximum likelihood, adjusted for tarsus (the fit above)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The two numbers are the same.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They are the same number, and that is not a coincidence, it is the
+theorem. <strong>Repeatability is an upper bound on narrow-sense
+heritability — the additive-genetic share alone, as opposed to
+broad-sense, which would also count non-additive genetic effects — h² ≤
+R.</strong> Read the cell again and you have the proof: the two
+quantities are ratios over the <em>same</em> total, and the thing on top
+of h² is a <em>part</em> of the thing on top of R. Between-bird variance
+is everything permanent about a bird. Its genes are in there. So is the
+nest it grew up in, the territory it holds, and any damage it has taken,
+none of which its chicks inherit. Additive genetic variance is one slice
+of that pie, so h² can equal R only if every permanent difference
+between these birds is genetic, and it never is.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So R is a free upper bound on heritability that costs no pedigree at
+all.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>A free upper bound that costs you no pedigree, no relatives and no
+crossing design, which is why it is worth an hour of Class 6. Nakagawa
+and Schielzeth (2010) treat repeatability’s relation to heritability as
+exactly this kind of upper bound, and review how to estimate the ratio
+properly. And the bound is often loose, sometimes very loose, because
+permanent environment effects can be large. Ours is 0.719, estimated by
+maximum likelihood and adjusted for tarsus, so what it caps is the
+heritability of wing length once size is accounted for. Match the
+conditioning when you quote it: an adjusted R bounds an adjusted h².</p></div>
+<div class="line"><span class="who momo">Momo</span><p>You said “under the standard partition” in the cell comment. What
+happens if the partition is wrong?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Then the bound is not guaranteed, and I would rather you heard that from
+me than discovered it in a referee report. Everything I have just said
+rests on splitting the between-individual variance into an additive
+genetic part <strong>plus</strong> a permanent environment part,
+<strong>with no covariance between them</strong>, and on the
+measurements being exchangeable within an individual. Relax those and
+the inequality can fail. Dohm (2002) is a whole paper on this, and its
+title is the warning: repeatability estimates do not always set an upper
+limit to heritability. Genes and environment covarying, or maternal and
+early-life effects entering some measurements and not others, are the
+cases to know about.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So is h² ≤ R a rule or not?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is a rule under a stated model, which is what most useful statements
+in this field are. Use it as the free first check it is, quote the
+partition when you lean on it, and do not treat a violation as proof
+that somebody is wrong.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>And if a paper reports an h² above its R?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Then there are three live possibilities and none of them is “the authors
+cannot add up”. Either an estimate is off, which is easy on small
+pedigrees where both numbers carry wide intervals; or the design cannot
+separate genes from a permanent environment, so the two quantities are
+not estimating what their names say; or the standard partition genuinely
+fails for that trait, which is Dohm’s case. Either way you have found
+the interesting sentence in that paper, and it is worth reading before
+you write to the authors. That is Class 10, and today’s ratio is the
+thing it is built on.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>One warning before we leave the ceiling, because you will meet the other
+one. <strong>A correlation between two traits is capped by the square
+root of the repeatability, not by R itself, because a correlation lives
+on the standard-deviation scale.</strong> Do not carry today’s bound
+across to that problem; Class 10 comes back to it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The other use of R is the interesting one, and it is that R is a real
+quantity about the animals. A trait that is repeatable is a trait an
+individual <em>has</em>, consistently, rather than a thing that happens
+to it on a given morning. That is the door into personality research,
+into heritability, and into Class 10.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>And the pitfalls, since you have mentioned two papers and a warning
+already.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Lessells and Boag (1987), which is one of the most useful two-page
+papers in ecology and is titled, correctly, “Unrepeatable
+repeatabilities”. It exists because people were computing this ratio
+with the wrong denominator when their birds had different numbers of
+measurements, which is exactly our situation: 85 birds measured twice,
+and others three and four times. Which brings me to the one place I am
+going to show you R code today.</p></div>
+<h3 id="one-box-and-it-is-earned" class="anchored">One box, and it is earned</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>An R-trained reader does not reach for a mixed model to get a
+repeatability. They reach for <code>aov</code>, and a formula out of
+Lessells and Boag. That route is not wrong and it does not give our
+number. Compute it here first, by hand, so the comparison is between two
+methods and not between two languages.</p></div>
+<div id="anova-repeatability" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), <span class="op">:</span>Wing <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m, nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>gidx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(grp.BirdID))   <span class="co"># groupby order, not sorted</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>grand <span class="op">=</span> <span class="fu">mean</span>(sparrows.Wing)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> <span class="fu">nrow</span>(grp)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>ss_among  <span class="op">=</span> <span class="fu">sum</span>(grp.k <span class="op">.*</span> (grp.m <span class="op">.-</span> grand) <span class="op">.^</span> <span class="fl">2</span>)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>ss_within <span class="op">=</span> <span class="fu">sum</span>((sparrows.Wing <span class="op">.-</span> [grp.m[gidx[b]] for b <span class="kw">in</span> sparrows.BirdID]) <span class="op">.^</span> <span class="fl">2</span>)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>ms_among, ms_within <span class="op">=</span> ss_among <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>), ss_within <span class="op">/</span> (n <span class="op">-</span> a)</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Lessells &amp; Boag's n0: the "effective" measurements per bird when the numbers differ.</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>n0 <span class="op">=</span> (n <span class="op">-</span> <span class="fu">sum</span>(grp.k <span class="op">.^</span> <span class="fl">2</span>) <span class="op">/</span> n) <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>)</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>s2_among <span class="op">=</span> (ms_among <span class="op">-</span> ms_within) <span class="op">/</span> n0</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>R_anova <span class="op">=</span> s2_among <span class="op">/</span> (s2_among <span class="op">+</span> ms_within)</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"MS among birds %.4f   MS within %.4f   n0 %.4f  (mean k %.4f)</span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>        ms_among, ms_within, n0, mean_k)</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a><span class="co"># There is a third answer, and pretending there are only two is how the gap gets</span></span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a><span class="co"># blamed on the wrong thing. What REML is, and why it moves the number, is Class</span></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 8's whole hour; today we only need to see where it lands.</span></span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>reml_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>();</span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>               data <span class="op">=</span> sparrows, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>R_reml <span class="op">=</span> <span class="fu">repeatability</span>(reml_fit).estimate</span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"repeatability, unadjusted"</span>, <span class="st">"R"</span>)</span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  maximum likelihood"</span>, R_unadjusted)</span>
+<span id="cb36-27"><a href="#cb36-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  REML"</span>, R_reml)</span>
+<span id="cb36-28"><a href="#cb36-28" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="st">"  analysis of variance"</span>, R_anova)</span>
+<span id="cb36-29"><a href="#cb36-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-30"><a href="#cb36-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the gap on the variance scale, where the factors multiply.</span></span>
+<span id="cb36-31"><a href="#cb36-31" aria-hidden="true" tabindex="-1"></a>v_ml   <span class="op">=</span> <span class="fu">re_sd</span>(plain_fit)[<span class="op">:</span>BirdID]<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb36-32"><a href="#cb36-32" aria-hidden="true" tabindex="-1"></a>v_reml <span class="op">=</span> <span class="fu">re_sd</span>(reml_fit)[<span class="op">:</span>BirdID]<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb36-33"><a href="#cb36-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-34"><a href="#cb36-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird VARIANCE, ratio to the ML estimate</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb36-35"><a href="#cb36-35" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  REML  / ML   : %.6f     &lt;- the divisor step, Class 8's business</span><span class="sc">\n</span><span class="st">"</span>, v_reml <span class="op">/</span> v_ml)</span>
+<span id="cb36-36"><a href="#cb36-36" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ANOVA / REML : %.6f     &lt;- moments against likelihood, unequal k</span><span class="sc">\n</span><span class="st">"</span>, s2_among <span class="op">/</span> v_reml)</span>
+<span id="cb36-37"><a href="#cb36-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ANOVA / ML   : %.6f     = the product of the two above</span><span class="sc">\n</span><span class="st">"</span>, s2_among <span class="op">/</span> v_ml)</span>
+<span id="cb36-38"><a href="#cb36-38" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  J/(J-1)      : %.6f     (J = %d birds)</span><span class="sc">\n</span><span class="st">"</span>, birds <span class="op">/</span> (birds <span class="op">-</span> <span class="fl">1</span>), birds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>MS among birds 11.8260   MS within 1.2468   n0 2.6829  (mean k 2.6842)
+
+repeatability, unadjusted             R
+  maximum likelihood             0.7565
+  REML                           0.7577
+  analysis of variance           0.7598
+
+between-bird VARIANCE, ratio to the ML estimate
+  REML  / ML   : 1.006614     &lt;- the divisor step, Class 8's business
+  ANOVA / REML : 1.012226     &lt;- moments against likelihood, unequal k
+  ANOVA / ML   : 1.018921     = the product of the two above
+  J/(J-1)      : 1.005882     (J = 171 birds)</code></pre>
+</div>
+</div>
+<div class="disagree">
+<p><strong>⚠ DISAGREE: three correct repeatabilities from one file, and
+the gap has two parts</strong></p>
+<p>Three routes to one number on these 459 measurements, and they
+disagree in the third decimal place. None of them is a bug, and the gap
+is <strong>not</strong> one effect but two, which the cell above
+separates on the variance scale, where the factors multiply.</p>
+<p>The <strong>first</strong> part is the step from maximum likelihood
+to REML, a factor of 1.006614 here against <em>J</em>/(<em>J</em> − 1) =
+1.005882. That is Class 2’s divisor argument arriving at the
+between-bird level, and it is Class 8’s subject: a maximum-likelihood
+variance is estimated without paying for the fixed effects that were
+estimated first, and REML makes it pay. Note which denominator it is.
+Class 2 met <em>n</em> against <em>n − p</em> at the
+<strong>residual</strong> level; this is the same argument one level up,
+with <em>J</em> birds in place of <em>n</em> rows, and Class 8 shows
+that a mixed model carries <strong>one divisor per level</strong>.</p>
+<p>The <strong>second</strong> part is larger here, a factor of
+1.012226, and it is not a divisor at all. The analysis-of-variance
+estimator matches expected mean squares — the textbook formula for how
+much variance each level of the design should contribute — which is a
+method of moments: set that formula equal to what you actually observed
+and solve. And with an unequal number of measurements per bird a method
+of moments is not REML: Lessells and Boag’s <code>n0</code> is the best
+single number to stand in for a <em>k</em> that is 2, 3 or 4 depending
+on the bird, and no single number can do that job exactly. Had every
+bird been caught the same number of times, this second factor would
+collapse and the two estimators would agree.</p>
+<p>So: the ordering ML &lt; REML &lt; ANOVA is not luck, and the divisor
+explains about a third of it. It is tempting to blame the whole gap on
+the divisor, because the divisor is the part with a formula; the larger
+part is the unequal number of captures, and it only shows itself when
+you split the gap on the variance scale as the cell did.</p>
+<p>The R output below was run once, by hand, on 2026-09-06, on the same
+data file this chapter reads, and pasted here as it came out; it is not
+re-run when the page is made. It is here to show that the classical
+route an R user would take gives the ANOVA number above, so the gap is
+between two methods and not between two languages.</p>
+</div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/BodySize.csv, rows with a missing</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Wing or Tarsus dropped (459 rows, 171 birds)</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   a &lt;- anova(aov(Wing ~ factor(BirdID), data = d))</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>Analysis of Variance Table</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>Response<span class="sc">:</span> Wing</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>           Df  Sum Sq Mean Sq F value    <span class="fu">Pr</span>(<span class="sc">&gt;</span>F)</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>BirdID    <span class="dv">170</span> <span class="fl">2010.42</span> <span class="fl">11.8260</span>  <span class="fl">9.4853</span> <span class="sc">&lt;</span> <span class="fl">2.2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>Residuals <span class="dv">288</span>  <span class="fl">359.07</span>  <span class="fl">1.2468</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>n0 <span class="ot">=</span> <span class="fl">2.682942</span>   MSa <span class="ot">=</span> <span class="fl">11.82599</span>   MSw <span class="ot">=</span> <span class="fl">1.246777</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>Lessells <span class="sc">&amp;</span> Boag ANOVA repeatability <span class="ot">=</span> <span class="fl">0.7597694</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="line"><span class="who momo">Momo</span><p>So which one do I report?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Whichever one you name. That is the entire answer, and if it sounds like
+a dodge, wait two weeks. What you may not do is report the third decimal
+place of a repeatability as though the method that produced it were a
+detail. Say “repeatability, estimated by maximum likelihood from a mixed
+model, was”, and then the number, and then your reader can do arithmetic
+you did not do for them.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So today’s summary is: rows are not strangers.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Today’s summary is: rows are not strangers, the correlation between them
+has a name and a number, and that number turns out to be a piece of
+biology rather than a nuisance.</p></div>
+<hr>
+<h2 id="summary" class="anchored">Summary</h2>
+<h3 id="stats-stuff" class="anchored">Stats stuff</h3>
+<ul>
+<li><strong>Non-independence.</strong> Every model in Classes 2 to 5 assumed rows were independent draws. Repeated measurements on the same individual are not, and the assumption is not visible in any diagnostic plot; it is visible in the <em>data file</em>. Look at your identifier columns before you look at your residuals.</li>
+<li><strong>Random intercept.</strong> <code>(1 | group)</code> gives every group its own shift up or down, drawn from a normal distribution with spread σ_u. You do not estimate one intercept per group; you estimate the spread of the intercepts, which costs you one parameter rather than one per group.</li>
+<li><strong>What it does to standard errors.</strong> With a predictor that varies mostly <em>between</em> groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope’s standard error was understated by nearly a quarter. With a predictor that varies mostly <em>within</em> groups the neglect can go the other way, which is Class 7.</li>
+<li><strong>Two spreads, not one.</strong> σ_u is how much individuals differ from each other; σ is how much one individual varies from itself. The single-level model reports something between the two and calls it “the” residual standard deviation, which answers neither question.</li>
+<li><strong>Repeatability, R = σ_u² / (σ_u² + σ²).</strong> A ratio of variance components. Also called the intraclass correlation, because it <em>is</em> the correlation between two measurements on the same individual. Not a coefficient, not a <em>p</em>-value, and much more informative than either.</li>
+<li><strong>Adjusted versus unadjusted R.</strong> With a fixed effect in the model, R is conditional on it. State which one you computed (Nakagawa &amp; Schielzeth 2010). The two answer different biological questions.</li>
+<li><strong>The denominator is contested, and for two reasons.</strong> Both terms in the ratio are estimated variances. Moving from maximum likelihood to REML is Class 2’s divisor argument arriving one level up, with <em>J</em> groups in place of <em>n</em> rows, and Class 8 shows that a mixed model carries one divisor per level. Moving from REML to the analysis-of-variance estimator is a different thing again: a method of moments needs one effective <em>k</em> where the design has several, so the two part company whenever groups have unequal sizes. On this file the second effect is the larger. Name your estimator.</li>
+<li><strong>Shrinkage.</strong> Predicted group effects are pulled towards the population mean by the Spearman-Brown weight λ_k = kσ_u²/(kσ_u² + σ²), so a group with less data is pulled harder. That is not a defect of the estimate; it is the entire content of the phrase “draws from a population”.</li>
+<li><strong>Marginal versus conditional residuals.</strong> <code>residuals</code> here is marginal, so it still contains the group effect and its spread is close to sqrt(σ_u² + σ²). Subtract the group’s own predicted effect to get the conditional residual. R users should note that <code>lme4</code> hands them the conditional one by default.</li>
+<li><strong>A conditional residual is not a draw from σ, and the shortfall is not shrinkage.</strong> Removing an estimated group mean costs a degree of freedom, so the spread falls short of σ by a factor of sqrt(1 − 1/k) before anything else happens, which at <em>k</em> = 2 is a loss of nearly a third. Shrinkage then pushes the spread back <strong>up</strong>, because a shrunk prediction removes slightly less than the group’s real effect. Standardise a residual plot by the spread the residuals have, not by σ, or the plot shows you an error of scale you already knew about instead of the shape you came to check.</li>
+<li><strong>The effective sample size.</strong> A standard error scales like 1/sqrt(n), so a ratio of standard errors converts back into a count. Here the honest fit behaved as though it had rather more evidence than the number of birds and far less than the number of rows. The truth is between the two counts, and the arithmetic says where.</li>
+<li><strong>R is a free upper bound on heritability, h² ≤ R, under the standard partition.</strong> Both are variance ratios over the same total, and if between-individual variance splits into additive genetic plus permanent environment with no covariance between them, the numerator of h² is a <em>part</em> of the numerator of R and the inequality is arithmetic. It costs no pedigree, and it is often loose, because permanent environment effects live inside R and outside h² (Nakagawa &amp; Schielzeth 2010; Class 10). It is not unconditional: relax the partition, for instance by letting genetic and permanent environment effects covary, and the bound can fail (Dohm 2002). Match the conditioning: an adjusted R bounds an adjusted h². Separately, and do not confuse the two: a <em>correlation</em> with a trait of repeatability R is capped by sqrt(R), because a correlation lives on the standard-deviation scale.</li>
+</ul>
+<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<ul>
+<li><code>CSV.read(path, DataFrame; missingstring = "NA")</code>: the keyword that turns a text column back into numbers when the file was written by a human in 2009. Without it, a single <code>NA</code> makes the whole column text and the model refuses it.</li>
+<li><code>dropmissing(df, [:a, :b])</code>: keep only rows complete on the columns you are about to model. Do it in a cell, in front of the reader, never in a spreadsheet.</li>
+<li><code>describe(df, :nmissing)</code>: how many missing values per column. The first thing to run on a real file.</li>
+<li><code>combine(groupby(df, :g), nrow =&gt; :k)</code>: rows per group. The second thing to run on a real file.</li>
+<li><code>@formula(y ~ x + (1|g))</code>: the random intercept. Everything else about the call is unchanged from Class 2, including the <code>bf</code> box and the positional family.</li>
+<li><code>re_sd(fit)</code>: a <code>Dict</code> of random-effect standard deviations by grouping term. <code>vc(fit)</code> gives the covariance blocks instead.</li>
+<li><code>sigma(fit)</code>: the residual SD, one value per observation; take <code>first(...)</code> when σ is constant.</li>
+<li><code>repeatability(fit)</code>: R with an interval, a standard error and a bias estimate, so you do not build the ratio by hand and lose the uncertainty. <strong>It defaults to <code>method = :delta</code></strong>, the estimate plus or minus about two standard errors, pushed back inside [0, 1] if it strays. <code>repeatability(fit; method = :profile)</code> re-fits the model at each trial value of R and keeps the values the data cannot reject; that is the one documented as covering the truth as often as it claims to, and it is the one to report unless you have a reason not to. The <code>bias</code> and <code>corrected</code> fields exist because a ratio of estimates is not the estimate of a ratio.</li>
+<li><code>ranef(fit)</code>: the model’s prediction for each group’s shift, by grouping term. These are the BLUPs of the caterpillar; the documentation also calls them conditional modes, and the two names mean the same thing. Pair with <code>fitted(fit)</code>, which is the <strong>marginal</strong> (population-level) prediction, so <code>y - fitted(fit)</code> averaged within a group is the unshrunk group effect.</li>
+<li><code>fig_shrinkage(groups, raw, blups)</code> from <code>tools/figures.jl</code>: the caterpillar, circles for each group’s own mean and diamonds for the model’s prediction, with the legend drawn outside the axis so it never covers a group.</li>
+<li><code>Cycled(i)</code> and <code>Makie.wong_colors()</code>: how to colour by group without inventing a palette.</li>
+<li><strong>Reading a <code>MethodError</code> from a real file.</strong> Line one says a <code>Float64</code> was wanted; the argument type in the signature says a string arrived. When that happens on data you did not simulate, suspect the file before you suspect the model.</li>
+<li><strong>The simulation thread.</strong> From Class 2 onward, the last thing you do with a fit is ask it to invent data and see whether the data look like yours. Here is that cell for a random intercept, and it carries a trap worth meeting once.</li>
+</ul>
+<div id="simulate-refit" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate() draws new responses from the fit. Read what it promises: for a</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co"># random-effect model the draw is conditional on the random effects being ZERO,</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># so it gives population-level birds with no individual identity at all.</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">600</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(ri_fit; nsim <span class="op">=</span> <span class="fl">100</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> ysim <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed SD about the fixed line : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)))</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated SD about the fixed line: %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev, <span class="fl">2</span>)))</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma alone                      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e)</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(sigma_u^2 + sigma_e^2)      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>))</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Refit one replicate and look at what the estimator concludes about birds when</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a><span class="co"># the truth is that birds do not differ at all.</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>one_rep <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> ysim[<span class="op">:</span>, <span class="fl">1</span>])</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>refit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> one_rep)</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">refit on simulated data: sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">re_sd</span>(refit)[<span class="op">:</span>BirdID], <span class="fu">first</span>(<span class="fu">sigma</span>(refit)), <span class="fu">repeatability</span>(refit).estimate)</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the fit it came from  : sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>        sigma_u, sigma_e, R.estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>observed SD about the fixed line : 2.0880
+simulated SD about the fixed line: 1.0995
+sigma alone                      : 1.0969
+sqrt(sigma_u^2 + sigma_e^2)      : 2.0689</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 4.2988383010350234e-19</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+refit on simulated data: sigma_u = 0.0000, sigma = 1.1034, R = 0.0000
+the fit it came from  : sigma_u = 1.7541, sigma = 1.0969, R = 0.7189</code></pre>
+</div>
+</div>
+<p>The simulated spread matches σ and not sqrt(σ_u² + σ²), and the refit recovers a repeatability near zero rather than the one we started with, because the draws were made with every bird effect set to zero. The warning printed above the refit is the engine noticing that the refit has put σ_u at zero, the same edge Class 8 is about, and telling you not to trust the standard errors it would print for that number; the word Hessian names the curvature of the likelihood at its peak, and at an edge there is no peak. If a line at the bottom of the warning names a file inside the engine, that line is for the engine’s authors, not for you. That is <code>simulate</code> doing exactly what it documents and nothing else. It makes this call the right way to generate a null in which individuals do not differ, and the wrong way to check whether a mixed model reproduces the spread of your data. Read what a function promises before you trust a hundred draws from it.</p>
+<hr>
+<h2 id="further-reading" class="anchored">Further reading</h2>
+<p class="aside">Graded by depth.</p>
+<ol type="1">
+<li><strong>Nakagawa, S. &amp; Schielzeth, H. (2010) “Repeatability for Gaussian and non-Gaussian data: a practical guide for biologists”, <em>Biological Reviews</em> 85:935–956.</strong> doi:10.1111/j.1469-185X.2010.00141.x. The direct source for everything in the second half of this class: adjusted versus unadjusted repeatability, what to do when the response is not normal, and how to get an interval that is not a fiction. Read it before you report an R.</li>
+<li><strong>Lessells, C. M. &amp; Boag, P. T. (1987) “Unrepeatable repeatabilities: a common mistake”, <em>The Auk</em> 104:116–121.</strong> doi:10.2307/4087240. Two pages, one formula, thirty years of citations. It is the source of the <code>n0</code> in the class cell, and the reason the analysis-of-variance route works at all when individuals have different numbers of measurements. Read it for the pleasure of watching a whole literature get corrected in half a morning’s work.</li>
+<li><strong>Dohm, M. R. (2002) “Repeatability estimates do not always set an upper limit to heritability”, <em>Functional Ecology</em> 16:273–280.</strong> doi:10.1046/j.1365-2435.2002.00621.x. The counterweight to the bound this class hands you. It sets out when h² ≤ R fails, chiefly when additive genetic and permanent environment effects covary, or when maternal and early-environment effects enter some measurements and not others. Read it the first time you want to lean on the bound in print.</li>
+<li><strong>Nakagawa, S., Johnson, P. C. D. &amp; Schielzeth, H. (2017) “The coefficient of determination R² and intra-class correlation coefficient from generalized linear mixed-effects models revisited and expanded”, <em>Journal of the Royal Society Interface</em> 14:20170213.</strong> Where this chapter’s ratio goes once the response stops being Gaussian, which is Class 9. Harder than item 1 and the natural sequel to it.</li>
+<li><strong>Zuur, A. F., Ieno, E. N. &amp; Elphick, C. S. (2010) “A protocol for data exploration to avoid common statistical problems”, <em>Methods in Ecology and Evolution</em>.</strong> Recommended in Class 2 and earning its place again: the section on dependency is exactly today’s lesson, written before you had a tool for it.</li>
+<li><strong>Gelman, A. &amp; Hill, J. (2007) <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>.</strong> Chapter 12 for the shrinkage picture drawn about six different ways, which is the fastest route to it becoming obvious. Ignore the software.</li>
+<li><strong>DRM.jl documentation, the <code>(1|g)</code> rows of <code>capabilities</code>.</strong> Which random-effect structures are tested and which are rejected, stated plainly. Worth a look before you assume a term will fit.</li>
+</ol>
+<hr>
+<h2 id="exercises" class="anchored">Exercises</h2>
+<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 2 and not Class 6.</p>
+<ol type="1">
+<li><p><strong>Find the identifier.</strong> Take a dataset of your own with repeated measurements. Report the number of rows, the number of individuals, and the distribution of measurements per individual, using <code>combine(groupby(...), nrow =&gt; :k)</code>. Then write one sentence naming what would have been counted as independent evidence if you had not looked.</p></li>
+<li><p><strong>Both fits, both standard errors.</strong> Fit your response on one predictor with and without <code>(1 | id)</code>. Report both slopes and both standard errors. Before you look, predict whether the standard error will go up or down, using the between-versus-within argument from class, and say afterwards whether you were right and why.</p></li>
+<li><p><strong>Repeatability, by hand and from the fit.</strong> Compute R from <code>re_sd</code> and <code>sigma</code> yourself, then check against <code>repeatability(fit)</code>. Report the interval too. Then write the one sentence you would put in a paper, including the words “estimated by”.</p></li>
+<li><p><strong>Adjusted or not.</strong> Fit the same random intercept with and without your fixed effect. Report both repeatabilities. Which of the two answers the question you actually care about? Two sentences.</p></li>
+<li><p><strong>Draw the shrinkage.</strong> Produce the caterpillar for your own data, with a stated rule for choosing which groups to show if you have too many to plot. Then answer: which group moved furthest, and is that because it had the least data or because it started furthest from the middle? Both are legitimate answers; the numbers decide.</p></li>
+<li><p><strong>Toto’s water fleas.</strong> <em>(Daphnia)</em> If you have clonal lines, R is a heritability in disguise. Compute it, then say in one sentence why the same arithmetic gets a different name when the groups are genotypes rather than individuals, and what would have to be true of the design for that name to be earned.</p></li>
+<li><p><strong>Break the pretence deliberately.</strong> Take the chapter’s file and collapse it to one row per bird by averaging. Fit the single-level model to the averages. Compare its slope and standard error to both of today’s fits. Explain in two sentences why averaging is not the same as modelling the individual, and name one thing you threw away.</p></li>
+<li><p><strong>The free upper bound.</strong> Your repeatability from question 3 caps the narrow-sense heritability of that trait. State the cap, name the estimator that produced it and say whether it is adjusted or unadjusted, then write two sentences: one explaining why h² cannot exceed R, in terms of what is on top of each ratio, and one naming something permanent about your individuals that would sit inside R and outside h². Finally, find a paper in your field reporting a heritability for a trait like yours and check it against any repeatability the same paper reports. If it reports no repeatability, say what you would have to measure to get one.</p></li>
+</ol>
+
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
+
+</div>
+<nav class="chapter-nav" aria-label="Chapter">
+  <a class="chapter-nav-link prev" href="wk5-diagnostics.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 5 · Is the model any good?</span></a><a class="chapter-nav-link next" href="wk7-random-slopes.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 7 · Not everyone shares a slope</span></a>
+</nav>
+<footer>
+  Stats Hours with Itchy · Class 6 of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
+  Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
+</footer>
+</div>
+
+<script>
+// Highlight REPL prompts and error lines without shipping a syntax highlighter.
+document.querySelectorAll('pre code').forEach(function (block) {
+  if (block.querySelector('span')) return; // hand-marked blocks stay as authored
+  var html = block.innerHTML
+    .replace(/^(julia&gt; )/gm, '<span class="p">$1</span>')
+    .replace(/^(ERROR: .*)$/gm, '<span class="err">$1</span>');
+  block.innerHTML = html;
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+  tabsets.forEach(function(tabset) {
+    const tabby = new Tabby('#' + tabset.id);
+  });
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+
+
+
+
+</body></html>

@@ -1,0 +1,10 @@
+<script>
+// Highlight REPL prompts and error lines without shipping a syntax highlighter.
+document.querySelectorAll('pre code').forEach(function (block) {
+  if (block.querySelector('span')) return; // hand-marked blocks stay as authored
+  var html = block.innerHTML
+    .replace(/^(julia&gt; )/gm, '<span class="p">$1</span>')
+    .replace(/^(ERROR: .*)$/gm, '<span class="err">$1</span>');
+  block.innerHTML = html;
+});
+</script>

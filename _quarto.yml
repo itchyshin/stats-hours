@@ -1,0 +1,32 @@
+project:
+  type: website
+  render:
+    - index.qmd
+    - book/*.qmd
+  output-dir: docs/site
+  post-render:
+    - tools/scrub-paths.sh
+
+website:
+  title: "Stats Hours with Itchy"
+  navbar: false
+
+engine: jupyter
+
+execute:
+  freeze: auto
+  error: true
+
+filters:
+  - tools/stats_hours.lua
+  - tools/theme/masthead.lua
+
+format:
+  html:
+    css: tools/theme/stats-hours.css
+    include-after-body: tools/theme/repl.html
+    toc: false
+    embed-resources: false
+    theme: none
+    grid:
+      body-width: 900px

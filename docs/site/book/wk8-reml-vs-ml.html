@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Class 8: same model, two answers – Stats Hours with Itchy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-html-5276476b5bdb9cfe1f92c505466e0bf3.min.css" rel="stylesheet" append-hash="true" data-mode="light">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../tools/theme/stats-hours.css">
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">Class 8: same model, two answers</h1>
+
+</header>
+
+
+<header class="mast">
+  <div class="mast-inner">
+    <p class="kicker">
+      <span><a href="../index.html">Stats Hours with Itchy</a></span><span class="sep">/</span>
+      <span>Class 8</span><span class="sep">/</span>
+      <span>Draft</span>
+    </p>
+    <h1>Same model, two answers</h1>
+    <p class="deck">Two correct implementations of one mixed model print different variance components, and nobody in the room chose which one they were reading.</p>
+    <div class="status">
+      <span class="tag">Draft</span>
+      <p>All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft.</p>
+    </div>
+    <p class="meta">
+      <b>Engines</b> DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Provenance</b> Every block of Julia on this page was run, and its output printed, when the page was made. No output is pasted in from memory. The one block of R output was run once by hand, on 2026-09-06, on the tadpole file this chapter writes, and is labelled as such where it appears.<br>
+      <b>Caveat</b> No real pond file exists yet, so the data are simulated from a stated seed inside the first cell and written to data/ch8/. Swap in real tadpoles and every number changes; the sentences around them do not.
+    </p>
+  </div>
+</header>
+
+<div class="wrap">
+<blockquote>
+<p><strong>A note on the data.</strong> There is no real pond file yet. Momo’s tadpoles are <strong>simulated from a stated seed in the first cell below</strong>, and the cell writes them to <code>data/ch8/tadpoles.csv</code>, so you can open the same file yourself. The two smaller datasets later in the class are simulated the same way, each from its own stated seed, with the pond effect deliberately switched off, and are written beside it. Swap in a real file and every number in this chapter changes; not one sentence around them does.</p>
+</blockquote>
+<hr>
+<h2 id="objectives" class="anchored">Objectives</h2>
+<p>By the end of this class you should be able to:</p>
+<ol type="1">
+<li>Say what REML restricts, and why restricting it changes the variance components but barely moves the fixed effects.</li>
+<li>Recognise the divisor argument from Class 2 in its grown-up form, and say why it no longer collapses to one clean divisor once there are two variance components.</li>
+<li>Explain why an estimated variance of exactly zero is not a bug, and what a likelihood-ratio test is doing wrong when it tests one.</li>
+<li>Say why the usual chi-squared reference is the wrong one when the thing being tested is a variance that cannot go below zero, use the corrected test the engine provides, and say what the uncorrected test costs you.</li>
+<li>Name the estimator every time you report a variance component, because the software will not name it for you.</li>
+</ol>
+<hr>
+<h2 id="the-class" class="anchored">The class</h2>
+<p class="scene">Itchy’s office, 9:00 am, and there is a fourth chair. JARO is a
+statistician from the floor below who appears in the weeks where the
+arithmetic gets sharp. He has brought his own coffee and no laptop. MOMO
+is already halfway through a sentence. TOTO is writing down the
+sentence.</p>
+<div class="line"><span class="who momo">Momo</span><p>I fitted the pond model twice.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Go on.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Once the way you showed us in Class 6, and once with one extra keyword I
+found in the documentation. Same data, same formula, same engine. The
+pond standard deviation came out different.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>How different?</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Not dramatically. Enough that I would have written a different number in
+a paper.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><em>(puts down the pen)</em> Right. Everything else waits. This is the
+chapter.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>May I say the short version first, so they know where we are going?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Please.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>There are two standard ways to estimate a variance component. Both are
+correct. They answer slightly different questions, they give different
+numbers on small data, and every package picks one for you and prints it
+without a label. Momo did not choose a default. She inherited one.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Which one is right?</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>That is the wrong question and you will stop asking it by eleven
+o’clock.</p></div>
+<h3 id="the-tadpoles-again" class="anchored">The tadpoles, again</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Same notation as Class 6, so nothing new to learn before we start.</p></div>
+<p class="board"><strong>μ_ij = β0 + β1 x_ij + u_j, u_j ~ N(0, σ_u²), y_ij ~ N(μ_ij,
+σ²)</strong></p>
+<div class="line"><span class="who itchy">Itchy</span><p>Tadpole <em>i</em> in pond <em>j</em>. β0 the intercept, β1 the slope on
+days since hatching, u_j the pond nudge, σ_u the spread of those nudges,
+σ the spread within a pond. And repeatability, the thing you actually
+wanted:</p></div>
+<p class="board"><strong>R = σ_u² / (σ_u² + σ²). Not a coefficient of μ, not a p-value: a
+ratio of two things we are about to argue about, over a sum of the same
+two.</strong></p>
+<div class="line"><span class="who itchy">Itchy</span><p>Load them. And read the caveat at the top of the page: these tadpoles
+are simulated, because the real pond file does not exist yet.</p></div>
+<div id="cell-setup" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">Random</span>, <span class="bu">Statistics</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Printf</span>, <span class="bu">Logging</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""Simulate J ponds of `per` tadpoles each: body length on days since hatching."""</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">simulate_ponds</span>(seed; J <span class="op">=</span> <span class="fl">12</span>, sigma_u <span class="op">=</span> <span class="fl">1.2</span>, sigma <span class="op">=</span> <span class="fl">1.0</span>, per <span class="op">=</span> <span class="fl">8</span><span class="op">:</span><span class="fl">12</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(seed)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> sigma_u <span class="op">.*</span> <span class="fu">randn</span>(rng, J)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    pond <span class="op">=</span> <span class="dt">String</span>[]; days <span class="op">=</span> <span class="dt">Float64</span>[]; body <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>J, _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">rand</span>(rng, per)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> <span class="fu">round</span>(<span class="fl">5</span> <span class="op">+</span> <span class="fl">25</span> <span class="op">*</span> <span class="fu">rand</span>(rng), digits <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(pond, <span class="st">"P"</span> <span class="op">*</span> <span class="fu">lpad</span>(j, <span class="fu">ndigits</span>(J), <span class="ch">'0'</span>))</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(days, d)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(body, <span class="fu">round</span>(<span class="fl">8.0</span> <span class="op">+</span> <span class="fl">0.35</span> <span class="op">*</span> d <span class="op">+</span> u[j] <span class="op">+</span> sigma <span class="op">*</span> <span class="fu">randn</span>(rng), digits <span class="op">=</span> <span class="fl">3</span>))</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">DataFrame</span>(pond <span class="op">=</span> pond, days <span class="op">=</span> days, length <span class="op">=</span> body)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">write_csv</span>(df, path)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mkpath</span>(<span class="fu">dirname</span>(path))</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">open</span>(path, <span class="st">"w"</span>) <span class="cf">do</span> io</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">println</span>(io, <span class="fu">join</span>(<span class="fu">names</span>(df), <span class="st">","</span>))</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> r <span class="kw">in</span> <span class="fu">eachrow</span>(df)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>            <span class="fu">println</span>(io, r.pond, <span class="st">","</span>, r.days, <span class="st">","</span>, r.length)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> path</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>tadpoles <span class="op">=</span> <span class="fu">simulate_ponds</span>(<span class="fl">808</span>)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(tadpoles, <span class="st">"../data/ch8/tadpoles.csv"</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"rows, columns: "</span>, <span class="fu">size</span>(tadpoles))</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"ponds: "</span>, <span class="fu">length</span>(<span class="fu">unique</span>(tadpoles.pond)))</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"tadpoles per pond: "</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">extrema</span>(<span class="fu">combine</span>(<span class="fu">groupby</span>(tadpoles, <span class="op">:</span>pond), nrow <span class="op">=&gt;</span> <span class="op">:</span>n).n))</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(tadpoles, <span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows, columns: (117, 3)
+ponds: 12
+tadpoles per pond: (8, 12)</code></pre>
+</div>
+<div id="setup" class="cell-output cell-output-display" data-execution_count="2">
+<div><div style="float: left;"><span>5×3 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">pond</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">days</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">length</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">P01</td>
+<td style="text-align: right;">26.18</td>
+<td style="text-align: right;">17.62</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">P01</td>
+<td style="text-align: right;">8.99</td>
+<td style="text-align: right;">11.486</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">P01</td>
+<td style="text-align: right;">24.59</td>
+<td style="text-align: right;">16.355</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">P01</td>
+<td style="text-align: right;">11.39</td>
+<td style="text-align: right;">11.468</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">P01</td>
+<td style="text-align: right;">10.11</td>
+<td style="text-align: right;">11.427</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>Twelve ponds and not many tadpoles in each.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Which is the only reason you will be able to see today’s effect at all.
+And notice <em>which</em> thing is small. Twelve ponds, not a hundred
+and seventeen tadpoles. Hold that distinction rather than believing me
+about it, because in twenty minutes I am going to make you test it.</p></div>
+<div id="cell-fig-cloud" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_data_cloud</span>(tadpoles.days, tadpoles.length;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    xlabel <span class="op">=</span> <span class="st">"days since hatching"</span>, ylabel <span class="op">=</span> <span class="st">"body length (mm)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div id="fig-cloud" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-cloud-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-cloud-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cloud-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Raw scatter of the simulated tadpoles, body length against days since hatching, all twelve ponds pooled into one cloud with no pond nudge drawn in yet. The vertical spread at any one age is the sum of two things — a between-pond spread and a within-pond one — that the rest of the chapter pulls apart.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>A line through it, plus twelve vertical nudges you cannot see yet. Fit
+it twice.</p></div>
+<h3 id="two-fits" class="anchored">Two fits</h3>
+<div id="two-fits" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>form <span class="op">=</span> <span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond)))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>fit_ml   <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> tadpoles)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>fit_reml <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(fit_ml)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(fit_reml)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>DrmFit (Gaussian location–scale, 117 obs, converged; logLik = -180.34)
+  mu: 8.189, 0.346
+  sigma: 0.004
+  resd: -0.031
+DrmFit (Gaussian location–scale, 117 obs, converged; logLik = -183.98)
+  mu: 8.188, 0.346
+  sigma: 0.009
+  resd: 0.016</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>That is the whole difference. One keyword.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>One keyword, and the engine will not mention it again unless you ask.
+Ask.</p></div>
+<div id="named-estimators" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"fit_ml   estimator: "</span>, <span class="fu">estimation_method</span>(fit_ml))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"fit_reml estimator: "</span>, <span class="fu">estimation_method</span>(fit_reml))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>()</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"loglik(fit_ml)         = "</span>, <span class="fu">loglik</span>(fit_ml))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"reml_loglik(fit_reml)  = "</span>, <span class="fu">reml_loglik</span>(fit_reml))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"ml_loglik(fit_reml)    = "</span>, <span class="fu">ml_loglik</span>(fit_reml))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fit_ml   estimator: ML
+fit_reml estimator: REML
+
+loglik(fit_ml)         = -180.33993484442036
+reml_loglik(fit_reml)  = -183.9827071378831
+ml_loglik(fit_reml)    = -180.36451706989797</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The REML fit reports two log-likelihoods.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Because it has two. The one it maximised, and the ordinary one evaluated
+at the answer it reached. Keep them apart in your head; by the end of
+the class you will know exactly one thing you are allowed to do with the
+first of them.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Now put the numbers side by side, and look at which rows move.</p></div>
+<div id="side-by-side" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>su_ml, su_re <span class="op">=</span> <span class="fu">re_sd</span>(fit_ml)[<span class="op">:</span>pond],   <span class="fu">re_sd</span>(fit_reml)[<span class="op">:</span>pond]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>s_ml,  s_re  <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sigma</span>(fit_ml)),   <span class="fu">first</span>(<span class="fu">sigma</span>(fit_reml))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>b_ml,  b_re  <span class="op">=</span> <span class="fu">coef</span>(fit_ml, <span class="op">:</span>mu),      <span class="fu">coef</span>(fit_reml, <span class="op">:</span>mu)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">R</span>(su, s) <span class="op">=</span> su<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> (su<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> s<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10s %10s %10s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"ML"</span>, <span class="st">"REML"</span>, <span class="st">"REML/ML"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta0"</span>,   b_ml[<span class="fl">1</span>], b_re[<span class="fl">1</span>], b_re[<span class="fl">1</span>] <span class="op">/</span> b_ml[<span class="fl">1</span>])</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta1"</span>,   b_ml[<span class="fl">2</span>], b_re[<span class="fl">2</span>], b_re[<span class="fl">2</span>] <span class="op">/</span> b_ml[<span class="fl">2</span>])</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_u"</span>, su_ml,   su_re,   su_re <span class="op">/</span> su_ml)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma"</span>,   s_ml,    s_re,    s_re  <span class="op">/</span> s_ml)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"R"</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">R</span>(su_ml, s_ml), <span class="fu">R</span>(su_re, s_re), <span class="fu">R</span>(su_re, s_re) <span class="op">/</span> <span class="fu">R</span>(su_ml, s_ml))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   ML       REML    REML/ML
+beta0          8.1895     8.1881     0.9998
+beta1          0.3464     0.3464     1.0002
+sigma_u        0.9694     1.0166     1.0487
+sigma          1.0043     1.0091     1.0048
+R              0.4823     0.5037     1.0443</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Read the last column out loud, Toto.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>The two fixed-effect rows are basically one. The two variance rows are
+not. And repeatability moved with them.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is the finding, and it is the finding every time. <strong>REML
+leaves the fixed effects where they were and lifts the variance
+components.</strong> If you report a slope, this chapter barely touches
+you. If you report a variance component, a repeatability, an intraclass
+correlation, or a heritability, this chapter is the difference between
+two papers.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Lifts them. Always up?</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>For this model, yes, and for a reason you already know. Ask Itchy about
+Class 2.</p></div>
+<h3 id="the-divisor-grown-up" class="anchored">The divisor, grown up</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Class 2, the box at the end. R’s <code>lm</code> and our engine
+disagreed about the residual standard deviation, and the mechanism was a
+divisor. Maximum likelihood divides the squared residuals by <em>n</em>.
+The unbiased estimator divides by <em>n − p</em>, where <em>p</em> is
+the number of fixed effects you had to estimate before you could look at
+a residual.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Because you spent some of the data working out where the line was.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Because you spent some of the data working out where the line was. That
+is the whole idea, and it is worth saying that the idea is older than
+any of this software; it is why your first statistics course divided by
+<em>n − 1</em> when it estimated one mean. REML is that argument,
+applied to the variance components instead of the residual.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>More precisely. Take differences between data points chosen so that the
+intercept and the slope cancel out of them; statisticians call those
+contrasts, and it is a different use of the word from the treatment
+contrasts of Class 2. REML fits the variance components to those
+differences alone. The fixed effects are gone before the likelihood is
+written down, so they cannot be estimated twice, and the variance
+estimate is not shrunk by the cost of having estimated them. The name is
+honest: restricted maximum likelihood. The restriction is that the fixed
+effects have been taken out first.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So I can predict the ratio. It should be <em>n</em> over <em>n − p</em>.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>For the residual, yes. There are two levels here, so there are two
+divisors. One symbol before you read the cell: call τ the ratio σ_u over
+σ, how big the pond spread is compared with the within-pond spread.
+Everything else in the fit follows from τ, so it is the one dial the two
+estimators set differently. Print both divisors, and print the identity
+that ties them together.</p></div>
+<div id="divisors" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fu">nrow</span>(tadpoles)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>J <span class="op">=</span> <span class="fu">length</span>(<span class="fu">unique</span>(tadpoles.pond))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">2</span>   <span class="co"># intercept and slope</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># tau = sigma_u / sigma is the model's one shape parameter. Given tau, beta comes</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># from generalised least squares (ordinary least squares with the pond correlation</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># built in) and sigma^2 in closed form, so the whole fit hangs off it. q(tau) is</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># the residual sum of squares weighted by that correlation, r' H(tau)^-1 r.</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">qform</span>(df, tau)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> df.length</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> [<span class="fu">ones</span>(<span class="fu">length</span>(y)) df.days]</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.pond))</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> <span class="dt">Float64</span>[df.pond[i] <span class="op">==</span> g[j] for i <span class="kw">in</span> <span class="fu">eachindex</span>(y), j <span class="kw">in</span> <span class="fu">eachindex</span>(g)]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    H <span class="op">=</span> I <span class="op">+</span> tau<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (Z <span class="op">*</span> Z<span class="op">'</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    Hi <span class="op">=</span> <span class="fu">inv</span>(H)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> (X<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> X) <span class="op">\</span> (X<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> y)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> y <span class="op">-</span> X <span class="op">*</span> b</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> r<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> r</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>tau_ml, tau_re <span class="op">=</span> su_ml <span class="op">/</span> s_ml, su_re <span class="op">/</span> s_re</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>q_ratio <span class="op">=</span> <span class="fu">qform</span>(tadpoles, tau_re) <span class="op">/</span> <span class="fu">qform</span>(tadpoles, tau_ml)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"n = %d, J = %d, p = %d</span><span class="sc">\n\n</span><span class="st">"</span>, n, J, p)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12s %12s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"observed"</span>, <span class="st">"its divisor"</span>)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12.6f %12.6f</span><span class="sc">\n</span><span class="st">"</span>,   <span class="st">"sigma^2   REML / ML"</span>, (s_re <span class="op">/</span> s_ml)<span class="op">^</span><span class="fl">2</span>, n <span class="op">/</span> (n <span class="op">-</span> p))</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12.6f %12.6f</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="st">"sigma_u^2 REML / ML"</span>, (su_re <span class="op">/</span> su_ml)<span class="op">^</span><span class="fl">2</span>, J <span class="op">/</span> (J <span class="op">-</span> <span class="fl">1</span>))</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"the identity, one level at a time:"</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  sigma^2   ratio = n/(n-p) * q(tau_R)/q(tau_ML) = %.6f * %.6f = %.6f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>        n <span class="op">/</span> (n <span class="op">-</span> p), q_ratio, (n <span class="op">/</span> (n <span class="op">-</span> p)) <span class="op">*</span> q_ratio)</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  sigma_u^2 ratio = (tau_R/tau_ML)^2 * sigma^2 ratio = %.6f * %.6f = %.6f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>        (tau_re <span class="op">/</span> tau_ml)<span class="op">^</span><span class="fl">2</span>, (s_re <span class="op">/</span> s_ml)<span class="op">^</span><span class="fl">2</span>, (tau_re <span class="op">/</span> tau_ml)<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (s_re <span class="op">/</span> s_ml)<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  and (tau_R/tau_ML)^2 = %.6f, against J/(J-1) = %.6f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>        (tau_re <span class="op">/</span> tau_ml)<span class="op">^</span><span class="fl">2</span>, J <span class="op">/</span> (J <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>n = 117, J = 12, p = 2
+
+                             observed  its divisor
+sigma^2   REML / ML          1.009648     1.017391
+sigma_u^2 REML / ML          1.099680     1.090909
+
+the identity, one level at a time:
+  sigma^2   ratio = n/(n-p) * q(tau_R)/q(tau_ML) = 1.017391 * 0.992389 = 1.009648
+  sigma_u^2 ratio = (tau_R/tau_ML)^2 * sigma^2 ratio = 1.089172 * 1.009648 = 1.099680
+  and (tau_R/tau_ML)^2 = 1.089172, against J/(J-1) = 1.090909</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>Neither line lands on its divisor — the residual sits below <em>n</em>
+over <em>n − p</em>, and the pond line above <em>J</em> over <em>J −
+1</em>.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Both misses are accounted for, and neither divisor is a guess. Take them
+one at a time. The residual ratio is <em>n</em> over <em>n − p</em>
+multiplied by a small factor, and that factor is only there because the
+two fits sit at slightly different values of τ. Fix τ and the residual
+divisor is exactly <em>n</em> over <em>n − p</em>, which is Class 2
+unchanged. Then the pond ratio is the residual ratio again, multiplied
+by how much τ itself moved, and that second factor is heading for
+<em>J</em> over <em>J − 1</em>. It has not arrived yet, on a hundred and
+seventeen tadpoles.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So the Class 2 argument did generalise.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>It generalised exactly, and it generalised <strong>per level</strong>.
+One divisor for the rows, one for the groups, and the number you see
+printed is their product. What Class 2 could not tell you is that the
+two levels have different denominators, so the correction lands almost
+entirely on whichever level has fewer units. Here that is the ponds, by
+a factor of ten.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Then more tadpoles will fix it.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Test that rather than believing either of us. Grow the rows with the
+ponds held at twelve, then grow the ponds.</p></div>
+<div id="n-vs-j" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Refit both estimators on one dataset; return n, J and the two variance ratios."""</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">ratios</span>(df)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> df)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> df, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="fu">nrow</span>(df), <span class="fu">length</span>(<span class="fu">unique</span>(df.pond)),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>            (<span class="fu">re_sd</span>(b)[<span class="op">:</span>pond] <span class="op">/</span> <span class="fu">re_sd</span>(a)[<span class="op">:</span>pond])<span class="op">^</span><span class="fl">2</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>            (<span class="fu">first</span>(<span class="fu">sigma</span>(b)) <span class="op">/</span> <span class="fu">first</span>(<span class="fu">sigma</span>(a)))<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %6s %5s %11s %11s %11s</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">""</span>, <span class="st">"n"</span>, <span class="st">"J"</span>, <span class="st">"sigma_u^2"</span>, <span class="st">"sigma^2"</span>, <span class="st">"J/(J-1)"</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> per <span class="kw">in</span> (<span class="fl">8</span><span class="op">:</span><span class="fl">12</span>, <span class="fl">80</span><span class="op">:</span><span class="fl">120</span>, <span class="fl">800</span><span class="op">:</span><span class="fl">1200</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    nn, JJ, su2, s2 <span class="op">=</span> <span class="fu">ratios</span>(<span class="fu">simulate_ponds</span>(<span class="fl">808</span>; J <span class="op">=</span> <span class="fl">12</span>, per <span class="op">=</span> per))</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-28s %6d %5d %11.5f %11.5f %11.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">"more tadpoles, 12 ponds"</span>, nn, JJ, su2, s2, JJ <span class="op">/</span> (JJ <span class="op">-</span> <span class="fl">1</span>))</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> J0 <span class="kw">in</span> (<span class="fl">12</span>, <span class="fl">60</span>, <span class="fl">300</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    nn, JJ, su2, s2 <span class="op">=</span> <span class="fu">ratios</span>(<span class="fu">simulate_ponds</span>(<span class="fl">808</span>; J <span class="op">=</span> J0))</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-28s %6d %5d %11.5f %11.5f %11.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">"more ponds, same pond sizes"</span>, nn, JJ, su2, s2, JJ <span class="op">/</span> (JJ <span class="op">-</span> <span class="fl">1</span>))</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                  n     J   sigma_u^2     sigma^2     J/(J-1)
+more tadpoles, 12 ponds         117    12     1.09968     1.00965     1.09091
+more tadpoles, 12 ponds        1176    12     1.09178     1.00086     1.09091
+more tadpoles, 12 ponds       11758    12     1.09100     1.00009     1.09091
+more ponds, same pond sizes     117    12     1.09968     1.00965     1.09091
+more ponds, same pond sizes     605    60     1.01808     1.00183     1.01695
+more ponds, same pond sizes    3028   300     1.00361     1.00036     1.00334</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>The first block barely moves.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>The first block barely moves, and that is the sentence I would like you
+to leave with. Ten thousand tadpoles in twelve ponds does not close the
+gap in the pond variance. It closes the gap in the residual variance,
+which was never the problem, and it walks the pond ratio down onto
+<em>J</em> over <em>J − 1</em> and stops there, because <em>J</em> is
+still twelve. The second block is the one that closes it, and the only
+thing that changed is the number of ponds.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Rows do not buy you a variance component.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Rows do not buy you a variance component. Groups buy you a variance
+component. Write that above your desk, because it is also the answer to
+“how many samples do I need”, the question everybody asks with the wrong
+noun in it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And on five ponds, which is a completely ordinary field season, it
+matters a great deal. We are going to look at five ponds shortly.</p></div>
+<div id="cell-fig-varcomp" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># confint() reports the resd and sigma blocks on the log scale, so exponentiate</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the endpoints to get an interval for the standard deviation itself.</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">sd_intervals</span>(fit)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="fu">confint</span>(fit)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pick</span>(sym, nm) <span class="op">=</span> <span class="fu">only</span>(<span class="fu">filter</span>(r <span class="op">-&gt;</span> r.param <span class="op">===</span> sym <span class="op">&amp;&amp;</span> r.coef <span class="op">==</span> nm, rows))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> <span class="fu">pick</span>(<span class="op">:</span>resd, <span class="st">"pond"</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="fu">pick</span>(<span class="op">:</span>sigma, <span class="st">"(Intercept)"</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ((<span class="fu">exp</span>(u.lower), <span class="fu">exp</span>(u.upper)), (<span class="fu">exp</span>(s.lower), <span class="fu">exp</span>(s.upper)))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>ciu_ml, cis_ml <span class="op">=</span> <span class="fu">sd_intervals</span>(fit_ml)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>ciu_re, cis_re <span class="op">=</span> <span class="fu">sd_intervals</span>(fit_reml)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_varcomp</span>([<span class="st">"sigma_u"</span>, <span class="st">"sigma"</span>],</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>            [su_ml, s_ml], [ciu_ml, cis_ml],</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            [su_re, s_re], [ciu_re, cis_re];</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>            ylabel <span class="op">=</span> <span class="st">"standard deviation (mm)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div id="fig-varcomp" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-varcomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-varcomp-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-varcomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Sigma_u and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_u point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>The intervals overlap almost completely.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They do, and that is the second half of the lesson. The difference
+between ML and REML here is much smaller than the uncertainty in either.
+It still matters, because a point estimate is what goes in the abstract,
+and because the difference is <strong>systematic</strong> while the
+uncertainty is not. Momo, do not take “systematic” on my word either.
+Forty fresh datasets, both estimators, count the sign.</p></div>
+<div id="reml-above-ml" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Refit `nrep` fresh tadpole datasets both ways; count how often REML sits above ML."""</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">reml_above_ml</span>(nrep; start <span class="op">=</span> <span class="fl">2001</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    up <span class="op">=</span> <span class="fl">0</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> seed <span class="kw">in</span> start<span class="op">:</span>(start <span class="op">+</span> nrep <span class="op">-</span> <span class="fl">1</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> <span class="fu">simulate_ponds</span>(seed)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        a <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        b <span class="op">=</span> <span class="fu">drm</span>(form, <span class="fu">Gaussian</span>(); data <span class="op">=</span> d, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">re_sd</span>(b)[<span class="op">:</span>pond] <span class="op">&gt;</span> <span class="fu">re_sd</span>(a)[<span class="op">:</span>pond] <span class="op">&amp;&amp;</span> (up <span class="op">+=</span> <span class="fl">1</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> up</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"REML sigma_u above ML on %d of 40 fresh datasets</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">reml_above_ml</span>(<span class="fl">40</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>REML sigma_u above ML on 40 of 40 fresh datasets</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>All of them.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>All of them, which is what “systematic” means and what an overlapping
+interval cannot tell you. One more thing before we move on, and it is
+the sharpest form of today’s argument. Look back at the repeatability
+row in the table.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>It crosses one half.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It crosses one half. On this dataset ML says the ponds account for
+slightly less than half the spread and REML says slightly more, and the
+only thing that changed is a keyword neither of you typed. Nobody would
+publish “slightly less than half”; they would publish “less than half”,
+and they would be describing their software.</p></div>
+<h3 id="what-the-ponds-are-doing-meanwhile" class="anchored">What the ponds are doing meanwhile</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Before we get to the hard part, look at the pond effects themselves,
+because you will need to trust them in Class 10.</p></div>
+<div id="cell-fig-shrinkage" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>blups <span class="op">=</span> <span class="fu">ranef</span>(fit_ml)[<span class="op">:</span>pond]          <span class="co"># the model's prediction for each pond (the BLUPs), straight from the fit</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>groups <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(tadpoles.pond))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The unshrunk pond effect: the average residual from the fixed part, by pond.</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># fitted() here is MARGINAL (population level, X*beta with no pond effect), which</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># is exactly what we want to average within a pond. lme4's fitted() is not.</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>resid_fixed <span class="op">=</span> tadpoles.length <span class="op">.-</span> <span class="fu">fitted</span>(fit_ml)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> [<span class="fu">mean</span>(resid_fixed[tadpoles.pond <span class="op">.==</span> g]) for g <span class="kw">in</span> groups]</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>nj  <span class="op">=</span> [<span class="fu">count</span>(<span class="op">==</span>(g), tadpoles.pond) for g <span class="kw">in</span> groups]</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-6s %5s %9s %9s %9s %11s</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"pond"</span>, <span class="st">"n_j"</span>, <span class="st">"raw"</span>, <span class="st">"BLUP"</span>, <span class="st">"kept"</span>, <span class="st">"moved (mm)"</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="fu">eachindex</span>(groups)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-6s %5d %9.3f %9.3f %9.3f %11.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>            groups[i], nj[i], raw[i], blups[i],</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>            blups[i] <span class="op">/</span> raw[i], <span class="fu">abs</span>(raw[i] <span class="op">-</span> blups[i]))</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_shrinkage</span>(groups, raw, blups)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>pond     n_j       raw      BLUP      kept  moved (mm)
+P01        8    -0.029    -0.026     0.882       0.003
+P02       10     0.242     0.218     0.903       0.023
+P03        8    -0.607    -0.535     0.882       0.072
+P04       12     0.002     0.002     0.918       0.000
+P05       11     2.603     2.372     0.911       0.231
+P06        9     0.491     0.438     0.893       0.052
+P07       10    -0.459    -0.415     0.903       0.044
+P08       11    -1.115    -1.016     0.911       0.099
+P09       11     1.015     0.925     0.911       0.090
+P10       10    -1.071    -0.967     0.903       0.104
+P11        8    -1.131    -0.997     0.882       0.134
+P12        9     0.001     0.001     0.893       0.000</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div id="fig-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-shrinkage-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Shrinkage caterpillar for the twelve ponds under ML: circles are each pond’s own average residual from the fit’s marginal fitted values, diamonds are the model’s own prediction for the same pond, the BLUP of Class 6. Every pond moves toward zero, and the pond that travels furthest is the one that started furthest out, not the one with the fewest tadpoles.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>Before you explain that: I would have written the same two lines in R
+and got a different <code>raw</code>.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>You would, and this is worth ten seconds because it is the same failure
+as everything else today. <code>fitted</code> and <code>residuals</code>
+on our fit are <strong>marginal</strong>: they are the population-level
+prediction, the fixed part alone, with every pond effect set to zero.
+<code>lme4</code> gives you the <strong>conditional</strong> version by
+default, the fixed part plus the model’s own prediction for that group,
+the BLUP of Class 6, already added in. So our residuals still carry the
+pond signal, which is precisely why averaging them by pond gives the
+unshrunk pond effect, and R’s would have that signal removed already.
+Neither is wrong. Ask which one you are holding before you average
+anything.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Every pond moved towards the middle, and the ponds with fewer tadpoles
+kept the smallest fraction of what they started with.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Both halves of that are right, and they are two different statements, so
+keep them apart. Read the <code>kept</code> column against
+<code>n_j</code>: the fraction a pond keeps depends on how many tadpoles
+vouch for it. Now read the <code>moved</code> column instead, in
+millimetres. The pond that travels furthest is not the pond with the
+fewest tadpoles; it is the pond that started furthest from zero, because
+distance travelled is the fraction lost multiplied by how far out you
+were.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So a plot of the fractions and a plot of the distances tell different
+stories.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>They tell different stories and referees routinely confuse them. The
+picture in front of you is distances. Hold on to it, because in ten
+minutes we will meet a dataset where every one of those diamonds sits on
+exactly the same line, and I will draw you that picture too, and it will
+not be a bug.</p></div>
+<h3 id="the-boundary" class="anchored">The boundary</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>New data. Five ponds this time, fewer tadpoles, and I have switched the
+pond effect off in the simulation. The ponds are genuinely alike.</p></div>
+<div id="boundary-data" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Simulate J small ponds with NO pond effect: sigma_u is truly zero."""</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">simulate_flat_ponds</span>(seed; J <span class="op">=</span> <span class="fl">5</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(seed)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    pond <span class="op">=</span> <span class="dt">String</span>[]; days <span class="op">=</span> <span class="dt">Float64</span>[]; body <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>J, _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">rand</span>(rng, <span class="fl">6</span><span class="op">:</span><span class="fl">9</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> <span class="fu">round</span>(<span class="fl">5</span> <span class="op">+</span> <span class="fl">25</span> <span class="op">*</span> <span class="fu">rand</span>(rng), digits <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(pond, <span class="st">"Q</span><span class="sc">$</span>j<span class="st">"</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(days, d)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(body, <span class="fu">round</span>(<span class="fl">8.0</span> <span class="op">+</span> <span class="fl">0.35</span> <span class="op">*</span> d <span class="op">+</span> <span class="fu">randn</span>(rng), digits <span class="op">=</span> <span class="fl">3</span>))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">DataFrame</span>(pond <span class="op">=</span> pond, days <span class="op">=</span> days, length <span class="op">=</span> body)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>puddles <span class="op">=</span> <span class="fu">simulate_flat_ponds</span>(<span class="fl">3</span>)</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(puddles, <span class="st">"../data/ch8/puddles.csv"</span>)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"rows, columns: "</span>, <span class="fu">size</span>(puddles))</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"ponds: "</span>, <span class="fu">length</span>(<span class="fu">unique</span>(puddles.pond)))</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>fit_b_full <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> puddles)</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>fit_b_red  <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> puddles)</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma_u = "</span>, <span class="fu">re_sd</span>(fit_b_full)[<span class="op">:</span>pond])</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(fit_b_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows, columns: (35, 3)
+ponds: 5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 3.1022761224411406e-20</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+sigma_u = 2.6613536195410055e-9
+DrmFit (Gaussian location–scale, 35 obs, NOT converged; logLik = -56.57)
+  mu: 8.019, 0.347
+  sigma: 0.197
+  resd: -19.744</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>It is zero. I broke it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>You did not break it. Two things are printed there that look like
+failure and are not. The warning says the likelihood has no proper peak
+here, only an edge: Hessian is the name for the curvature at the peak,
+and there is none, so the standard errors for that one number are not to
+be trusted. If a line at the bottom of a warning names a file inside the
+engine, that line is for the engine’s authors, not for you. And “NOT
+converged” in the fit’s first line is the optimiser saying it stopped at
+a wall rather than on a hilltop. Now look at the <code>resd</code> line
+the fit printed. Both that line and the <code>sigma:</code> line above
+it are printed <strong>on the log scale</strong>, so <code>resd</code>
+is log σ_u, and the optimiser has walked it off to minus something
+enormous, which is how a computer says zero. The estimate is at the edge
+of the space it is allowed to live in, because a standard deviation
+cannot be negative.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>But the true value is zero, so it got the right answer.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>It got the right answer for a reason you should not be comfortable with.
+When the truth is zero, the estimate cannot scatter symmetrically around
+it. Half of the draws that would have gone negative pile up at zero
+instead. That pile is not a rounding artefact. It is a lump of
+probability sitting on the boundary, and every test you were taught
+assumes there is no such lump.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And here is the picture I promised you ten minutes ago. Same
+caterpillar, same code, this dataset.</p></div>
+<div id="cell-fig-boundary-shrinkage" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>b_blups <span class="op">=</span> <span class="fu">ranef</span>(fit_b_full)[<span class="op">:</span>pond]</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>b_groups <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(puddles.pond))</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>b_resid <span class="op">=</span> puddles.length <span class="op">.-</span> <span class="fu">fitted</span>(fit_b_full)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>b_raw <span class="op">=</span> [<span class="fu">mean</span>(b_resid[puddles.pond <span class="op">.==</span> g]) for g <span class="kw">in</span> b_groups]</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"largest |BLUP| across the five ponds: %.3e</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">maximum</span>(abs, b_blups))</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_shrinkage</span>(b_groups, b_raw, b_blups; boundary <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>largest |BLUP| across the five ponds: 1.157e-17</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="fig-boundary-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-boundary-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-boundary-shrinkage-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boundary-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The same caterpillar for the five-pond dataset with the pond effect switched off in the simulation: the raw means still scatter, but every diamond sits on the boundary line at zero. That is what a pond standard deviation estimated at exactly zero looks like — the fit predicting every pond to be average because it can see no evidence any of them differ.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The raw means are all over the place and every diamond is on the line.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Which is the estimator saying, correctly, that it can see no evidence
+the ponds differ, so it predicts every pond to be average. Shrinkage all
+the way to zero is what σ_u = 0 <em>means</em>. The scatter in the raw
+means is what five small ponds of identical tadpoles look like.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Now test it, the obvious way, and read what the engine says back.</p></div>
+<div id="cell-naive-lrt" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(fit_b_red, fit_b_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>┌ Warning: lrtest: `full` adds variance-component block(s) [:resd] that `reduced` lacks, so this compares a variance component against 0 — a BOUNDARY null. The reported χ²(1) p-value is INVALID there (conservative: too large, so the test loses power); the correct reference is a chi-bar-square mixture. Use `lrt_boundary(full, reduced; q = &lt;#components&gt;)` (or a parametric bootstrap) for a boundary-correct p-value.</code></pre>
+</div>
+<div id="naive-lrt" class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>(statistic = 0.0, dof = 1, pvalue = 1.0)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>It warned me.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It warned you, it still gave you the number, and it told you the number
+is conservative. Now ask for the right one.</p></div>
+<div id="cell-chibar" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>flat <span class="op">=</span> <span class="fu">lrt_boundary</span>(fit_b_full, fit_b_red; q <span class="op">=</span> <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="chibar" class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>(statistic = 0.0, q = 1, pvalue = 0.5, pvalue_naive = 1.0)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>One is half the other. So that is the correction.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>That is the correction, and this is the worst possible dataset to learn
+it from, so let me be exact before you generalise. Self and Liang (1987)
+worked out what the likelihood-ratio statistic does, in the limit of
+many groups, when the value being tested sits on an edge of the values a
+parameter may take; Stram and Lee (1994) applied it to this exact case,
+dropping a random effect from a linear mixed model. The reference
+distribution, the spread of values the statistic would have if the ponds
+really did not differ and the thing a <em>p</em>-value is read off, is
+not a chi-squared curve. It is a <strong>mixture</strong>, two things
+glued together: half of the probability is a single lump sitting exactly
+at zero, from the fits that hit the wall, and the other half is the
+usual chi-squared with one degree of freedom, from the fits that did
+not. For a statistic above zero the upper tail is therefore half as
+heavy as the naive reference thinks, and the corrected tail probability
+is <code>0.5 * P(chisq_1 &gt; stat)</code>.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>You said “above zero”. Our statistic is zero.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Our statistic is zero, and that is the catch. At exactly zero, 0.5 is
+the probability of drawing something strictly <em>greater</em> than what
+we saw. The probability of drawing something at least as large is 1,
+because half the null mass is piled on that very point. So the honest
+reading of this dataset is not “the p-value halved its way into
+significance and I learned something”; it is “the two models fit
+identically, there is nothing to test, and both numbers are telling you
+so in different dialects.” Halving 1.0 to 0.5 buys nobody anything.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Then when does it buy something?</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>When the statistic is positive. Same generator, same five-pond design,
+same true σ_u of zero. A different draw.</p></div>
+<div id="cell-chibar-positive" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>sunny <span class="op">=</span> <span class="fu">simulate_flat_ponds</span>(<span class="fl">55</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(sunny, <span class="st">"../data/ch8/sunny.csv"</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>fit_s_full <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sunny)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>fit_s_red  <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> sunny)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"sigma_u = "</span>, <span class="fu">re_sd</span>(fit_s_full)[<span class="op">:</span>pond])</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lrt_boundary</span>(fit_s_full, fit_s_red; q <span class="op">=</span> <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sigma_u = 0.4621340526121805</code></pre>
+</div>
+<div id="chibar-positive" class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>(statistic = 3.335598423764992, q = 1, pvalue = 0.0338978703791533, pvalue_naive = 0.0677957407583066)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>One of those two p-values is above five percent and the other is below
+it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Same data, same fits, same likelihood-ratio statistic. Two reference
+distributions, opposite decisions, and only one of the two references is
+correct for a variance tested at zero. That is the whole chapter in one
+cell, and note that the truth here is that there is no pond effect, so
+the corrected test is the one making the mistake on this particular
+draw. Being right about the reference distribution does not make you
+right about the pond.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Which is why the next thing we do is count, rather than argue from one
+draw.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Do not take that on my authority or on the package’s. Look at the
+likelihood itself. For each trial value of σ_u, let everything else in
+the model do its best and write down how well the model fits; that curve
+is called the profile of the likelihood, and where it peaks is the
+estimate.</p></div>
+<div id="cell-fig-profile" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Closed-form profile log-likelihood for a Gaussian random intercept: fix the</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ratio tau = sigma_u / sigma, solve for beta by GLS and for sigma in closed</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># form, and read sigma_u off as tau * sigmahat(tau). No optimiser involved.</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">profile_tau</span>(df, taus)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> df.length</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> [<span class="fu">ones</span>(<span class="fu">length</span>(y)) df.days]</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.pond))</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> <span class="dt">Float64</span>[df.pond[i] <span class="op">==</span> g[j] for i <span class="kw">in</span> <span class="fu">eachindex</span>(y), j <span class="kw">in</span> <span class="fu">eachindex</span>(g)]</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> <span class="fu">length</span>(y)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    ll <span class="op">=</span> <span class="dt">Float64</span>[]; su <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> tau <span class="kw">in</span> taus</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>        H  <span class="op">=</span> I <span class="op">+</span> tau<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (Z <span class="op">*</span> Z<span class="op">'</span>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>        Hi <span class="op">=</span> <span class="fu">inv</span>(H)</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>        beta <span class="op">=</span> (X<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> X) <span class="op">\</span> (X<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> y)</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>        r  <span class="op">=</span> y <span class="op">-</span> X <span class="op">*</span> beta</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>        s2 <span class="op">=</span> (r<span class="op">'</span> <span class="op">*</span> Hi <span class="op">*</span> r) <span class="op">/</span> m</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(ll, <span class="op">-</span>m <span class="op">/</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>pi <span class="op">*</span> s2) <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">logdet</span>(H) <span class="op">-</span> m <span class="op">/</span> <span class="fl">2</span>)</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(su, tau <span class="op">*</span> <span class="fu">sqrt</span>(s2))</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ll, su</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>taus <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2.0</span>, length <span class="op">=</span> <span class="fl">401</span>)</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>ll_pud, su_pud <span class="op">=</span> <span class="fu">profile_tau</span>(puddles, taus)</span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>ll_tad, su_tad <span class="op">=</span> <span class="fu">profile_tau</span>(tadpoles, taus)</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"closed form vs engine, sigma_u:  puddles %.5f / %.5f   tadpoles %.5f / %.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>        su_pud[<span class="fu">argmax</span>(ll_pud)], <span class="fu">re_sd</span>(fit_b_full)[<span class="op">:</span>pond], su_tad[<span class="fu">argmax</span>(ll_tad)], su_ml)</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"closed form vs engine, logLik :  puddles %.5f / %.5f   tadpoles %.5f / %.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">maximum</span>(ll_pud), <span class="fu">loglik</span>(fit_b_full), <span class="fu">maximum</span>(ll_tad), <span class="fu">loglik</span>(fit_ml))</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>];</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>    xlabel <span class="op">=</span> <span class="st">"sigma_u (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"profile log-likelihood minus its maximum"</span>,</span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Where the maximum sits"</span>)</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, su_pud, ll_pud <span class="op">.-</span> <span class="fu">maximum</span>(ll_pud), label <span class="op">=</span> <span class="st">"puddles (true sigma_u = 0)"</span>)</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, su_tad, ll_tad <span class="op">.-</span> <span class="fu">maximum</span>(ll_tad), label <span class="op">=</span> <span class="st">"tadpoles (true sigma_u = 1.2)"</span>)</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"the boundary"</span>)</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(ax, <span class="op">-</span><span class="fl">8</span>, <span class="fl">0.5</span>)</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="op">-</span><span class="fl">0.05</span>, <span class="fl">2.5</span>)</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>rb)</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>closed form vs engine, sigma_u:  puddles 0.00000 / 0.00000   tadpoles 0.96917 / 0.96943
+closed form vs engine, logLik :  puddles -56.56830 / -56.56830   tadpoles -180.33994 / -180.33993</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div id="fig-profile" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-profile-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-profile-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-profile-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Profile log-likelihood, minus its own maximum, against sigma_u, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two curves, one picture. The tadpole curve has a maximum in the middle
+of the space, with room on both sides. The puddle curve is still
+climbing when it hits the wall, so the maximum <strong>is</strong> the
+wall.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>And a chi-squared test assumes you are in the middle.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>A chi-squared test assumes the maximum has room on both sides of it,
+because the whole derivation treats the top of the likelihood as a
+smooth round hilltop you can stand on. Against a wall there is no
+hilltop and no both sides. That is the entire content of Self and Liang,
+in a picture.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>And the half-and-half mixture is a claim you can check by counting.
+Simulate the null many times on <strong>this</strong> design, and count.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Simulate it how? I do not want to write a second generator and then
+argue about whether it matches the first.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>You do not have to. The reduced fit <em>is</em> a generator: it has a
+mean model and a residual spread and no pond effect, which is the null
+exactly. Ask it for new tadpoles. But check what it gives you before you
+trust two thousand of them.</p></div>
+<div id="simulate-check" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate() draws new responses from a fitted model. Check the spread of what</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># comes back BEFORE using it: subtract the fitted mean, then compare like with</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># like. Deviations from `fitted` are what the noise model is supposed to control.</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">800</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>ysim_red <span class="op">=</span> <span class="fu">simulate</span>(fit_b_red; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>dev_red <span class="op">=</span> ysim_red <span class="op">.-</span> <span class="fu">fitted</span>(fit_b_red)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"reduced fit: sigma                       = %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">first</span>(<span class="fu">sigma</span>(fit_b_red)))</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"reduced fit: mean SD of simulated devs   = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev_red[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev_red, <span class="fl">2</span>)))</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># The same call on the MIXED fit is a different animal, and worth seeing once.</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>rng_sim_mix <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">801</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>ysim_mix <span class="op">=</span> <span class="fu">simulate</span>(fit_ml; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim_mix)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>dev_mix <span class="op">=</span> ysim_mix <span class="op">.-</span> <span class="fu">fitted</span>(fit_ml)</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">tadpole fit: sqrt(sigma_u^2 + sigma^2)   = %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(su_ml<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> s_ml<span class="op">^</span><span class="fl">2</span>))</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"tadpole fit: sigma                       = %.4f</span><span class="sc">\n</span><span class="st">"</span>, s_ml)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"tadpole fit: mean SD of simulated devs   = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev_mix[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev_mix, <span class="fl">2</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>reduced fit: sigma                       = 1.2181
+reduced fit: mean SD of simulated devs   = 1.2059
+
+tadpole fit: sqrt(sigma_u^2 + sigma^2)   = 1.3959
+tadpole fit: sigma                       = 1.0043
+tadpole fit: mean SD of simulated devs   = 1.0043</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The first pair match. The second pair do not.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Read what the function says about itself — type <code>?simulate</code>
+at the prompt — rather than guessing at the reason.
+<code>simulate</code> draws <strong>conditional on the random effects
+being zero</strong>, so on a mixed fit it gives you a population-level
+tadpole: residual noise around the fixed line, with no pond. That makes
+the second block a warning and the first block a licence. On the reduced
+puddle fit there are no random effects to omit, so the draws are the
+null we want, exactly.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two thousand of them, then, and hold the design fixed: same five ponds,
+same numbers of tadpoles, only the response redrawn. What we are about
+to do has a name, a parametric bootstrap: draw new data from the fitted
+model, refit, and count. The plus-or-minus on each fraction the cell
+prints is its Monte Carlo standard error, the wobble that comes only
+from having used two thousand datasets rather than infinitely many, and
+“nominal” is the rate the test claims for itself. That is the study
+Exercise 5 will ask you to run on your own design.</p></div>
+<div id="boundary-study" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Parametric bootstrap of the likelihood-ratio statistic under the true null sigma_u = 0.</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="st">The design is held FIXED (same ponds, same group sizes); only the response is</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="st">redrawn, from the reduced fit. Most of these fits land on the boundary and emit</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="st">the boundary warning we already read once above; `NullLogger` silences the</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="st">repeat, not the first one. Nothing is hidden that has not already been shown.</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">boundary_study</span>(fit_red, design, nsim; rng)</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">simulate</span>(fit_red; nsim <span class="op">=</span> nsim, rng <span class="op">=</span> rng)</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    piled <span class="op">=</span> <span class="fl">0</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    stats <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_logger</span>(<span class="fu">NullLogger</span>()) <span class="cf">do</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(y, <span class="fl">2</span>)</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>            d <span class="op">=</span> <span class="fu">DataFrame</span>(pond <span class="op">=</span> design.pond, days <span class="op">=</span> design.days, length <span class="op">=</span> y[<span class="op">:</span>, k])</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>            f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>            <span class="fu">re_sd</span>(f)[<span class="op">:</span>pond] <span class="op">&lt;</span> <span class="fl">1e-8</span> <span class="op">&amp;&amp;</span> (piled <span class="op">+=</span> <span class="fl">1</span>)</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>            <span class="fu">push!</span>(stats, <span class="fl">2</span> <span class="op">*</span> (<span class="fu">loglik</span>(f) <span class="op">-</span> <span class="fu">loglik</span>(r)))</span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> piled <span class="op">/</span> nsim, stats</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a><span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>pile, stats <span class="op">=</span> <span class="fu">boundary_study</span>(fit_b_red, puddles, <span class="fl">2000</span>; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">800</span>))</span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>nrep <span class="op">=</span> <span class="fu">length</span>(stats)</span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a><span class="fu">mcse</span>(phat) <span class="op">=</span> <span class="fu">sqrt</span>(phat <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> phat) <span class="op">/</span> nrep)</span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a><span class="co"># The naive chi-squared p-value is exactly twice the chi-bar-squared one for</span></span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a><span class="co"># q = 1, so both come off the same call without a second distribution package.</span></span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>chibar <span class="op">=</span> <span class="fu">chibar_pvalue</span>.(stats, <span class="fl">1</span>)</span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>alpha <span class="op">=</span> <span class="fl">0.05</span>                 <span class="co"># the test level, named once and reused below</span></span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a>rate_naive <span class="op">=</span> <span class="fu">mean</span>(<span class="fu">min</span>.(<span class="fl">2</span> <span class="op">.*</span> chibar, <span class="fl">1.0</span>) <span class="op">.&lt;</span> alpha)</span>
+<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a>rate_chibar <span class="op">=</span> <span class="fu">mean</span>(chibar <span class="op">.&lt;</span> alpha)</span>
+<span id="cb37-35"><a href="#cb37-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-36"><a href="#cb37-36" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"replicates                             : %d</span><span class="sc">\n</span><span class="st">"</span>, nrep)</span>
+<span id="cb37-37"><a href="#cb37-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fraction with sigma_u at zero          : %.4f  +/- %.4f  (asymptotic claim: 0.5000)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb37-38"><a href="#cb37-38" aria-hidden="true" tabindex="-1"></a>        pile, <span class="fu">mcse</span>(pile))</span>
+<span id="cb37-39"><a href="#cb37-39" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"naive chi-squared rejections at %.2f   : %.4f  +/- %.4f  (nominal: %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb37-40"><a href="#cb37-40" aria-hidden="true" tabindex="-1"></a>        alpha, rate_naive, <span class="fu">mcse</span>(rate_naive), alpha)</span>
+<span id="cb37-41"><a href="#cb37-41" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"chi-bar-squared rejections at %.2f     : %.4f  +/- %.4f  (nominal: %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb37-42"><a href="#cb37-42" aria-hidden="true" tabindex="-1"></a>        alpha, rate_chibar, <span class="fu">mcse</span>(rate_chibar), alpha)</span>
+<span id="cb37-43"><a href="#cb37-43" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">rate the pile-up alone would predict   : %.4f   = (1 - %.4f) * %.2f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb37-44"><a href="#cb37-44" aria-hidden="true" tabindex="-1"></a>        (<span class="fl">1</span> <span class="op">-</span> pile) <span class="op">*</span> <span class="fl">2</span>alpha, pile, <span class="fl">2</span>alpha)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>replicates                             : 2000
+fraction with sigma_u at zero          : 0.5625  +/- 0.0111  (asymptotic claim: 0.5000)
+naive chi-squared rejections at 0.05   : 0.0110  +/- 0.0023  (nominal: 0.0500)
+chi-bar-squared rejections at 0.05     : 0.0220  +/- 0.0033  (nominal: 0.0500)
+
+rate the pile-up alone would predict   : 0.0438   = (1 - 0.5625) * 0.10</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>The pile is bigger than half, and the plus-or-minus says that is not
+luck.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>It is bigger than half, by several times its own Monte Carlo error, and
+the reason is that the half is what the theory promises when the number
+of ponds grows without limit — <strong>asymptotic</strong> is the word —
+and five ponds is nowhere near that limit. But do not let that one
+number carry more than it can. If the pile-up were the whole story, the
+corrected test would reject at the rate on the last line, because a
+chi-bar-squared p below 0.05 is the same event as a naive p below 0.1.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>The measured rate is lower than that.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Lower again, and by more than its error bar, so there is a second
+effect: at five ponds the statistics that are <em>not</em> zero are
+lighter in the tail than chi-squared with one degree of freedom as well.
+Crainiceanu and Ruppert (2004) is where that is worked out properly. So
+the correction is a large improvement on the naive test, it is not a
+rescue, and there is no reference distribution that will give you five
+ponds’ worth of information about a variance.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Write that in your notes and then read it again in Class 10, when
+somebody hands you a heritability from six families.</p></div>
+<h3 id="the-default-nobody-chose" class="anchored">The default nobody chose</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Now the part that sent Momo up here. Nothing so far required two
+packages. This does.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>My collaborator ran the same model in R, with <code>lmer</code>, and got
+my second set of numbers rather than my first.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Of course he did. And neither of you typed the word REML.</p></div>
+<div class="disagree">
+<p><strong>⚠ DISAGREE: one model, two engines, two printed answers, and
+neither engine is wrong</strong></p>
+<p><code>lme4::lmer</code> defaults to <strong>REML</strong>.
+<code>MixedModels.jl</code>, <code>DRM.jl</code> and <code>drmTMB</code>
+default to <strong>maximum likelihood</strong>. Nothing about the model,
+the data or the formula differs. The two printed variance components
+differ because the two packages chose different estimators on your
+behalf and printed the result without a label on it. Bolker et
+al.&nbsp;(2009) is the practical guide that put cross-package differences in
+estimation method in front of biologists, and it is also where the rule
+“compare fixed effects with ML, not REML” reached this audience. For
+lme4’s own defaults and the optimiser and convergence machinery behind
+the quieter cousins of this difference, the reference is Bates et
+al.&nbsp;(2015).</p>
+<p>The R output below was run once, by hand, on 2026-09-06, on the very
+file this chapter’s first cell writes
+(<code>data/ch8/tadpoles.csv</code>), and pasted here as it came out; it
+is not re-run when the page is made.</p>
+</div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, lme4 2.0.1, reading data/ch8/tadpoles.csv (117 rows, 12 ponds)</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_default &lt;- lmer(length ~ days + (1 | pond), data = d)</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_ml      &lt;- lmer(length ~ days + (1 | pond), data = d, REML = FALSE)</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer <span class="fu">default</span> (<span class="at">REML =</span> <span class="cn">TRUE</span>) <span class="sc">---</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by REML [<span class="st">'lmerMod'</span>]</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">1.033</span>    <span class="fl">1.017</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.018</span>    <span class="fl">1.009</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18813</span>    <span class="fl">0.38865</span>   <span class="fl">21.07</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34643</span>    <span class="fl">0.01386</span>   <span class="fl">25.00</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer REML <span class="ot">=</span> <span class="cn">FALSE</span> (ML) <span class="sc">---</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by maximum likelihood  [<span class="st">'lmerMod'</span>]</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>      AIC       BIC    logLik <span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">log</span>(L)  df.resid</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>    <span class="fl">368.7</span>     <span class="fl">379.7</span>    <span class="sc">-</span><span class="fl">180.3</span>     <span class="fl">360.7</span>       <span class="dv">113</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">0.9398</span>   <span class="fl">0.9694</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.0086</span>   <span class="fl">1.0043</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
+<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18949</span>    <span class="fl">0.37760</span>   <span class="fl">21.69</span></span>
+<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34637</span>    <span class="fl">0.01379</span>   <span class="fl">25.12</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Compare that block with the table this chapter printed a few cells ago,
+row by row.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>They match. Both of them match.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Both of them match. <strong>The engines do not disagree about
+anything.</strong> <code>lmer</code> with its default reproduces our
+REML fit, and <code>lmer</code> with <code>REML = FALSE</code>
+reproduces our ML fit, to the digits both of them print. The
+disagreement is entirely in which one each package hands you when you do
+not ask.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So the number in my collaborator’s draft is not wrong.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>The number is not wrong. The <strong>sentence</strong> around it is, if
+it says “the among-pond standard deviation was” and stops. Write “the
+among-pond standard deviation, estimated by REML, was”. Five words. They
+are the difference between a reproducible result and a coincidence.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>House rule from today, and it is not negotiable: <strong>a variance
+component reported without its estimator is an unlabelled
+number.</strong> So is a repeatability, and so is a heritability, which
+is a ratio of two of them.</p></div>
+<h3 id="the-refusal-and-what-it-is-protecting" class="anchored">The refusal, and what it is protecting</h3>
+<div class="line"><span class="who momo">Momo</span><p>Last thing. If REML is better for variance components, why is it not the
+default here too?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Try to use it for something and find out. Fit two REML models with
+different fixed effects and compare them.</p></div>
+<div id="reml-guard" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>reml_full    <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>();</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>reml_reduced <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))),    <span class="fu">Gaussian</span>();</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(reml_reduced, reml_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<div class="ansi-escaped-output">
+<pre>ArgumentError: lrtest: cannot compare REML fits with different fixed-effect (mean) structures — REML log-likelihoods are not comparable across mean structures (only across variance structures). Refit both with method = :ML for a cross-mean-structure test.
+
+(stack trace omitted)</pre>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>It refused.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It refused, and the error message is the lesson, so read it rather than
+route around it. Read the first line and stop there; anything printed
+below it is Julia’s own map of where inside the engine it stopped, and
+it is written for the engine’s authors, not for you.</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Here is why the refusal is correct and not an inconvenience. REML does
+not maximise the likelihood of your data. It maximises the likelihood of
+the contrasts, the differences from which the fixed effects have been
+taken out. Change the fixed effects and you change which differences
+those are, so the second likelihood is the likelihood of
+<strong>different quantities</strong>. Comparing them is not a strict
+comparison; it is a category error that happens to return a number. The
+engine could have returned that number. It would have been arithmetic
+performed on two things that do not belong in the same equation.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>And two REML fits that differ only in the random part?</p></div>
+<div class="line"><span class="who jaro">Jaro</span><p>Are comparable, because the same fixed effects are taken out in both.
+That is the distinction the refusal draws: it refuses on the mean
+structure and stays quiet on the variance structure. Which is also why
+ML is the default. ML likelihoods compare across everything, so the
+default is the one that fewest users can hurt themselves with, and REML
+is the opt-in you take deliberately once you know what you are
+estimating.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>One honest note before you leave, because you will meet the R twin of
+this engine. <strong><code>drmTMB</code> has neither of the two tools
+you learned this hour: it has no boundary-corrected test, and its
+<code>anova</code> refuses every comparison, not only the invalid
+ones.</strong> That is an absence in the R package, not a disagreement
+between the packages. Where an absence and a disagreement look alike on
+the page, they are not alike at all: a disagreement means two answers
+and a mechanism, an absence means one answer and a gap. Say which one
+you are looking at, every time.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So today’s summary is: name the estimator.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Today’s summary is: name the estimator, and know what your software
+chose before it told you anything.</p></div>
+<hr>
+<h2 id="summary" class="anchored">Summary</h2>
+<h3 id="stats-stuff" class="anchored">Stats stuff</h3>
+<ul>
+<li><strong>ML versus REML.</strong> Both are maximum-likelihood arguments. ML maximises the likelihood of the data. REML maximises the likelihood of contrasts, differences between data points from which the fixed effects have been taken out first, so estimating the fixed effects does not cost the variance estimate anything. On the same data REML returns larger variance components and essentially unchanged fixed effects.</li>
+<li><strong>The divisor, grown up: one per level.</strong> Class 2’s <em>n</em> versus <em>n − p</em> is the same argument, and it does generalise: it applies once per level. The residual variance carries <em>n</em>/(<em>n − p</em>); the group variance carries that again, multiplied by a factor heading for <em>J</em>/(<em>J − 1</em>). The number the engine prints is the product, and the class cell shows the two factors multiplying out to it exactly.</li>
+<li><strong>Where it bites, and what fixes it.</strong> Anything that is a variance component or a ratio of them: repeatability, intraclass correlation, heritability. A slope is nearly immune. The gap shrinks with the number of <strong>groups</strong>, not the number of rows: growing the tadpoles tenfold at twelve ponds left the pond ratio sitting on <em>J</em>/(<em>J − 1</em>), and only more ponds moved it. When you plan a design, count the groups.</li>
+<li><strong>The boundary.</strong> A variance cannot be negative, so when the truth is at or near zero the estimate piles up on exactly zero. This is a feature of a constrained estimator, not a convergence failure.</li>
+<li><strong>Chi-bar-squared.</strong> At the boundary the likelihood-ratio statistic does not follow a chi-squared distribution with q degrees of freedom, where q is the number of variance components being tested. For one component it is a fifty-fifty mixture of a lump at zero and a chi-squared with one degree of freedom, so for a <strong>positive</strong> statistic the correct p-value is half the naive one (Self &amp; Liang 1987; Stram &amp; Lee 1994). At a statistic of exactly zero the halving is arithmetic on the point mass — that lump of probability sitting right on zero — and means nothing: the two models fit identically and there is nothing to test. The naive test is conservative: it loses power rather than inventing significance.</li>
+<li><strong>Asymptotic means asymptotic.</strong> The two-thousand-replicate study in class put the pile-up above one half, by several times its Monte Carlo error, and both rejection rates below nominal on five ponds. The pile-up alone does not account for the shortfall: at five groups the non-zero statistics are lighter-tailed than a chi-squared with one degree of freedom as well (Crainiceanu &amp; Ruppert 2004). The correction improves the test and does not manufacture information the design does not contain. Report a Monte Carlo standard error whenever you report a simulated rate.</li>
+<li><strong>Defaults are choices.</strong> <code>lme4</code> prints REML, our engines print ML, and the numbers agree perfectly once you name the estimator. Bolker et al.&nbsp;(2009) is the practical guide that raised cross-package estimation differences with biologists; Bates et al.&nbsp;(2015) documents lme4’s own defaults and optimisers. Report the estimator with the number, always.</li>
+<li><strong>Why REML cannot be the default.</strong> REML likelihoods are built on differences that depend on which fixed effects were taken out, so they are not comparable across different mean structures. ML likelihoods are comparable across everything, which makes ML the safer default and REML a deliberate choice.</li>
+</ul>
+<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<ul>
+<li><code>drm(bf(...), Gaussian(); data = df, method = :REML)</code>: the same verb and the same box as every other chapter, plus one keyword. <code>method = :ML</code> is the default and may be written out for clarity.</li>
+<li><code>estimation_method(fit)</code>: returns <code>:ML</code> or <code>:REML</code>. Call it before you write a number down.</li>
+<li><code>re_sd(fit)</code>: a <code>Dict</code> of random-effect standard deviations by grouping term. <code>vc(fit)</code> gives the covariance blocks instead.</li>
+<li><code>sigma(fit)</code>: the residual standard deviation, as one value per observation; take <code>first(...)</code> when σ is constant.</li>
+<li><code>ranef(fit)</code>: the model’s prediction for each group’s shift, the BLUPs of Class 6, by grouping term, straight from the fit. Pair with <code>fitted(fit)</code>, which on these models is the <strong>fixed-effect</strong> prediction, so <code>y - fitted(fit)</code> is the unshrunk group signal plus noise.</li>
+<li><code>simulate(fit; nsim = k)</code>: <code>nobs × k</code> matrix of new responses. It draws <strong>conditional on the random effects being zero</strong>, so on a mixed fit it gives population-level draws with no group effect. That makes it exactly right for simulating a null with no random effect, and wrong for checking whether a mixed model reproduces its total spread. Check the spread of what comes back before you trust a thousand of them.</li>
+<li><code>loglik(fit)</code>, <code>reml_loglik(fit)</code>, <code>ml_loglik(fit)</code>: on a REML fit the last two are both available and mean different things. <code>reml_loglik</code> is the restricted one that was maximised.</li>
+<li><code>confint(fit)</code>: intervals as named tuples. The <code>:resd</code> and <code>:sigma</code> rows come back on the <strong>log</strong> scale; exponentiate the endpoints for an interval on the standard deviation.</li>
+<li><code>lrtest(reduced, full)</code> and <code>anova(...)</code>: the naive likelihood-ratio test. It warns when the extra parameter is a variance component, and it throws on two REML fits with different fixed effects.</li>
+<li><code>lrt_boundary(full, reduced; q = 1)</code>: the boundary-corrected test. Returns the statistic, the chi-bar-squared p-value and the naive one side by side.</li>
+<li><code>chibar_pvalue(stat, q)</code>: the mixture p-value on its own, for <code>q = 1</code> or <code>q = 2</code>, when you already have a statistic.</li>
+<li><code>repeatability(fit)</code>: R with a delta-method interval and a bias correction, so you do not build the ratio by hand.</li>
+<li><strong>Reading the <code>ArgumentError</code> when two REML fits are compared.</strong> It names the rule it enforced and the fix. The fix is not to force the comparison; it is to refit with <code>method = :ML</code>.</li>
+</ul>
+<hr>
+<h2 id="further-reading" class="anchored">Further reading</h2>
+<p class="aside">Graded by depth. Items 2 and 3 are the papers both engines cite by name
+in their own code for exactly this test, so a reader chasing the method
+ends up in the same place the software does.</p>
+<ol type="1">
+<li><strong>Bolker, B. M. et al.&nbsp;(2009) “Generalized linear mixed models: a practical guide for ecology and evolution”, <em>Trends in Ecology &amp; Evolution</em> 24:127–135.</strong> Start here. The paper that put cross-package differences in estimation method in front of biologists rather than only statisticians, and the source most ecologists met the rule “compare fixed effects with ML, not REML” in. Its comparison table is about approximations to the GLMM likelihood — the generalized linear mixed model of the paper’s own title, the family-plus-random-effects model Class 9 teaches — so do not stretch it into a claim about optimiser defaults; read it for the practice, not for the software advice, which has aged.</li>
+<li><strong>Stram, D. O. &amp; Lee, J. W. (1994) “Variance components testing in the longitudinal mixed effects model”, <em>Biometrics</em> 50:1171–1177.</strong> The direct source for the test you ran in class. Short, concrete, and about exactly the model in front of you. If you read one methodological paper this week, read this one.</li>
+<li><strong>Self, S. G. &amp; Liang, K.-Y. (1987) “Asymptotic properties of maximum likelihood estimators and likelihood ratio tests under nonstandard conditions”, <em>Journal of the American Statistical Association</em> 82:605–610.</strong> The underlying theory that Stram and Lee applied. Harder, and worth opening once so that “the null is on the boundary” stops being a phrase you repeat and becomes a thing you can picture.</li>
+<li><strong>Patterson, H. D. &amp; Thompson, R. (1971) “Recovery of inter-block information when block sizes are unequal”, <em>Biometrika</em> 58:545–554.</strong> Where REML comes from, written before anybody called it REML, in the language of agricultural block designs. Read it for the pleasure of watching a general idea arrive disguised as a practical problem about fields.</li>
+<li><strong>Pinheiro, J. C. &amp; Bates, D. M. (2000) <em>Mixed-Effects Models in S and S-PLUS</em>.</strong> Chapter 2 remains the clearest book-length account of what REML is doing to the likelihood. The software is a museum piece; the exposition is not.</li>
+<li><strong>Bates, D., Mächler, M., Bolker, B. &amp; Walker, S. (2015) “Fitting linear mixed-effects models using lme4”, <em>Journal of Statistical Software</em> 67:1–48.</strong> The paper for the other half of the disagreement box: what <code>lmer</code> actually does, why REML is its default, and the optimisers and convergence checks it ships with. Read section 5 if you ever have to explain a convergence warning to a co-author.</li>
+<li><strong>Crainiceanu, C. M. &amp; Ruppert, D. (2004) “Likelihood ratio tests in linear mixed models with one variance component”, <em>Journal of the Royal Statistical Society B</em> 66:165–185.</strong> Why the class simulation undershoots even after the correction: with few groups the null distribution of the statistic is not the asymptotic mixture. The hardest item here, and the honest answer to “so is my corrected p-value right now?”</li>
+<li><strong>DRM.jl documentation, <code>capabilities</code>, the REML rows and the “REML scope” warning box.</strong> Read the warning box before you rely on <code>method = :REML</code> for anything that is not a Gaussian mean model. It states plainly which model types are supported and tested and which are refused, which is more than most packages will tell you.</li>
+</ol>
+<hr>
+<h2 id="exercises" class="anchored">Exercises</h2>
+<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 8.</p>
+<ol type="1">
+<li><p><strong>Do it on your own groups.</strong> Take any grouped dataset of your own and fit the random-intercept model twice, once with the default and once with <code>method = :REML</code>. Report the two σ_u values, the two σ values, and the two fixed-effect vectors. Then write one sentence naming which rows moved and by how much, and one sentence saying whether the difference would have changed anything you would write in a paper.</p></li>
+<li><p><strong>Predict, then check.</strong> Run <code>simulate_ponds(808; J = 12, per = 80:120)</code> and then <code>simulate_ponds(808; J = 60)</code>. <strong>Before you run either</strong>, write down what you expect the σ_u REML-to-ML variance ratio to be in each case, using <em>J</em>/(<em>J − 1</em>). Report both ratios against your two predictions. One of the two datasets has roughly ten times the rows of the chapter’s; say in one sentence why that did almost nothing, using the word “groups”.</p></li>
+<li><p><strong>Make the effect enormous.</strong> Now run it with <code>J = 4</code>. Report the same ratio and compare it to <em>J</em>/(<em>J − 1</em>). Then answer: at what number of groups would you personally stop trusting either estimate, and what would you do instead?</p></li>
+<li><p><strong>Repeatability, both ways.</strong> Using your fits from question 1, compute R from <code>re_sd</code> and <code>sigma</code> by hand for each estimator, then check yourself against <code>repeatability(fit)</code>. Report the two values of R. Write one sentence on which one you would publish and how you would label it.</p></li>
+<li><p><strong>The pile-up, at your own sample size.</strong> Run <code>boundary_study</code> on your own design: fit the reduced model to your data, then bootstrap from it exactly as the chapter does, so the design is held fixed and only the response is redrawn. Use 2000 replicates and report the fraction of fits with σ_u estimated at zero, <strong>with its Monte Carlo standard error</strong>. Compare it to 0.5 and explain the direction of the difference.</p></li>
+<li><p><strong>Buy back the power.</strong> Using the statistics from question 5, report the rejection rate at 0.05 under the naive χ² reference and under <code>chibar_pvalue</code>, each with its Monte Carlo standard error. Compare the corrected rate to the rate the pile-up alone predicts, <code>(1 - pile) * 0.10</code>. If the two disagree by more than their error bars, say what that tells you about the non-zero statistics. Then answer in one sentence: how many extra groups would the naive test need to reach a rate you would accept, and how would you find out rather than guess?</p></li>
+<li><p><strong>Provoke the refusal on purpose.</strong> Fit two REML models on your data that differ only in the <strong>random</strong> part, and compare them with <code>lrtest</code>. Then fit two that differ in the <strong>fixed</strong> part and compare those. Paste both results, including the error. Explain in your own words why one comparison is allowed and the other is not, without using the word “restricted”.</p></li>
+<li><p><strong>Read the label.</strong> Find a published paper in your field that reports a repeatability, an intraclass correlation or a heritability. Does it name the estimator? Does it name the software version? Write three sentences: what you can tell, what you cannot, and what one extra sentence from the authors would have fixed it.</p></li>
+</ol>
+
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
+
+</div>
+<nav class="chapter-nav" aria-label="Chapter">
+  <a class="chapter-nav-link prev" href="wk7-random-slopes.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 7 · Not everyone shares a slope</span></a><a class="chapter-nav-link next" href="wk9-glmms.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 9 · Both at once</span></a>
+</nav>
+<footer>
+  Stats Hours with Itchy · Class 8 of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
+  Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
+</footer>
+</div>
+
+<script>
+// Highlight REPL prompts and error lines without shipping a syntax highlighter.
+document.querySelectorAll('pre code').forEach(function (block) {
+  if (block.querySelector('span')) return; // hand-marked blocks stay as authored
+  var html = block.innerHTML
+    .replace(/^(julia&gt; )/gm, '<span class="p">$1</span>')
+    .replace(/^(ERROR: .*)$/gm, '<span class="err">$1</span>');
+  block.innerHTML = html;
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+  tabsets.forEach(function(tabset) {
+    const tabby = new Tabby('#' + tabset.id);
+  });
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+
+
+
+
+</body></html>

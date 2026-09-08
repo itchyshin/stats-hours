@@ -1,0 +1,170 @@
+<svg class="itchy-climb" viewBox="0 0 680 900" width="680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The climb: thirteen rungs from preface to coda">
+  <title>The climb</title>
+  <style>
+    svg.itchy-climb {
+      --paper:#F2F4F4; --raised:#FFFFFF; --ink:#17211F; --body:#243230;
+      --muted:#5C6866; --accent:#1F5F5B; --accent-soft:#DCEAE7; --warn:#A6522C;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      svg.itchy-climb {
+        --paper:#0F1614; --raised:#151F1D; --ink:#E8EEEB; --body:#CFD9D6;
+        --muted:#93A29E; --accent:#63C1B5; --accent-soft:#16302E; --warn:#DE9366;
+      }
+    }
+    .rail { stroke: var(--muted); stroke-width: 2; fill: none; }
+    .rung { stroke: var(--muted); stroke-width: 4; stroke-linecap: round; }
+    .rung.v2 { stroke: var(--warn); stroke-dasharray: 6 5; }
+    .rung.coda { stroke: var(--accent); stroke-width: 3; }
+    .divider { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+    .badge { fill: var(--raised); stroke: var(--accent); stroke-width: 1.6; }
+    .badge.v2 { stroke: var(--warn); }
+    .badge.coda { fill: var(--accent); stroke: var(--accent); }
+    .badge-text { fill: var(--accent); font-size: 15px; font-weight: 700; text-anchor: middle; dominant-baseline: central; font-family: "IBM Plex Mono", Menlo, monospace; }
+    .badge-text.v2 { fill: var(--warn); }
+    .badge-text.coda { fill: var(--paper); }
+    .label { fill: var(--ink); font-size: 15px; font-weight: 600; }
+    .label.v2 { fill: var(--body); }
+    .label.coda { fill: var(--ink); font-weight: 700; }
+    .caption { fill: var(--muted); font-size: 11px; font-style: italic; font-family: Georgia, serif; }
+    .tag { fill: var(--warn); font-size: 10px; font-weight: 700; letter-spacing: .06em; font-family: "IBM Plex Mono", Menlo, monospace; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="680" height="900" fill="var(--paper)"/>
+
+  <!-- ladder rails, base camp (bottom) to coda (top) -->
+  <line class="rail" x1="40" y1="852" x2="40" y2="22"/>
+  <line class="rail" x1="90" y1="852" x2="90" y2="22"/>
+
+  <!-- rung 0 -->
+  <g>
+    <line class="rung" x1="40" y1="852" x2="90" y2="852"/>
+    <circle class="badge" cx="65" cy="852" r="18"/>
+    <text class="badge-text" x="65" y="853">0</text>
+    <text class="label" x="112" y="857">Preface</text>
+    <text class="caption" x="112" y="874">why one engine, and what this book will not cover</text>
+  </g>
+
+  <!-- rung 1 -->
+  <g>
+    <line class="rung" x1="40" y1="792" x2="90" y2="792"/>
+    <circle class="badge" cx="65" cy="792" r="18"/>
+    <text class="badge-text" x="65" y="793">1</text>
+    <text class="label" x="112" y="797">Base camp</text>
+    <text class="caption" x="112" y="814">Julia, data frames, files, plots, reading error messages</text>
+  </g>
+
+  <!-- rung 2 -->
+  <g>
+    <line class="rung" x1="40" y1="732" x2="90" y2="732"/>
+    <circle class="badge" cx="65" cy="732" r="18"/>
+    <text class="badge-text" x="65" y="733">2</text>
+    <text class="label" x="112" y="737">The one formula</text>
+    <text class="caption" x="112" y="754">the linear model</text>
+  </g>
+
+  <!-- rung 3 -->
+  <g>
+    <line class="rung" x1="40" y1="672" x2="90" y2="672"/>
+    <circle class="badge" cx="65" cy="672" r="18"/>
+    <text class="badge-text" x="65" y="673">3</text>
+    <text class="label" x="112" y="677">The shape of the noise</text>
+    <text class="caption" x="112" y="694">GLMs, logistic and Poisson</text>
+  </g>
+
+  <!-- rung 4 -->
+  <g>
+    <line class="rung" x1="40" y1="612" x2="90" y2="612"/>
+    <circle class="badge" cx="65" cy="612" r="18"/>
+    <text class="badge-text" x="65" y="613">4</text>
+    <text class="label" x="112" y="617">When the family lies about the spread</text>
+    <text class="caption" x="112" y="634">overdispersion, sigma ~ x</text>
+  </g>
+
+  <!-- rung 5 -->
+  <g>
+    <line class="rung" x1="40" y1="552" x2="90" y2="552"/>
+    <circle class="badge" cx="65" cy="552" r="18"/>
+    <text class="badge-text" x="65" y="553">5</text>
+    <text class="label" x="112" y="557">Is the model any good?</text>
+    <text class="caption" x="112" y="574">residuals, diagnostics, model comparison</text>
+  </g>
+
+  <!-- rung 6 -->
+  <g>
+    <line class="rung" x1="40" y1="492" x2="90" y2="492"/>
+    <circle class="badge" cx="65" cy="492" r="18"/>
+    <text class="badge-text" x="65" y="493">6</text>
+    <text class="label" x="112" y="497">Rows are not strangers</text>
+    <text class="caption" x="112" y="514">random intercepts, repeatability</text>
+  </g>
+
+  <!-- rung 7 -->
+  <g>
+    <line class="rung" x1="40" y1="432" x2="90" y2="432"/>
+    <circle class="badge" cx="65" cy="432" r="18"/>
+    <text class="badge-text" x="65" y="433">7</text>
+    <text class="label" x="112" y="437">Not everyone shares a slope</text>
+    <text class="caption" x="112" y="454">random slopes</text>
+  </g>
+
+  <!-- rung 8 -->
+  <g>
+    <line class="rung" x1="40" y1="372" x2="90" y2="372"/>
+    <circle class="badge" cx="65" cy="372" r="18"/>
+    <text class="badge-text" x="65" y="373">8</text>
+    <text class="label" x="112" y="377">Same model, two answers</text>
+    <text class="caption" x="112" y="394">REML vs ML, boundaries, optimiser defaults — the spine</text>
+  </g>
+
+  <!-- rung 9 -->
+  <g>
+    <line class="rung" x1="40" y1="312" x2="90" y2="312"/>
+    <circle class="badge" cx="65" cy="312" r="18"/>
+    <text class="badge-text" x="65" y="313">9</text>
+    <text class="label" x="112" y="317">Both at once</text>
+    <text class="caption" x="112" y="334">GLMMs — shape and correlation, together</text>
+  </g>
+
+  <!-- rung 10 -->
+  <g>
+    <line class="rung" x1="40" y1="252" x2="90" y2="252"/>
+    <circle class="badge" cx="65" cy="252" r="18"/>
+    <text class="badge-text" x="65" y="253">10</text>
+    <text class="label" x="112" y="257">Not even the groups are strangers</text>
+    <text class="caption" x="112" y="274">relatedness, phylogeny, space, heritability</text>
+  </g>
+
+  <!-- v2 marker: extra gap between rung 10 (line 252) and rung 11 (line 162) holds this -->
+  <text class="tag" x="112" y="205">V2 — HELD FOR A SECOND VERSION</text>
+
+  <!-- rung 11 (v2) -->
+  <g>
+    <line class="rung v2" x1="40" y1="162" x2="90" y2="162"/>
+    <circle class="badge v2" cx="65" cy="162" r="18"/>
+    <text class="badge-text v2" x="65" y="163">11</text>
+    <text class="label v2" x="112" y="167">Modelling the spread itself</text>
+    <text class="caption" x="112" y="184">location-scale — σ, pinned to one number, freed</text>
+  </g>
+
+  <!-- rung 12 (v2) -->
+  <g>
+    <line class="rung v2" x1="40" y1="102" x2="90" y2="102"/>
+    <circle class="badge v2" cx="65" cy="102" r="18"/>
+    <text class="badge-text v2" x="65" y="103">12</text>
+    <text class="label v2" x="112" y="107">Two responses at once</text>
+    <text class="caption" x="112" y="124">bivariate, with a correlation that varies</text>
+  </g>
+
+  <!-- divider marking the coda as set apart, not a rung -->
+  <line class="divider" x1="30" y1="62" x2="100" y2="62"/>
+
+  <!-- coda (13), set apart -->
+  <g>
+    <line class="rung coda" x1="40" y1="22" x2="90" y2="22"/>
+    <circle class="badge coda" cx="65" cy="22" r="18"/>
+    <text class="badge-text coda" x="65" y="23">13</text>
+    <text class="label coda" x="112" y="27">Where you go next</text>
+    <text class="caption" x="112" y="44">a coda, not a rung — the same constants reappear</text>
+  </g>
+</svg>

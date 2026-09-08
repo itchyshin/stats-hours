@@ -1,0 +1,38 @@
+# Freeze-consistency check.
+#
+# What this proves: that docs/site/ (the published site, served straight from
+# main by GitHub Pages) is what you get from rendering the committed book/*.qmd
+# against the committed _freeze/ cache — i.e. nobody edited a chapter or hand-
+# edited docs/site/ without re-running it. See tools/check-freeze.sh for the
+# full mechanics and the incantation that makes this possible without an
+# engine.
+#
+# Why it is shaped this way:
+#   - workflow_dispatch + pull_request only, never push: this is a PR gate and
+#     an on-demand check, not something that should burn a runner on every
+#     commit to main (Pages deploys straight from docs/ on main; this workflow
+#     never deploys anything).
+#   - ubuntu-latest only: this check does no OS-specific work, so one runner
+#     is enough.
+#   - NO Julia, NO R installed: that is the point of the check. Chapters are
+#     rendered from the committed _freeze/ cache, never executed here. If a
+#     chapter's freeze is stale (edited without re-running it), the check
+#     script detects that from a hash comparison before it ever calls
+#     `quarto render`, and fails loudly instead — it does not, and structurally
+#     cannot, fall back to actually executing Julia, because Julia isn't here.
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  freeze-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.6.42" # pinned to the local `quarto --version` this was authored against
+
+      - run: sh tools/check-freeze.sh

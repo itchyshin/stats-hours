@@ -1,0 +1,382 @@
+---
+title: "Appendix A: simulation as a way of thinking"
+book: Stats Hours with Itchy
+chapter: A
+type: book-chapter
+status: draft
+created: 2026-09-06
+engines: DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+tags: [book, julia, simulation, bootstrap, coverage, DRM.jl, appendix]
+deck: "The thread every chapter has been pulling since Class 2 without naming it: draw new data from what the model claims, and watch how much an estimate can wander before you decide to trust it."
+status_tag: Draft
+status_note: "All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft."
+provenance: "Every code block and printed result below was run, start to finish, when this page was made; nothing is typed from memory."
+caveat: "From the second beat onward the data are the real 2012 sparrows (data/2012/MBodySize.csv, 171 house sparrows, Lundy Island, provenance in data/2012/README.md). The opening generator is a simulated flock of sparrows built to look like that file; it is here as the appendix's first worked example of what a seed does."
+footer_note: "Stats Hours with Itchy · Appendix A of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06"
+---
+
+# Appendix A: simulation as a way of thinking
+
+> **A note on what this appendix is.** It is not a rung. It does not free a constant the way each
+> class does. It gathers a thread that runs through every class from Class 2 on, where the "Julia
+> stuff" ends with one cell that draws new data from the fitted model and refits it. Here the
+> thread gets a room of its own: what a seed actually promises, what it means to simulate what a
+> model claims, what "coverage" means as a property you can check by counting, and the parametric
+> bootstrap as an interval built the same way.
+
+---
+
+## Objectives
+
+By the end of this appendix you should be able to:
+
+1. Say what a random seed actually promises, and what happens the moment you change one digit of it.
+2. Draw new data from a fitted model, refit, and watch a coefficient wander, without mistaking the wander for noise you introduced by hand.
+3. Define coverage as a property of a procedure, not of one interval, and attach a Monte Carlo standard error to any coverage fraction you report.
+4. Build a parametric bootstrap interval from a set of refits, and say in one sentence when it and the ordinary estimate-plus-or-minus-two-standard-errors interval part company.
+
+---
+
+## The class
+
+**Itchy's office, later in the week. TOTO has a laptop and a mug that says "p < 0.05 or it didn't happen", which nobody has had the heart to correct. MOMO is reading something on her phone. EDDIE is standing, because Eddie always stands.**
+
+**Itchy:** Before the real sparrows, I want a flock I built myself, because a flock you built is the one place you know the truth. Here is a recipe for one hundred and sixteen sparrows: wing from tarsus and sex, plus noise.
+
+**Toto:** Made-up birds.
+
+**Itchy:** Made-up on purpose, and made-up in a way I can repeat, which is the point of the next ten minutes. It is where a promise gets made that the rest of this appendix is about keeping, or breaking on purpose.
+
+**Momo:** Why one you can repeat?
+
+**Itchy:** Watch.
+
+```{julia}
+#| label: setup
+#| echo: false
+#| output: false
+include("../tools/figures.jl")
+using .ItchyTheme
+using DRM, DataFrames, CSV, Statistics, Random, Logging, Printf, CairoMakie
+set_theme!(theme_itchy(:light))
+```
+
+### A seed is a promise
+
+**Itchy:** Here is the recipe. The first line, `Random.seed!(316)`, is the one to keep your eye on. Watch what comes back.
+
+```{julia}
+#| label: sparrow-generator-a
+Random.seed!(316)
+n = 116
+sex    = rand(["female", "male"], n)
+tarsus = 18.5 .+ 0.62 .* randn(n) .+ 0.25 .* (sex .== "male")
+wing   = 78.0 .+ 1.70 .* (tarsus .- 18.5) .+ 1.45 .* (sex .== "male") .+ 2.4 .* randn(n)
+flock_a = DataFrame(BirdID = 1:n, Sex = sex,
+                     Tarsus = round.(tarsus, digits = 2),
+                     Wing   = round.(wing,   digits = 1))
+first(flock_a, 3)
+```
+
+**Momo:** Those are the made-up birds.
+
+**Itchy:** Those are the made-up birds, and here is the point of them. Without looking at the first run, I am going to run the identical code again.
+
+```{julia}
+#| label: sparrow-generator-b
+Random.seed!(316)
+sex2    = rand(["female", "male"], n)
+tarsus2 = 18.5 .+ 0.62 .* randn(n) .+ 0.25 .* (sex2 .== "male")
+wing2   = 78.0 .+ 1.70 .* (tarsus2 .- 18.5) .+ 1.45 .* (sex2 .== "male") .+ 2.4 .* randn(n)
+flock_b = DataFrame(BirdID = 1:n, Sex = sex2,
+                     Tarsus = round.(tarsus2, digits = 2),
+                     Wing   = round.(wing2,   digits = 1))
+flock_a.Wing == flock_b.Wing
+```
+
+```{julia}
+#| echo: false
+#| output: false
+same_flock = flock_a.Wing == flock_b.Wing
+wing1_a = flock_a.Wing[1]
+```
+
+**Itchy:** `{julia} same_flock`. Every one of `{julia} n` birds, identical to the decimal place. The first bird's wing was `{julia} wing1_a` mm both times. That is the whole promise a seed makes: not "random", but "reproducible on purpose". Anyone with this file, this Julia version and this line gets my exact flock back, forever.
+
+**Toto:** So it is not really random.
+
+**Itchy:** It is exactly as random as a shuffled deck someone photographed before they shuffled it. The shuffle is real. The photograph means we can all argue about the same deck. Now watch me break the promise on purpose, by changing one digit.
+
+```{julia}
+#| label: sparrow-generator-c
+Random.seed!(317)
+sex3    = rand(["female", "male"], n)
+tarsus3 = 18.5 .+ 0.62 .* randn(n) .+ 0.25 .* (sex3 .== "male")
+wing3   = 78.0 .+ 1.70 .* (tarsus3 .- 18.5) .+ 1.45 .* (sex3 .== "male") .+ 2.4 .* randn(n)
+flock_c = DataFrame(BirdID = 1:n, Sex = sex3,
+                     Tarsus = round.(tarsus3, digits = 2),
+                     Wing   = round.(wing3,   digits = 1))
+flock_a.Wing == flock_c.Wing
+```
+
+```{julia}
+#| echo: false
+#| output: false
+diff_flock = flock_a.Wing == flock_c.Wing
+wing1_c = flock_c.Wing[1]
+```
+
+**Eddie:** `316` to `317`. One digit.
+
+**Itchy:** One digit, and `{julia} diff_flock`. The first bird went from `{julia} wing1_a` mm to `{julia} wing1_c` mm, and every bird after it is a different bird too, not a slightly adjusted version of the old one. There is no such thing as "close" here. A seed either reproduces a flock exactly, or it hands you a flock that shares nothing with the last one except the recipe that built it. That is the whole of what a seed is, and it is the fact this entire appendix depends on: I am about to draw two hundred flocks on purpose, and I need every one of you to be able to get the same two hundred back.
+
+---
+
+## Simulate what the model claims
+
+**Itchy:** Enough of the made-up birds. Load the real ones.
+
+```{julia}
+#| label: load-real-data
+raw = CSV.read("../data/2012/MBodySize.csv", DataFrame)
+sparrows = select(raw, :BirdID, :Tarsus, :Wing)
+nrow(sparrows)
+```
+
+**Momo:** This is `fit1` from Class 2.
+
+```{julia}
+#| label: fit-appA
+fit_appA = drm(bf(@formula(Wing ~ Tarsus)), Gaussian(); data = sparrows)
+true_slope = coef(fit_appA, :mu)[2]
+coeftable(fit_appA)
+```
+
+```{julia}
+#| echo: false
+#| output: false
+true_slope_r = round(true_slope; digits = 3)
+```
+
+**Itchy:** The tarsus slope is `{julia} true_slope_r`. In Class 2 we treated that as the answer and moved on. Here I want to treat it as a claim, and ask the model to defend it. If the model is right about how these birds were generated, and I draw brand-new birds from that same claim, refitting should give me back something close to `{julia} true_slope_r`, wobbling by an amount the model itself can tell me about.
+
+```{julia}
+#| label: refit-200
+rng_sim = MersenneTwister(100100)   # a seed is a promise: anyone who runs this line gets the same draw
+sims = simulate(fit_appA; nsim = 200, rng = rng_sim)
+
+function refit_once(y)
+    d = DataFrame(Tarsus = sparrows.Tarsus, Wing = y)
+    f = drm(bf(@formula(Wing ~ Tarsus)), Gaussian(); data = d)
+    ci = confint(f)
+    (slope = coef(f, :mu)[2], lower = ci[2].lower, upper = ci[2].upper)
+end
+
+refits = with_logger(NullLogger()) do
+    [refit_once(sims[:, k]) for k in 1:size(sims, 2)]
+end
+
+slopes = [r.slope for r in refits]
+los    = [r.lower for r in refits]
+his    = [r.upper for r in refits]
+length(slopes)
+```
+
+```{julia}
+#| echo: false
+#| output: false
+slope_mean = round(mean(slopes); digits = 3)
+slope_sd   = round(std(slopes);  digits = 3)
+```
+
+**Toto:** Two hundred fits from two hundred flocks that do not exist.
+
+**Itchy:** Two hundred flocks the model itself says could have existed, which is a different thing from not existing. Mean of the refitted slopes: `{julia} slope_mean`. Spread of the refitted slopes: `{julia} slope_sd`. That spread is not a mistake and not noise I introduced. It is what "uncertainty in a slope" actually looks like when you stop trusting one number and watch two hundred.
+
+```{julia}
+#| label: fig-slope-wander
+#| fig-cap: "Tarsus slope refitted on 200 parametric draws from the fitted model; vertical line at the original fitted slope."
+fig1 = Figure(size = (480, 360))
+ax1 = Axis(fig1[1, 1]; xlabel = "refitted tarsus slope", ylabel = "count",
+    title = "the slope, redrawn 200 times")
+hist!(ax1, slopes; bins = 25)
+vlines!(ax1, [true_slope]; color = :black, linewidth = 2, label = "fitted slope")
+axislegend(ax1; position = :rt)
+fig1
+```
+
+**Eddie:** It is centred on the real fit.
+
+**Itchy:** It should be. The real fit *is* the generator. That is the whole trick of "simulate what the model claims": you are not testing whether the model is correct about the birds, you are testing whether the model is being consistent with itself, which is a smaller claim and a useful one on its own.
+
+### The trap, once
+
+**Toto:** *(comparing numbers)* The raw spread of one simulated column does not match σ.
+
+```{julia}
+#| label: subtraction-trap
+raw_spread = std(sims[:, 1])
+dev_spread = std(sims[:, 1] .- fitted(fit_appA))
+dev_all  = [std(sims[:, k] .- fitted(fit_appA)) for k in 1:size(sims, 2)]
+dev_mean = mean(dev_all)
+```
+
+```{julia}
+#| echo: false
+#| output: false
+sigma_appA     = round(sigma(fit_appA)[1]; digits = 3)
+raw_spread_r   = round(raw_spread; digits = 3)
+dev_spread_r   = round(dev_spread; digits = 3)
+dev_mean_r     = round(dev_mean; digits = 3)
+```
+
+**Itchy:** σ is `{julia} sigma_appA`. The raw spread of that one simulated column is `{julia} raw_spread_r`, which looks nothing like it, and if you stopped there you would conclude the model cannot reproduce its own noise. It can. Each simulated column still carries `fit_appA`'s fitted mean, tarsus and all, so its raw spread is close to the *raw* wing spread, not σ. Subtract the fitted mean first, and only then are you looking at noise alone: `{julia} dev_spread_r`. That is not σ to the decimal place, and it should not be: it is one column of two hundred, and a single column's spread wobbles around σ by chance. Do it for all two hundred and average, and it lands on `{julia} dev_mean_r`, a hair from σ and no longer at the mercy of which column you happened to pick. One subtraction, one trap avoided, and I want you to feel where it bites: it looks exactly like a broken model until you remember what a simulated column actually contains.
+
+---
+
+## Coverage as a check on an interval
+
+**Momo:** Every refit came with a confidence interval. Two hundred of them, sitting there unused.
+
+**Itchy:** Not unused. About to earn their keep. A 95 percent interval is usually described to students as "we are 95 percent confident the true value is in here", which is not what it means and cannot be checked from one interval alone. Here is what it actually claims, and here is why we can check it: if I build this same kind of interval on flock after flock drawn from a known truth, the *procedure* should catch that truth about 95 times in 100. Not this interval. The procedure.
+
+<!-- eq: hand-typed -->
+
+> **coverage = (1/R) Σ 1[low_r ≤ β ≤ high_r],  SE(coverage) = sqrt( coverage · (1 − coverage) / R )**
+
+**Itchy:** *R* replicates, one indicator per replicate for "did this interval catch the true slope", averaged. We know the true slope here, because we chose it: it is `fit_appA`'s own slope, the thing every one of the two hundred flocks was drawn to be consistent with. The interval `confint` gives you is the plain kind, the estimate plus or minus about two standard errors; statisticians call it a Wald interval, that is the name you will meet in other people's methods sections, and we will meet a rival to it in a minute. "Nominal" in the printout is the rate the interval claims for itself.
+
+```{julia}
+#| label: coverage-check
+covered = [(lo <= true_slope <= hi) for (lo, hi) in zip(los, his)]
+nrep = length(covered)
+coverage_rate = mean(covered)
+mcse_cov = sqrt(coverage_rate * (1 - coverage_rate) / nrep)
+
+@printf("replicates                         : %d\n", nrep)
+@printf("plain (Wald) interval covers slope : %.4f  +/- %.4f  (nominal: 0.9500)\n",
+        coverage_rate, mcse_cov)
+```
+
+```{julia}
+#| echo: false
+#| output: false
+coverage_rate_r = round(coverage_rate; digits = 4)
+mcse_cov_r      = round(mcse_cov;      digits = 4)
+```
+
+**Toto:** `{julia} coverage_rate_r`. That is not `0.95`.
+
+**Itchy:** It is not exactly `0.95`, and it should not be. That plus-or-minus is the Monte Carlo standard error: the wobble in the fraction that comes only from having used two hundred flocks rather than infinitely many. `{julia} coverage_rate_r` with a Monte Carlo standard error of `{julia} mcse_cov_r` is what "consistent with 95 percent" looks like at two hundred replicates. Report a coverage fraction without its own standard error and you have handed someone a number with no way to tell noise from a real problem. That is a rule for the rest of this course, not only for today.
+
+**Eddie:** So a coverage study is just this, run at the scale of a real question.
+
+**Itchy:** Exactly this, at the scale of a real question, and usually asking "does the interval still cover when I change something about the design", not "does it cover at all". The rival to it I promised is next.
+
+---
+
+## The parametric bootstrap
+
+**Itchy:** The two hundred refits are also, quietly, an interval of their own. Not from the standard errors this time; from where the estimates themselves landed: the value that two and a half percent of the refitted slopes fall below, and the value that two and a half percent fall above. That is a bootstrap interval, and "parametric" because the new flocks came from the fitted model rather than from reshuffling the real rows.
+
+<!-- eq: hand-typed -->
+
+> **bootstrap interval = [ Q₀.₀₂₅(slope₁, …, slope_R),  Q₀.₉₇₅(slope₁, …, slope_R) ]**
+
+```{julia}
+#| label: bootstrap-ci
+boot_lo, boot_hi = quantile(slopes, [0.025, 0.975])
+wald = confint(fit_appA)
+wald_lo, wald_hi = wald[2].lower, wald[2].upper
+
+@printf("plain (Wald) interval : [%.4f, %.4f]\n", wald_lo, wald_hi)
+@printf("bootstrap interval    : [%.4f, %.4f]\n", boot_lo, boot_hi)
+```
+
+```{julia}
+#| echo: false
+#| output: false
+wald_lo_r = round(wald_lo; digits = 3)
+wald_hi_r = round(wald_hi; digits = 3)
+boot_lo_r = round(boot_lo; digits = 3)
+boot_hi_r = round(boot_hi; digits = 3)
+```
+
+```{julia}
+#| label: fig-wald-vs-boot
+#| fig-cap: "Wald interval on the real fit against the parametric-bootstrap interval, both from the same 200 refits."
+fig2 = Figure(size = (480, 360))
+ax2 = Axis(fig2[1, 1]; xticks = (1:2, ["Wald", "bootstrap"]),
+    ylabel = "tarsus slope", title = "two ways to an interval")
+rangebars!(ax2, [1], [wald_lo], [wald_hi]; whiskerwidth = 12, color = Cycled(1))
+scatter!(ax2, [1], [true_slope]; markersize = 10, color = Cycled(1))
+rangebars!(ax2, [2], [boot_lo], [boot_hi]; whiskerwidth = 12, color = Cycled(2))
+scatter!(ax2, [2], [mean(slopes)]; markersize = 10, color = Cycled(2))
+fig2
+```
+
+**Momo:** Wald gives `{julia} wald_lo_r` to `{julia} wald_hi_r`. Bootstrap gives `{julia} boot_lo_r` to `{julia} boot_hi_r`. Those are almost the same interval.
+
+**Itchy:** They are, here, and that agreement is itself the finding, not a formality on the way to a more interesting one. One honest sentence, and hold on to it: the two intervals agree closely exactly when the thing being estimated is far from any boundary and its sampling distribution — the spread of values the estimate would take if you repeated the study over and over — is close to symmetric, the way a slope from a hundred and seventy-one birds is; they pull apart hardest for a parameter that is skewed, or pinned against a wall it cannot cross, and that is not a hypothetical case; it is what Class 8 asks you to estimate.
+
+---
+
+## Where this thread earns its keep
+
+**Toto:** So all of this was practice.
+
+**Itchy:** All of this was practice on a parameter with nowhere awkward to go. A slope can be negative, positive, anything on the real line, and its sampling distribution knows it. A variance component cannot be negative, and when the truth sits at or near zero the estimate piles up exactly on the boundary, and the naive test built for the easy case gets the wrong answer with total confidence. You already have the tool for that. It is the function `simulate` called on a fitted model, refit two hundred or two thousand times, and counted, exactly as above. Class 8 runs precisely this procedure on a variance component instead of a slope, and that is where a naive test would have quietly lied to you, and where the correction earns a whole class instead of an appendix.
+
+**Momo:** *(closing the laptop)* A seed, a refit loop and a count. That is most of what statistics turns out to be.
+
+**Itchy:** Most of what *checking* statistics turns out to be, which is not the same claim, but it is the one I actually believe.
+
+---
+
+## Summary
+
+### Stats stuff
+
+- **A seed is a promise, not an apology.** `Random.seed!(k)` fixes the sequence the computer's random-number recipe produces (it is a recipe, which is why it can be repeated); the same seed on the same code reproduces the same data exactly, anywhere, forever. Change one digit of the seed and every downstream number changes, with nothing "close" about the result.
+- **Simulate what the model claims.** Treat the fitted model as a generator of new data, draw from it, and refit. This checks the model's internal consistency, not whether it is the correct model for the world; a coefficient's spread across refits is what "uncertainty in that coefficient" concretely looks like.
+- **The fitted-subtraction trap.** A simulated response still carries the model's fitted mean structure. Its raw spread reflects that mean structure, not σ alone; subtract the fitted values first before comparing spreads, or a correct model will look broken.
+- **Coverage.** A property of a *procedure*, checked by repetition: across many draws from a known truth, what fraction of the resulting intervals actually contain that truth. Never report a coverage fraction without its own Monte Carlo standard error, `sqrt(p(1 − p)/R)`.
+- **The parametric bootstrap.** An interval built from where a set of refits actually land (empirical quantiles of the estimate), rather than from a standard error and a normal reference. It agrees closely with a Wald interval when the estimator is far from a boundary and roughly symmetric, and diverges from it when the estimator is not, which is exactly the situation Class 8's variance component is in.
+
+### Julia stuff
+
+- `Random.seed!(k)`: fixes the global random-number generator's state. Call it once, immediately before the code whose randomness you want reproducible. The book's own code, in every class, does not touch the global generator at all — they build an explicit `MersenneTwister(k)` and pass it as `rng` to `rand` and `simulate`, so a cell's reproducibility does not depend on what ran before it.
+- `rand(collection, n)`: `n` draws with replacement from a collection, here `["female", "male"]`.
+- `simulate(fit; nsim = k)` (the keyword is spelled as in R): `k` fresh response draws from a fitted model, `nobs × k`, conditional on the fitted mean and dispersion structure.
+- `fitted(fit)`, `sigma(fit)`: the fitted mean vector and the residual scale, needed to check a simulated column against the model it came from.
+- `confint(fit)`: per-parameter `(lower, upper)` named tuples; index by parameter position within the relevant sub-model.
+- `with_logger(NullLogger()) do ... end`: run a block, here two hundred refits, without the repeated convergence chatter each one would otherwise print.
+- `mean`, `std`, `quantile(v, [p1, p2])`: from `Statistics`, the building blocks of both the coverage count and the bootstrap interval.
+- `@printf`: from `Printf`, for reporting a rate or an interval with a stated number of decimal places rather than whatever Julia's default show happens to choose.
+
+---
+
+## Further reading
+
+*Graded by depth.*
+
+1. **Sandve, G. K., Nekrutenko, A., Taylor, J. & Hovig, E. (2013) "Ten simple rules for reproducible computational research", *PLoS Computational Biology* 9(10):e1003285.** Start here, not with the mathematics. Rule 1 is essentially "for every result, keep the seed", which is the whole first half of this appendix in one sentence written for a much wider audience than statisticians.
+2. **Efron, B. (1979) "Bootstrap methods: another look at the jackknife", *The Annals of Statistics* 7(1).** The paper that invented the idea this appendix's fourth beat uses: build an interval from where resampled or resimulated estimates actually land, rather than from a formula and a normal reference. Read it for the original motivating examples, which are smaller and stranger than the method's later reputation suggests.
+3. **Davison, A. C. & Hinkley, D. V. (1997) *Bootstrap Methods and Their Application*, Cambridge University Press.** The standard book-length treatment, including the parametric case used here (resampling from a fitted model rather than from the data directly) and a careful account of when a bootstrap interval and a Wald interval should be expected to disagree.
+4. **Morris, T. P., White, I. R. & Crowther, M. J. (2019) "Using simulation studies to evaluate statistical methods", *Statistics in Medicine* 38(11):2074-2102.** How to turn "simulate and refit" from a demonstration into a real study: what to vary, what to record, and how to report a coverage fraction properly, with its Monte Carlo standard error, every time.
+
+---
+
+## Exercises
+
+Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has read this appendix and nothing past it.
+
+1. **Break the promise carefully.** Run the appendix's sparrow generator with `Random.seed!(316)` and again with `Random.seed!(3160)`. Report whether the two flocks match. Then explain in one sentence why "0" appended to a seed is just as different a seed as any other digit, even though it looks like a small change.
+
+2. **Simulate your own model.** Fit `Wing ~ Tarsus + Sex` from Class 2 (`fit2`), simulate 200 new flocks from it, and refit each. Report the mean and spread of the refitted `Sex` coefficient. Is the spread bigger or smaller than the tarsus slope's spread in this appendix, and can you say why using the standard errors Class 2 already printed?
+
+3. **Coverage at a different level.** Using the same 200 refits from this appendix, compute the coverage of the 80 percent interval instead of the 95 percent one (you will need `confint` at a different level, or to build the interval from the standard error and a different critical value by hand). Report the coverage with its Monte Carlo standard error and say whether it is closer to nominal or further from it than the 95 percent case, and whether that surprises you.
+
+4. **Bootstrap versus Wald, on purpose.** Using `fit2` from Class 2, simulate and refit 200 times, then compare the Wald and bootstrap intervals for the `Sex` coefficient, the way this appendix did for the tarsus slope. Report both intervals. Are they closer together or further apart than the tarsus-slope pair, and does that match the "far from a boundary, roughly symmetric" rule this appendix gave for when the two should agree?
+
+5. **A seed of your own choosing.** Pick a seed using any rule you like (a birthday, a phone number, the current year), simulate 200 flocks from `fit_appA`, and report the coverage of the 95 percent interval you get. Then repeat with a different seed. Do the two coverage fractions agree to within their Monte Carlo standard errors? Write one sentence about what would have to be true for them not to.

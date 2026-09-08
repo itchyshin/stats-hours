@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Class 3: the shape of the noise – Stats Hours with Itchy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-html-5276476b5bdb9cfe1f92c505466e0bf3.min.css" rel="stylesheet" append-hash="true" data-mode="light">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../tools/theme/stats-hours.css">
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">Class 3: the shape of the noise</h1>
+
+</header>
+
+
+<header class="mast">
+  <div class="mast-inner">
+    <p class="kicker">
+      <span><a href="../index.html">Stats Hours with Itchy</a></span><span class="sep">/</span>
+      <span>Class 3</span><span class="sep">/</span>
+      <span>Draft</span>
+    </p>
+    <h1>The shape of the noise</h1>
+    <p class="deck">A model that gives a chick a better than hundred per cent chance of surviving is not slightly wrong. It is the wrong shape, and the family is how you fix it.</p>
+    <div class="status">
+      <span class="tag">Draft</span>
+      <p>All ten classes of version 1 are drafted and their code runs end to end (1–10), with Appendix A, the preface and the coda. Every number and figure on this page was produced when the site was built; the book itself is not written.</p>
+    </div>
+    <p class="meta">
+      <b>Engines</b> DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Provenance</b> Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded in the cell that makes it, so the page comes out the same every time. The one R block was run once by hand, on the date shown, with R against the same files, and is labelled as such.<br>
+      <b>Caveat</b> The data are real: the 2012 Lundy Island chick and female records, read directly from data/2012/ChickSurvival.csv and data/2012/FemaleSuccess.csv (provenance in data/2012/README.md). Nothing here is simulated except the one seeded cell that says so.
+    </p>
+  </div>
+</header>
+
+<div class="wrap">
+<blockquote>
+<p><strong>What this chapter pretends.</strong> These chicks come out of nests, and chicks from one nest are not independent draws any more than the repeated measurements in Class 6 are. This chapter fits fixed effects only and pretends that a brood is not a thing. It is the same pretence Class 2 made, and <strong>Class 9</strong> is where it ends for a response like this one — Class 6 frees the related constraint on repeated measures of one bird. Everything here about links and variance functions survives that repair unchanged; the standard errors do not. Note what the repair costs: this file records how <em>big</em> each brood was and never <em>which</em> brood a chick came from, so ending the pretence here needs a dataset that carries the brood identifier, not a different formula on this one.</p>
+</blockquote>
+<hr>
+<h2 id="objectives" class="anchored">Objectives</h2>
+<p>By the end of this class you should be able to:</p>
+<ol type="1">
+<li>Say why a linear model fitted to a yes-or-no response is the wrong <strong>shape</strong>, not merely inaccurate, and show it from the fitted values alone.</li>
+<li>Fit a logistic regression with <code>Binomial()</code> and say what a coefficient means on the log-odds scale.</li>
+<li>Turn that coefficient into an odds ratio, and turn the model into a probability for a named animal.</li>
+<li>Explain what the family decrees about the <strong>variance</strong>, and why a GLM prints no σ table as a result.</li>
+<li>Fit a Poisson model to counts, read a rate ratio, and run the one check that tells you the decree is about to fail.</li>
+</ol>
+<hr>
+<h2 id="the-class" class="anchored">The class</h2>
+<p class="scene">Itchy’s office, 9:00 am, and the whiteboard has been wiped for once.
+TOTO has a spreadsheet of dead and living chicks and the expression of
+somebody who has already tried something. MOMO has brought a different
+dataset entirely, which is not how this is supposed to work but is how
+it always goes.</p>
+<div class="line"><span class="who itchy">Itchy</span><p>Class 2 gave you a line through a cloud. Every response was a length in
+millimetres and could be any number at all. Today both of you have
+brought me responses that cannot.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Mine is whether a chick survived. It is a one or a zero.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Mine is how many chicks a female fledged. It is a whole number and it is
+never negative.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And neither of those is a length in millimetres, so today we free the
+thing Class 2 held fixed without telling you: <strong>the shape of the
+noise</strong>. Load Toto’s first.</p></div>
+<div id="cell-setup" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>chicks <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/ChickSurvival.csv"</span>, DataFrame)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>n_chicks <span class="op">=</span> <span class="fu">nrow</span>(chicks)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>n_lived <span class="op">=</span> <span class="fu">sum</span>(chicks.Survival)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>p_lived <span class="op">=</span> <span class="fu">mean</span>(chicks.Survival)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d   survived: %d   overall survival: %.4f</span><span class="sc">\n</span><span class="st">"</span>, n_chicks, n_lived, p_lived)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(chicks, <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows: 1576   survived: 689   overall survival: 0.4372</code></pre>
+</div>
+<div id="setup" class="cell-output cell-output-display" data-execution_count="2">
+<div><div style="float: left;"><span>5×6 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">mean</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">std</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">min</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">max</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">nmissing</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Symbol">Symbol</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Nothing, Float64}">Union…</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Nothing, Float64}">Union…</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Any">Any</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Any">Any</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Int64">Int64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">Survival</td>
+<td style="text-align: left;">0.437183</td>
+<td style="text-align: left;">0.496196</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">Sex</td>
+<td style="text-align: left; font-style: italic;"></td>
+<td style="text-align: left; font-style: italic;"></td>
+<td style="text-align: left;">F</td>
+<td style="text-align: left;">M</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">Mass2</td>
+<td style="text-align: left;">3.62754</td>
+<td style="text-align: left;">1.18806</td>
+<td style="text-align: left;">1.2</td>
+<td style="text-align: left;">9.6</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">BroodSize</td>
+<td style="text-align: left;">3.77538</td>
+<td style="text-align: left;">1.01871</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">JulianDate</td>
+<td style="text-align: left;">79.4023</td>
+<td style="text-align: left;">30.3853</td>
+<td style="text-align: left;">22</td>
+<td style="text-align: left;">141</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>1576 chicks, of which 689 lived. Look before you model, always, and
+today look hardest at the response column.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>It is only ever zero or one.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is only ever zero or one, and there is no third value hiding anywhere
+in it. Hold that thought for exactly as long as it takes you to ignore
+it, which I am now going to make you do on purpose.</p></div>
+<h3 id="the-model-that-is-the-wrong-shape" class="anchored">The model that is the wrong shape</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Fit it the Class 2 way. Same verb, same box, same family as last week.</p></div>
+<div id="cell-fit-gaussian" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>wrong <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> chicks)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>wrong</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-gaussian" class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>Distributional regression fit (Gaussian)
+  nobs = 1576   logLik = -1018.6237   converged = true
+  Residual SD (response scale) = 0.4618   dof_residual = 1573
+
+Mean model (μ):
+  H0: coefficient = 0
+                 Coef.  Std.Error        z   Pr(&gt;|z|)
+  (Intercept)  -0.1159     0.0374  -3.0990   0.001942
+  Mass2         0.1525     0.0098  15.5655  1.249e-54
+
+Scale model (log σ):
+  H0: coefficient = 0 on log σ
+  intercept ⇔ σ = 1 (unit-dependent); slope ⇔ equal dispersion
+                 Coef.  Std.Error         z  Pr(&gt;|z|)
+  (Intercept)  -0.7726     0.0178  -43.3760         0</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>It worked. It gave me a slope and a <em>p</em>-value with a lot of zeros
+in it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It worked, it converged, and nothing in that output is complaining. This
+is the most dangerous kind of wrong: the arithmetic is impeccable and
+the model is nonsense. Ask it what it believes. Not what it estimated,
+what it <strong>believes</strong> about an actual chick.</p></div>
+<div id="gaussian-predictions" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>lo, hi <span class="op">=</span> <span class="fu">extrema</span>(<span class="fu">fitted</span>(wrong))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>n_impossible <span class="op">=</span> <span class="fu">count</span>(x <span class="op">-&gt;</span> x <span class="op">&lt;</span> <span class="fl">0</span> <span class="op">||</span> x <span class="op">&gt;</span> <span class="fl">1</span>, <span class="fu">fitted</span>(wrong))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fitted values run from %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>, lo, hi)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fitted values outside [0, 1]: %d of %d chicks</span><span class="sc">\n</span><span class="st">"</span>, n_impossible, n_chicks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fitted values run from 0.0671 to 1.3477
+fitted values outside [0, 1]: 4 of 1576 chicks</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The biggest one is bigger than one.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The biggest one is 1.348, and it is a probability. This model believes
+that a heavy chick has a 135% chance of surviving, which is a sentence
+about birds and it is not a true one. And 4 chicks are given a
+probability the world does not contain.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>But most of the fitted values are legal. It is 4 chicks out of 1576.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Then do not rest the case on those 4. The impossible predictions are the
+fault you can see; there is a worse one underneath, and it is wrong for
+every row rather than 4 of them. Class 2’s σ was one number for every
+bird. Here the response is a coin flip, so its variance is p(1 − p) —
+biggest for a chick with an even chance, shrinking towards nothing at
+either extreme. Constant σ is violated <strong>by construction</strong>,
+before a single chick is weighed. That is why this model’s standard
+errors are wrong at every mass, including the masses where its
+predictions are legal, and it is exactly the theme of today’s class
+turned on today’s wrong model.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So the <em>p</em>-value was tiny and the model was still impossible.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The <em>p</em>-value was tiny and the model was still impossible, and I
+want that on the first page of your notes. <strong>A small
+<em>p</em>-value is not evidence that the model is the right
+shape.</strong> It cannot be, because it is computed <em>inside</em> the
+model. You have to look outside it, at the predictions, at your
+organism, and ask whether the model believes anything absurd. Draw it.</p></div>
+<div id="cell-fig-two-shapes" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A little vertical jitter so a thousand overlapping zeros and ones are visible</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># as a band rather than a line. Seeded, so the picture is the same every time the site is built.</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>jitter <span class="op">=</span> <span class="fl">0.03</span> <span class="op">.*</span> <span class="fu">randn</span>(rng, n_chicks)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(chicks.Mass2), <span class="fu">maximum</span>(chicks.Mass2), length <span class="op">=</span> <span class="fl">200</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>b_wrong <span class="op">=</span> <span class="fu">coef</span>(wrong, <span class="op">:</span>mu)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"mass at day 2 (g)"</span>, ylabel <span class="op">=</span> <span class="st">"survived (0 / 1)"</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"one straight line through a yes-or-no answer"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.0</span>, <span class="fl">1.0</span>]; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>), linestyle <span class="op">=</span> <span class="op">:</span>dot)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, chicks.Mass2, chicks.Survival <span class="op">.+</span> jitter;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.35</span>))</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_wrong[<span class="fl">1</span>] <span class="op">.+</span> b_wrong[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Gaussian"</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="fig-two-shapes" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-two-shapes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-two-shapes-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-two-shapes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Chick survival against mass at day two, jittered vertically so the overlapping zeros and ones separate into a band, with dotted lines at 0 and 1 marking the only two answers the world allows. The straight line from the Gaussian fit climbs off the top of that band for the heaviest chicks and would leave through the floor for chicks lighter than these — a shape free to promise a probability the world does not contain.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The dotted lines are the only two answers the world allows. The straight
+line leaves through the ceiling on the right and would leave through the
+floor on the left if the chicks were lighter. That is not a line that
+fits badly. That is a line that is the <strong>wrong shape</strong> for
+the question, and no amount of extra data will bend it.</p></div>
+<h3 id="the-model-that-is-the-right-shape" class="anchored">The model that is the right shape</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Momo, you have been waiting to say something for ten minutes.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>In SPSS this was a menu item called logistic regression. What I never
+got told is what it actually changes.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Then that is the lesson, and it changes exactly two things. First, it
+puts the straight line somewhere the straight line is allowed to go, and
+then bends it back. The line lives on the <strong>log-odds</strong>
+scale, which runs from minus infinity to plus infinity like a proper
+linear predictor — the straight-line sum of intercept and slopes that
+every regression builds before anything bends it — and a function called
+the <strong>link</strong> squashes it back into nought-to-one before it
+meets a chick. Second, and this is the part almost nobody is taught, it
+changes what the model claims about the <strong>noise</strong>. Watch
+both. One word changes in the call.</p></div>
+<div id="cell-fit-logistic" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>logit_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Binomial</span>(); data <span class="op">=</span> chicks)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>logit_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-logistic" class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>Distributional regression fit (Binomial)
+  nobs = 1576   logLik = -968.7711   converged = true
+
+Mean model (μ):
+  H0: coefficient = 0
+                 Coef.  Std.Error         z   Pr(&gt;|z|)
+  (Intercept)  -2.8152     0.1968  -14.3035  2.081e-46
+  Mass2         0.6999     0.0514   13.6096  3.509e-42</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>Same verb, same box. The family is different and the numbers are bigger.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The family is different, the numbers are on a different scale, and
+something has <strong>gone missing</strong>. Momo, you were the one who
+complained about the second table in Class 2. Where is it?</p></div>
+<div class="line"><span class="who momo">Momo</span><p>There is no σ table.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>There is no σ table, and that absence is the whole second half of today.
+Park it for five minutes while we read the coefficient, because the
+coefficient is on a scale neither of you has met.</p></div>
+<div id="logit-scale" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>b_logit <span class="op">=</span> <span class="fu">coef</span>(logit_fit, <span class="op">:</span>mu)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>slope_logodds <span class="op">=</span> b_logit[<span class="fl">2</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>odds_ratio <span class="op">=</span> <span class="fu">exp</span>(slope_logodds)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on the log-odds scale : %.4f</span><span class="sc">\n</span><span class="st">"</span>, slope_logodds)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"exp(slope), the odds ratio  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, odds_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>slope on the log-odds scale : 0.6999
+exp(slope), the odds ratio  : 2.0135</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The number the model estimated is 0.7, and on its own it means nothing
+to a biologist, because nobody has ever had an intuition about log-odds.
+Exponentiate it and it becomes a sentence you can say to a bird person:
+<strong>one extra gram of mass multiplies a chick’s odds of surviving by
+2.01.</strong> Odds, not probability. They are not the same thing and I
+will make you say the difference out loud.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Odds are the chance it happens divided by the chance it does not.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Exactly that, and the reason the model works in odds is that odds can be
+multiplied without ever leaving the space of legal answers. Double them,
+double them again, they never reach one. Probabilities do not behave:
+add ten per cent to ninety-five per cent twice and you have left the
+world. That is why the link exists.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Then give me a probability. That is what I would put in the paper.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Then ask the model for one, at a mass you can point at.</p></div>
+<div id="predict-probability" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> (; Mass2 <span class="op">=</span> [<span class="fl">2.0</span>, <span class="fl">3.5</span>, <span class="fl">5.0</span>])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>p_hat <span class="op">=</span> <span class="fu">predict</span>(logit_fit, grid)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>p_mid <span class="op">=</span> <span class="fu">predict</span>(logit_fit, (; Mass2 <span class="op">=</span> [<span class="fl">3.5</span>]); se <span class="op">=</span> <span class="cn">true</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (m, p) <span class="kw">in</span> <span class="fu">zip</span>(grid.Mass2, p_hat)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"a %.1f g chick: probability of surviving %.4f</span><span class="sc">\n</span><span class="st">"</span>, m, p)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">at 3.5 g, standard error on that probability (delta method): %.4f</span><span class="sc">\n</span><span class="st">"</span>, p_mid.se[<span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>a 2.0 g chick: probability of surviving 0.1954
+a 3.5 g chick: probability of surviving 0.4096
+a 5.0 g chick: probability of surviving 0.6647
+
+at 3.5 g, standard error on that probability (delta method): 0.0134</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p><strong>A three-and-a-half gram chick has about a 41% chance of
+surviving.</strong> A two-gram chick, 20%. A five-gram chick, 66%. Those
+are sentences about chicks, they are in the units the question was asked
+in, and not one of them is impossible. The last line puts a standard
+error on the middle one, and notice how it was made: the model’s
+uncertainty lives on the log-odds scale, so the engine carries it
+through the squashing function onto the probability scale. That piece of
+arithmetic is called the <strong>delta method</strong>, and whenever
+this book says “delta-method standard error” that is all it means. Now
+put the two models on the same picture.</p></div>
+<div id="cell-fig-curve" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>p_curve <span class="op">=</span> <span class="fu">predict</span>(logit_fit, (; Mass2 <span class="op">=</span> <span class="fu">collect</span>(xs)))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"mass at day 2 (g)"</span>, ylabel <span class="op">=</span> <span class="st">"probability of surviving"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the same data, two shapes"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.0</span>, <span class="fl">1.0</span>]; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>), linestyle <span class="op">=</span> <span class="op">:</span>dot)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, chicks.Mass2, chicks.Survival <span class="op">.+</span> jitter;</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.35</span>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_wrong[<span class="fl">1</span>] <span class="op">.+</span> b_wrong[<span class="fl">2</span>] <span class="op">.*</span> xs;</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"Gaussian"</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, p_curve; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Binomial, logit link"</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="fig-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-curve-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The same jittered survival cloud, now with the Gaussian line dashed and the logistic curve solid over it. The curve never crosses either dotted bound and flattens at both ends, so an extra gram buys almost nothing near certain death or certain survival, and the most near the steepest point in between.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The curve flattens out at both ends.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Both ends, Toto, and keep the second half of that sentence, because it
+is the half people drop. The curve cannot go above one or below zero, so
+at either extreme it runs out of room and an extra gram buys almost
+nothing. Between the two ends there is a steepest point. Where that
+point falls is a number, not a feeling, so compute it before you say
+anything about birds.</p></div>
+<div id="where-a-gram-matters" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gain_low  <span class="op">=</span> p_hat[<span class="fl">2</span>] <span class="op">-</span> p_hat[<span class="fl">1</span>]          <span class="co"># 2.0 g -&gt; 3.5 g</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>gain_high <span class="op">=</span> p_hat[<span class="fl">3</span>] <span class="op">-</span> p_hat[<span class="fl">2</span>]          <span class="co"># 3.5 g -&gt; 5.0 g</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>inflection <span class="op">=</span> <span class="op">-</span>b_logit[<span class="fl">1</span>] <span class="op">/</span> b_logit[<span class="fl">2</span>]    <span class="co"># the mass at which the model says p = 1/2</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>mean_mass <span class="op">=</span> <span class="fu">mean</span>(chicks.Mass2)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>frac_below <span class="op">=</span> <span class="fu">mean</span>(chicks.Mass2 <span class="op">.&lt;</span> inflection)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"2.0 g -&gt; 3.5 g buys         : %.4f of probability</span><span class="sc">\n</span><span class="st">"</span>, gain_low)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"3.5 g -&gt; 5.0 g buys         : %.4f of probability</span><span class="sc">\n</span><span class="st">"</span>, gain_high)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"steepest point (p = 1/2) at : %.4f g</span><span class="sc">\n</span><span class="st">"</span>, inflection)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean mass in these data     : %.4f g</span><span class="sc">\n</span><span class="st">"</span>, mean_mass)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion lighter than it  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, frac_below)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2.0 g -&gt; 3.5 g buys         : 0.2142 of probability
+3.5 g -&gt; 5.0 g buys         : 0.2551 of probability
+steepest point (p = 1/2) at : 4.0224 g
+mean mass in these data     : 3.6275 g
+proportion lighter than it  : 0.6459</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The second step buys <em>more</em> than the first.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It does. Two grams to three and a half buys 0.214 of survival
+probability; three and a half to five buys 0.255. Across the range where
+these chicks actually live, the curve is <strong>accelerating</strong>.
+Had I told you a gram matters most to the smallest chick, you would now
+be holding a sentence your own output contradicts.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Why that way round?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Because a logistic curve is symmetric about a half, and the mass at
+which it reaches a half is minus the intercept over the slope: 4.02 g.
+The average chick in this file weighs 3.63 g, and 65% of them are
+lighter than that steepest point. The majority of this sample, the
+average chick included, is still climbing <em>towards</em> the steepest
+point rather than coming down the far side. So the honest sentence is
+the symmetric one: <strong>a gram matters most to a middling chick —
+middling meaning near 4.02 g, where the model gives it an even chance —
+and least to a chick already nearly certain to live, or nearly certain
+to die.</strong></p></div>
+<div class="line"><span class="who momo">Momo</span><p>I have read “diminishing returns” in a dozen papers about exactly this.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And it is true wherever the data sit above the inflection — the steepest
+point, where p = 1/2 — and false wherever they sit below it, which is
+why it is something you compute rather than something you say. What
+holds on both sides is that a gram is <strong>not</strong> worth the
+same everywhere, and the straight line insists that it is. When somebody
+asks you why not just use a linear model, that is the answer. Not “the
+residuals are non-normal”. That.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Can I put brood size in as well?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>You can, and the sentence you get is the Class 2 sentence with one extra
+clause.</p></div>
+<div id="cell-fit-two-predictors" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>logit2 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2 <span class="op">+</span> BroodSize)), <span class="fu">Binomial</span>(); data <span class="op">=</span> chicks)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>logit2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-two-predictors" class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>Distributional regression fit (Binomial)
+  nobs = 1576   logLik = -964.9841   converged = true
+
+Mean model (μ):
+  H0: coefficient = 0
+                 Coef.  Std.Error         z   Pr(&gt;|z|)
+  (Intercept)  -3.4561     0.3099  -11.1508  7.099e-29
+  Mass2         0.7204     0.0523   13.7828  3.236e-43
+  BroodSize     0.1495     0.0546    2.7402   0.006141</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Each coefficient is now “what one more of this buys, <strong>holding the
+other fixed</strong>”, exactly as in Class 2, and the exponentials are
+odds ratios rather than millimetres. A gram of mass multiplies the odds
+by 2.06; a chick more in the brood multiplies them by 1.16. And AIC
+<strong>fell by</strong> 5.57 when we added it, so unlike the σ
+experiment at the end of Class 2, this one paid for itself.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Bigger broods are <em>better</em> for a chick? I would have guessed the
+opposite.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>So would I, and this is where you stop being a statistician and go back
+to being a biologist. A brood is big because a parent could afford a big
+one. The model has not told you that crowding is good; it has told you
+that, in these data, chicks in big broods survive better, and the reason
+for that is a question about territories and parents that no coefficient
+will answer. This is also exactly the point where Class 9 will tell you
+that the chicks in one brood are not independent, so that standard error
+is too small. Today we pretend — and on this file we would have to. It
+records <code>BroodSize</code>, how many chicks were in the nest, and it
+never records <em>which</em> nest. You cannot put a random effect on a
+grouping nobody wrote down, so the repair is a dataset that carries a
+brood identifier, not a cleverer formula on this one. Class 9 stops
+pretending, on a file that can.</p></div>
+<h3 id="the-shape-of-the-noise" class="anchored">The shape of the noise</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Now the missing table, which is the actual title of this class. Momo, in
+Class 2 what did σ do?</p></div>
+<div class="line"><span class="who momo">Momo</span><p>It said how far the birds scattered around the line, and it was the same
+number for every bird.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And it was a <strong>free parameter</strong>: the model estimated it
+from the data, and in Class 4 you will put predictors on it. Today it is
+gone, and it is gone because it is no longer free. Toto, a chick with a
+survival probability of one half. How much does it vary?</p></div>
+<div class="line"><span class="who toto">Toto</span><p>…it either lives or it dies.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And across many such chicks, the variance of that coin flip is p times
+one minus p, which for a half is a quarter. You did not estimate that.
+You did not get a choice about it. <strong>The moment you said
+<code>Binomial()</code>, you decreed that the variance is p(1 −
+p)</strong> — fixed by the mean, with no freedom left in it. Same for
+Momo’s counts in twenty minutes: say <code>Poisson()</code> and you have
+decreed that the variance equals the mean. Show them.</p></div>
+<div id="variance-decree" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>p_fit <span class="op">=</span> <span class="fu">fitted</span>(logit_fit)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>decreed <span class="op">=</span> p_fit <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_fit)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>p_lo, p_hi <span class="op">=</span> <span class="fu">extrema</span>(p_fit)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>v_lo, v_hi <span class="op">=</span> <span class="fu">extrema</span>(decreed)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fitted probability     : %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>, p_lo, p_hi)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"decreed variance p(1-p): %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_lo, v_hi)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">blocks the fit carries: "</span>, <span class="fu">first</span>.(logit_fit.blocks))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fitted probability     : 0.1218 to 0.9802
+decreed variance p(1-p): 0.0194 to 0.2500
+
+blocks the fit carries: [:mu]</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>One block, <code>mu</code>, and nothing else. There is no
+<code>sigma</code> block to print because there is no σ to estimate.
+That is not the engine being unhelpful; it is the engine refusing to
+invent a parameter the family has already spent.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>And if the decree is wrong?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>For Toto’s chicks it cannot be, and that is worth saying slowly, because
+it is the one place where the word “assumption” misleads. A response
+that is only ever zero or one has variance p(1 − p) as a matter of
+<strong>arithmetic</strong>: a coin that lands heads with probability p
+has that variance and no other is available to it. There is no
+overdispersed Bernoulli — the name for exactly that single coin flip —
+to go looking for. What <em>can</em> be wrong with binary data is the
+other thing — that the rows are not independent draws, because chicks
+from one nest share a pair of parents and a territory — and that is
+clustering, which is <strong>Class 6</strong>, not Class 4.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>And for my counts?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>For your counts the variance really is a separate claim, and data can
+contradict it. Then you are in trouble, quietly, in the standard errors,
+and you will not see it in the coefficients. That is Class 4, and I am
+deliberately not teaching it today. What I <em>will</em> do is give you
+the check, at the end of the hour, on Momo’s counts, where it fails in
+front of you. Before that, one glance at R, because R says the decree
+out loud and we do not.</p></div>
+<blockquote>
+<p class="scene">↔︎ TRANSLATE: a sentence in R’s output that ours does not print</p>
+<p><code>glm</code> in R reproduces this fit to every digit it prints, which is the boring and reassuring part. The interesting part is a line R prints that we do not: <strong>“(Dispersion parameter for binomial family taken to be 1)”</strong>. That is the decree, stated out loud, in the output, every time. It is the assumption this whole section is about, and R puts it on the page where a reader can see it and we leave it implicit in the absent σ table.</p>
+<p>Two things follow. First, when you read somebody else’s R output, that line is not boilerplate; it is the model’s claim about the noise. For a 0/1 response it is a claim arithmetic already guarantees; for counts, and for proportions out of a denominator, it is a claim the data can contradict, and Class 4 is entirely about those times. Second, “taken to be 1” is phrased as an instruction rather than a finding for a reason: nothing was estimated, and nothing was checked.</p>
+<p>The R block below was <strong>run once, by hand</strong>, with R on 2026-09-07 against the same archived file this chapter reads. It is not run again when the site is built, which is why it carries a date.</p>
+</blockquote>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; not re-run when the site is built. Produced with:</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/ChickSurvival.csv</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m &lt;- glm(Survival ~ Mass2 + BroodSize, data = d, family = binomial)</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>Coefficients<span class="sc">:</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error z value <span class="fu">Pr</span>(<span class="sc">&gt;</span><span class="er">|</span>z<span class="sc">|</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>(Intercept) <span class="sc">-</span><span class="fl">3.45607</span>    <span class="fl">0.30994</span>  <span class="sc">-</span><span class="fl">11.15</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>Mass2        <span class="fl">0.72040</span>    <span class="fl">0.05227</span>   <span class="fl">13.78</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>BroodSize    <span class="fl">0.14953</span>    <span class="fl">0.05457</span>    <span class="fl">2.74</span>  <span class="fl">0.00614</span> <span class="sc">**</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>(Dispersion parameter <span class="cf">for</span> binomial family taken to be <span class="dv">1</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    Null deviance<span class="sc">:</span> <span class="fl">2159.9</span>  on <span class="dv">1575</span>  degrees of freedom</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>Residual deviance<span class="sc">:</span> <span class="fl">1930.0</span>  on <span class="dv">1573</span>  degrees of freedom</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>AIC<span class="sc">:</span> <span class="dv">1936</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<h3 id="is-it-any-good" class="anchored">Is it any good?</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Before anybody writes this down: residuals. And a plain residual is
+useless here, because “observed minus fitted” for a chick that lived is
+one minus a probability, and those cannot be normally distributed no
+matter how right the model is.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So what do I plot?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><strong>Randomised quantile residuals</strong> (Dunn &amp; Smyth 1996).
+The idea is beautiful and takes one sentence: ask the fitted model what
+probability it puts on a value at or below the one you saw; because a
+count lands on a whole number, that is an interval rather than a single
+number, so you draw uniformly inside it — that is the
+<em>randomised</em> part — and push the result through the inverse
+normal. If the model is right, the answers are standard normal draws
+whatever the family was, so one diagnostic plot works for every chapter
+in this book. They involve a random draw, so they get a seed.</p></div>
+<div id="cell-fig-diagnostic" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>qres <span class="op">=</span> <span class="fu">residuals</span>(logit2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">3</span>))</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># An SD estimated from n standard normal draws has Monte Carlo SE 1/sqrt(2n).</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Judge "near 1" against that, not against your eye.</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>mcse_logit <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres))</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>z_logit <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_logit</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residuals: mean %.4f, SD %.4f  (both should be near 0 and 1)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(qres), <span class="fu">std</span>(qres))</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Monte Carlo SE of that SD : %.4f, so the SD sits %.2f SE from 1</span><span class="sc">\n</span><span class="st">"</span>, mcse_logit, z_logit)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres; title <span class="op">=</span> <span class="st">"logistic fit, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>quantile residuals: mean -0.0188, SD 1.0201  (both should be near 0 and 1)
+Monte Carlo SE of that SD : 0.0178, so the SD sits 1.13 SE from 1</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Worm plot of the two-predictor logistic fit’s randomised quantile residuals: the residuals lined up from smallest to largest, each compared with where a perfect standard-normal draw would sit, so a good model gives a flat scatter near zero and a bad one wriggles. Here the scatter sits close to the zero line and inside the grey band — the shape a diagnostic takes when there is nothing left to find, and the baseline the Poisson plot is about to look different from.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>That looks like nothing much is happening.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>“Nothing much is happening” is what a passing diagnostic looks like, and
+you should be suspicious of how often the plots in papers look more
+interesting than this. The spread is 1.02. A spread computed from a
+random draw has its own wobble, and that wobble has a name — the
+<strong>Monte Carlo standard error</strong> — so judge the spread
+against it rather than against your eye: this one sits 1.1 of those from
+one, which is nothing. But award the model very few marks for it. On a
+0/1 response a spread near one is close to automatic, because p(1 − p)
+is arithmetic rather than a promise the data could break. Treat this
+plot as the <strong>baseline</strong>: it is what the diagnostic looks
+like when there is nothing in it to find. Remember the picture in twenty
+minutes, when Momo’s counts give it something.</p></div>
+<h3 id="momos-counts" class="anchored">Momo’s counts</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Right. Momo has been patient. Different file, different question, same
+two changes.</p></div>
+<div id="cell-read-females" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d</span><span class="sc">\n</span><span class="st">"</span>, n_fem)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(females, <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rows: 163</code></pre>
+</div>
+<div id="read-females" class="cell-output cell-output-display" data-execution_count="22">
+<div><div style="float: left;"><span>3×6 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
+<thead>
+<tr class="columnLabelRow header">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">mean</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">std</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">min</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">max</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">nmissing</th>
+</tr>
+<tr class="columnLabelRow even">
+<th class="stubheadLabel" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Symbol">Symbol</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Int64">Int64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Int64">Int64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Int64">Int64</th>
+</tr>
+</thead>
+<tbody>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">Fledglings</td>
+<td style="text-align: right;">3.20859</td>
+<td style="text-align: right;">2.33189</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow even">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">EggNo</td>
+<td style="text-align: right;">9.77914</td>
+<td style="text-align: right;">4.32624</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="dataRow odd">
+<td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">Age</td>
+<td style="text-align: right;">1.88344</td>
+<td style="text-align: right;">0.870594</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>163 females, and how many chicks each one got out of the nest.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And the response is a <strong>count</strong>. Never negative, never a
+half, and there is no upper limit written anywhere. That is a different
+shape again, and it gets a different family and a different link.</p></div>
+<div id="cell-fit-poisson" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pois_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>pois_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-poisson" class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>Distributional regression fit (Poisson)
+  nobs = 163   logLik = -367.9932   converged = true
+
+Mean model (μ):
+  H0: coefficient = 0
+                Coef.  Std.Error       z   Pr(&gt;|z|)
+  (Intercept)  0.7067     0.1081  6.5379  6.241e-11
+  Age          0.2325     0.0478  4.8667  1.135e-06</code></pre>
+</div>
+</div>
+<div id="poisson-scale" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>b_pois <span class="op">=</span> <span class="fu">coef</span>(pois_fit, <span class="op">:</span>mu)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>rate_ratio <span class="op">=</span> <span class="fu">exp</span>(b_pois[<span class="fl">2</span>])</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on the log scale : %.4f</span><span class="sc">\n</span><span class="st">"</span>, b_pois[<span class="fl">2</span>])</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"exp(slope), rate ratio : %.4f</span><span class="sc">\n</span><span class="st">"</span>, rate_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>slope on the log scale : 0.2325
+exp(slope), rate ratio : 1.2618</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The link here is the logarithm rather than the logit, for the same
+reason: a count’s mean must stay positive, and a log keeps it there
+while the linear predictor roams. Exponentiate and you get a
+<strong>rate ratio</strong>: <strong>each extra year of age multiplies a
+female’s expected number of fledglings by 1.262.</strong> Not “adds”,
+multiplies. Every log link in this book makes coefficients
+multiplicative, and reading one additively is the commonest mistake in
+the literature.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>And no σ table again.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>No σ table again, and now the decree is even stronger than the binomial
+one. <strong>Poisson says the variance equals the mean.</strong> One
+number for both. That is an extremely strong claim about a real animal
+and it is testable in one line, so test it.</p></div>
+<div id="mean-vs-variance" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f   (Poisson decrees 1)</span><span class="sc">\n</span><span class="st">"</span>, v_counts <span class="op">/</span> m_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mean of the counts     : 3.2086
+variance of the counts : 5.4377
+variance / mean        : 1.6947   (Poisson decrees 1)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who momo">Momo</span><p>It is not one.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is not one, it is 1.69, and the counts are scattering considerably
+more than the family says they may. That is called
+<strong>overdispersion</strong>, it is the single most common thing
+wrong with a Poisson model in ecology, and it is Class 4’s entire
+subject. I am not going to fix it today. I am going to make sure you can
+<em>see</em> it, from two directions, because seeing it is the skill.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>Two directions?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The crude one you just ran, on the raw counts, which mixes up real
+variation with variation the predictors explain. And the honest one, on
+the residuals of the actual fit, where anything the model explained has
+already been taken out.</p></div>
+<div id="cell-fig-diagnostic-poisson" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>qres_pois <span class="op">=</span> <span class="fu">residuals</span>(pois_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">4</span>))</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>mcse_pois <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres_pois))</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>z_pois <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres_pois) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_pois</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"logistic fit, quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres), z_logit)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Poisson fit,  quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_pois), z_pois)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_pois; title <span class="op">=</span> <span class="st">"Poisson fit, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>logistic fit, quantile residual SD : 1.0201  (1.13 Monte Carlo standard errors from 1)
+Poisson fit,  quantile residual SD : 1.2981  (5.38 Monte Carlo standard errors from 1)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<div id="fig-diagnostic-poisson" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-diagnostic-poisson-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-diagnostic-poisson-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-poisson-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Worm plot of the Poisson fit’s randomised quantile residuals. The tilt is the overdispersion the variance-to-mean ratio already showed: the residuals are spread wider than a standard normal, so the line of sorted residuals climbs from left to right instead of lying flat inside the grey band.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Compare the two lines, and compare each against its own error bar,
+because a spread is an estimate like anything else. There is a formula
+for the wobble in an SD computed from random draws — its Monte Carlo
+standard error — and it is one over the square root of twice the sample
+size: 0.0178 for the chicks, 0.0554 for the females. The logistic SD is
+1.1 of those from one, which is noise. The Poisson SD is 5.4 of them,
+which is not. And the Poisson residuals are wide <em>after</em> age has
+been accounted for, so it is not something age can explain. Two
+different checks, one verdict, and the verdict is that the family is
+claiming a tidiness these females do not have.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>So the model is wrong and you are telling me to leave it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>I am telling you that you now know something specific and testable about
+how it is wrong, which is a great deal better than most published
+models, and that the repair has a name, a chapter and a one-line change
+in the same <code>bf</code> box. Draw the fit before you go.</p></div>
+<div id="cell-fig-fledglings" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>age_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(females.Age), <span class="fu">maximum</span>(females.Age), length <span class="op">=</span> <span class="fl">100</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>rate_curve <span class="op">=</span> <span class="fu">predict</span>(pois_fit, (; Age <span class="op">=</span> <span class="fu">collect</span>(age_grid)))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>rng2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">99</span>)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>age_jit <span class="op">=</span> females.Age <span class="op">.+</span> <span class="fl">0.06</span> <span class="op">.*</span> <span class="fu">randn</span>(rng2, n_fem)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"age (years)"</span>, ylabel <span class="op">=</span> <span class="st">"fledglings"</span>,</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"counts, and the rate the model expects"</span>)</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, age_jit, females.Fledglings; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>))</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, age_grid, rate_curve; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Poisson, log link"</span>)</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<div id="fig-fledglings" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-fledglings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-fledglings-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fledglings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Fledgling counts against female age, jittered horizontally, with the Poisson fit’s rate curve laid over them bending gently upward on the log scale. The vertical scatter at each age is wider than that curve’s own decree allows — the overdispersion the chapter has already shown by two other routes.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>The curve bends upward because a log link makes it, and gently, because
+the coefficient is small. And look at the vertical scatter at each age:
+that is what 1.69 looks like. The line is defensible. The claim about
+the spread around it is not, and you can say precisely which is which.
+That is the whole difference between using a model and believing one.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>So today’s summary is: pick the family.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Today’s summary is: the family picks two things for you, and only one of
+them is the shape of the curve. The other is the shape of the noise, you
+did not choose it, and Class 4 is what happens when it is wrong.</p></div>
+<hr>
+<h2 id="summary" class="anchored">Summary</h2>
+<h3 id="stats-stuff" class="anchored">Stats stuff</h3>
+<ul>
+<li><strong>A GLM changes two things, not one.</strong> The <strong>link</strong> puts the linear predictor somewhere it is allowed to roam and squashes it back into the legal range; the <strong>variance function</strong> says how much the response scatters around that mean. Both are decided by the family, together, the moment you name it.</li>
+<li><strong>Wrong shape is not the same as bad fit.</strong> A Gaussian model on a 0/1 response converges, reports tiny <em>p</em>-values, and predicts probabilities outside zero and one. No amount of data fixes that, because nothing about a straight line stops at one. Look at the fitted values before you look at the coefficients — and note that the impossible predictions are only the visible fault. Constant σ is violated by construction on a 0/1 response, whose variance p(1 − p) moves with the mean, so the Gaussian model’s standard errors are wrong at every value of the predictor, including the ones where its predictions are legal.</li>
+<li><strong>Log-odds, odds ratios, probabilities.</strong> The coefficient is on the log-odds scale, where it is additive and uninterpretable. <code>exp</code> of it is an <strong>odds ratio</strong>, which is multiplicative and speakable. <code>predict</code> gives a <strong>probability</strong>, which is what a biologist actually wanted. Report at least one of the last two, never only the first.</li>
+<li><strong>Odds are not probabilities.</strong> Odds are p/(1 − p), and they can be multiplied for ever without leaving the legal range, which is the reason the model works in them.</li>
+<li><strong>The curve flattens at both ends and is steepest in the middle.</strong> A logistic curve is symmetric about p = ½, which it reaches at −b₀/b₁ on the predictor’s own scale. An extra unit is therefore worth <strong>most</strong> to an individual sitting near that point and least to one already nearly certain either way. Whether your own data show diminishing or <em>increasing</em> returns depends on which side of that point they lie: most of these chicks sit below it, the mean among them, so over the bulk of the data an extra gram buys more as a chick gets heavier, not less. Compute the inflection; do not assume the shape of the story. What holds on both sides is that a unit is not worth the same everywhere, and the straight line insists that it is.</li>
+<li><strong>The variance is decreed, which is why there is no σ table.</strong> Binomial says the variance is p(1 − p); Poisson says it equals the mean. Neither is estimated, so neither is printed. R states this out loud as “dispersion parameter taken to be 1”; our engine states it by having nothing to print. Read the two decrees differently, though: for a 0/1 response, p(1 − p) is an <strong>identity</strong> and there is no overdispersed Bernoulli to find, so what can go wrong in binary data is the independence of the rows (Class 6), not the variance function. For counts, the Poisson decree is a real claim that data can contradict, and that is Class 4.</li>
+<li><strong>Rate ratios are multiplicative.</strong> With a log link, a coefficient exponentiates into a factor, not an increment. Reading one additively is a common and serious error.</li>
+<li><strong>Check the decree in two places, and put an error bar on the check.</strong> The crude check is the variance-to-mean ratio of the raw counts. The honest check is the spread of randomised quantile residuals from the fitted model, which is standard normal if the family is right whatever the family is (Dunn &amp; Smyth 1996). Judge that spread against its own Monte Carlo standard error, 1/√(2n), rather than against your eye: ours came out about one SE from one for the survivals and several SEs above it for the counts. Overdispersion, and Class 4 — and only the counts can have it.</li>
+<li><strong>This chapter pretends rows are independent.</strong> Chicks share broods; Class 6 frees the correlation between rows on repeated measures of one bird, and Class 9 is where this pretence ends, on a file that records the brood. The link and the variance function survive the repair; the standard errors printed here do not. Note what ending the pretence takes: this file records brood <em>size</em> but carries no brood <em>identifier</em>, so the repair needs a dataset that records the grouping, not a different formula on this one.</li>
+</ul>
+<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<ul>
+<li><code>drm(bf(@formula(y ~ x)), Binomial(); data = df)</code>: logistic regression. Same verb, same box, same positional family and keyword data as Class 2. The response is a plain 0/1 column.</li>
+<li><code>drm(bf(@formula(y ~ x)), Poisson(); data = df)</code>: counts with a log link. Everything else is unchanged.</li>
+<li><strong>No <code>sigma</code> block.</strong> <code>fit.blocks</code> carries only <code>mu</code> for these families. There is no σ to print because the family has already spent it. Do not go looking for <code>sigma(fit)</code> here.</li>
+<li><code>coef(fit, :mu)</code>: coefficients on the <strong>link</strong> scale, which is log-odds for <code>Binomial()</code> and log for <code>Poisson()</code>. <code>exp</code> them for an odds ratio or a rate ratio.</li>
+<li><code>predict(fit, newdata)</code>: response-scale predictions, so probabilities for a logistic fit and expected counts for a Poisson one. <code>newdata</code> is a <strong>NamedTuple or column table</strong>, not a <code>DataFrame</code>: write <code>(; Mass2 = [3.5])</code>. Add <code>se = true</code> for a standard error on that prediction (by the delta method: the uncertainty carried from the link scale onto the response scale) and the call returns <code>(; prediction, se)</code>; add <code>type = :link</code> to stay on the link scale.</li>
+<li><code>fitted(fit)</code>: in-sample response-scale predictions. On a Gaussian fit to 0/1 data, <code>extrema(fitted(fit))</code> is the fastest proof that the model is the wrong shape.</li>
+<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: randomised quantile residuals, standard normal under a correct model for every family DRM.jl supports. <strong>Pass the <code>rng</code>.</strong> It defaults to the global generator, which would give you a different picture every time you ran it.</li>
+<li><code>aic(fit)</code>: unchanged from Class 2, and still what decides whether a new predictor earned its place.</li>
+<li><code>fig_diagnostic(resid)</code> from <code>tools/figures.jl</code>: the worm plot, which is the right picture for quantile residuals because they are standard normal when the model is right — so a flat scatter near zero means there is nothing left to find, and a tilt or a curve names what is.</li>
+<li><strong>Seeding.</strong> Every random draw in this chapter — the jitter in two figures, both sets of quantile residuals, and the simulation below — is made from an explicit <code>MersenneTwister</code> handed to the function as <code>rng</code>, never from the global generator. That is what makes the page reproducible rather than merely repeatable.</li>
+<li><strong>The simulation thread.</strong> From Class 2 onward, the last thing you do with a fit is ask it to invent data and see what a refit makes of them. Here it is for a logistic model, where the invention is a coin flip per chick. <code>simulate(fit; nsim = k, rng = MersenneTwister(seed))</code> takes the same <code>rng</code> keyword <code>residuals</code> does, and for the same reason.</li>
+</ul>
+<div id="simulate-refit" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask the fitted model for new chicks: one Bernoulli draw per row, at that</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># row's fitted probability. Then refit and see how far the slope wanders when</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># nothing at all has changed except the coin flips.</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(logit_fit; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_slope</span>(y)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Survival <span class="op">=</span> y, Mass2 <span class="op">=</span> chicks.Mass2)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Binomial</span>(); data <span class="op">=</span> d), <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [<span class="fu">refit_slope</span>(ysim[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the slope we fitted            : %.4f</span><span class="sc">\n</span><span class="st">"</span>, slope_logodds)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its reported standard error    : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">stderror</span>(logit_fit)[<span class="fl">2</span>])</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean slope over %d refits     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(slopes), <span class="fu">mean</span>(slopes))</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of slopes over those refits : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(slopes))</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated responses seen       : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sort</span>(<span class="fu">unique</span>(ysim)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>the slope we fitted            : 0.6999
+its reported standard error    : 0.0514
+mean slope over 200 refits     : 0.7032
+SD of slopes over those refits : 0.0487
+simulated responses seen       : [0.0, 1.0]</code></pre>
+</div>
+</div>
+<p>The simulated responses are only ever zero and one, because <code>simulate</code> draws from the family the fit was given rather than adding normal noise. And the spread of the refitted slopes lands close to the standard error the single fit reported, which is what a standard error <strong>is</strong>: a prediction about how much your estimate would move if the world ran again. When those two numbers disagree badly, believe the simulation. That comparison is most of what Class 5 does for a living.</p>
+<hr>
+<h2 id="further-reading" class="anchored">Further reading</h2>
+<p class="aside">Graded by depth. Details checked on 2026-09-07 against OpenAlex, an open
+catalogue of research papers.</p>
+<ol type="1">
+<li><strong>Warton, D. I. &amp; Hui, F. K. C. (2011) “The arcsine is asinine: the analysis of proportions in ecology”, <em>Ecology</em> 92:3–10.</strong> doi:10.1890/10-0340.1 (published online in 2010). Start here. It is the ecology-specific case for doing exactly what this class did, aimed squarely at readers who were taught to transform a proportion and fit a linear model to it instead. Short, pointed, and it will change what you do on Monday.</li>
+<li><strong>Bolker, B. M. (2008) <em>Ecological Models and Data in R</em>, Princeton University Press.</strong> doi:10.1515/9781400840908. The best book-length route from “I know what a linear model is” to “I know what a likelihood is and why the family matters”. Chapters 4 and 6 are the ones that pay for the rest of this course.</li>
+<li><strong>Zuur, A. F., Ieno, E. N., Walker, N. J., Saveliev, A. A. &amp; Smith, G. M. (2009) <em>Mixed Effects Models and Extensions in Ecology with R</em>, Springer.</strong> doi:10.1007/978-0-387-87458-6. The chapters on Poisson regression and on overdispersion are the natural bridge from today into Class 4, and they are written for biologists with real, awkward data.</li>
+<li><strong>Dunn, P. K. &amp; Smyth, G. K. (1996) “Randomized quantile residuals”, <em>Journal of Computational and Graphical Statistics</em> 5:236–244.</strong> doi:10.1080/10618600.1996.10474708. The source of the diagnostic this class used twice. Worth reading once so that “it is normal if the model is right, whatever the family” stops being a slogan you repeat and becomes a thing you can derive.</li>
+<li><strong>McCullagh, P. &amp; Nelder, J. A. (1989) <em>Generalized Linear Models</em>, 2nd edition, Chapman &amp; Hall.</strong> The book that made all of this one framework rather than a list of tricks, and the place the words “link function” and “variance function” come from. Hard, and the right thing to own. Read chapter 2 when you want to know why the family determines both at once.</li>
+</ol>
+<hr>
+<h2 id="exercises" class="anchored">Exercises</h2>
+<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 2 and not Class 3.</p>
+<ol type="1">
+<li><p><strong>Break it on purpose, then look outside.</strong> Fit a Gaussian model to any 0/1 response of your own. Report <code>extrema(fitted(fit))</code> and the number of fitted values outside zero and one. Then write one sentence saying what the model believes that the world does not allow, in the units of your organism.</p></li>
+<li><p><strong>Log-odds to biology.</strong> Refit it with <code>Binomial()</code>. Report the slope, the odds ratio, and a predicted probability at a value of the predictor you can point at in the field. Then write the single sentence you would put in a paper, and underline the part a reader could check.</p></li>
+<li><p><strong>Where the curve is steep.</strong> Using your logistic fit, predict at three values of the predictor: near the minimum, near the mean, and near the maximum. Compute the change in probability between the first two and between the last two. Then compute <code>-b[1] / b[2]</code> from <code>coef(fit, :mu)</code>: the value of the predictor at which your model says the probability is exactly one half. Say where each of your three values sits relative to it, and explain which of the two changes is the larger and why — without using the word “nonlinear”. The answer is a statement about distance from that one point.</p></li>
+<li><p><strong>Eddie’s dunnocks.</strong> Take any yes-or-no outcome in Eddie’s data and fit it against two predictors. Report both odds ratios and both AICs, with and without the second predictor. Then answer: is the smaller AIC enough to make you believe the second predictor matters biologically? Two sentences.</p></li>
+<li><p><strong>Momo’s tadpoles.</strong> Count something per pond and fit a Poisson model against a predictor of your choice. Report the rate ratio, and write its meaning as a multiplication rather than an addition.</p></li>
+<li><p><strong>Run the check, both ways.</strong> For question 5, report the variance-to-mean ratio of the raw counts, and the standard deviation of <code>residuals(fit; type = :quantile, rng = MersenneTwister(1))</code> together with its Monte Carlo standard error, <code>1 / sqrt(2 * nobs)</code>. Say what each check is measuring that the other is not, how many of those standard errors your SD sits from one, and which you would trust if they disagreed.</p></li>
+<li><p><strong>The decree, out loud.</strong> Fit the same Poisson model in R with <code>glm</code> and find the dispersion line in the summary. Quote it. Then answer in one sentence: given your answer to question 6, is that line a finding or an instruction?</p></li>
+<li><p><strong>Simulate and refit.</strong> Adapt the chapter’s last cell to your own logistic fit, with your own seed. Report the reported standard error and the standard deviation of the refitted slopes. If they differ by more than about a tenth of the estimate, say what you would check first.</p></li>
+<li><p><strong>The pretence.</strong> Name the grouping in your own data that this chapter would be pretending away: the nest, the pond, the individual, the site. Then find the <em>column</em> that identifies it, and say whether your file actually has one — the chapter’s own <code>ChickSurvival.csv</code> carries <code>BroodSize</code> but no brood identifier, so on that file the pretence cannot be ended at all until somebody supplies a version that records which nest each chick came from. Finish with one sentence saying which number on your output you expect Class 9 to change, and in which direction.</p></li>
+</ol>
+
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
+
+</div>
+<nav class="chapter-nav" aria-label="Chapter">
+  <a class="chapter-nav-link prev" href="wk2-linear-models.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 2 · One line through a cloud of sparrows</span></a><a class="chapter-nav-link next" href="wk4-overdispersion.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 4 · When the family lies about the spread</span></a>
+</nav>
+<footer>
+  Stats Hours with Itchy · Class 3 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07<br>
+  Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
+</footer>
+</div>
+
+<script>
+// Highlight REPL prompts and error lines without shipping a syntax highlighter.
+document.querySelectorAll('pre code').forEach(function (block) {
+  if (block.querySelector('span')) return; // hand-marked blocks stay as authored
+  var html = block.innerHTML
+    .replace(/^(julia&gt; )/gm, '<span class="p">$1</span>')
+    .replace(/^(ERROR: .*)$/gm, '<span class="err">$1</span>');
+  block.innerHTML = html;
+});
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+  tabsets.forEach(function(tabset) {
+    const tabby = new Tabby('#' + tabset.id);
+  });
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+
+
+
+
+</body></html>
