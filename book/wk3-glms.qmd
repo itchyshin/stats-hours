@@ -129,7 +129,8 @@ hlines!(ax, [0.0, 1.0]; color = (:grey, 0.5), linestyle = :dot)
 scatter!(ax, chicks.Mass2, chicks.Survival .+ jitter;
     markersize = 4, color = (:grey, 0.35))
 lines!(ax, xs, b_wrong[1] .+ b_wrong[2] .* xs; linewidth = 2.5, label = "Gaussian")
-axislegend(ax; position = :lt)
+# legend outside the axis so it can never sit over a data point, matching tools/figures.jl
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
@@ -205,7 +206,10 @@ scatter!(ax, chicks.Mass2, chicks.Survival .+ jitter;
 lines!(ax, xs, b_wrong[1] .+ b_wrong[2] .* xs;
     linewidth = 2, linestyle = :dash, label = "Gaussian")
 lines!(ax, xs, p_curve; linewidth = 2.5, label = "Binomial, logit link")
-axislegend(ax; position = :lt)
+# legend outside the axis so it can never sit over a data point, matching tools/figures.jl
+# (this legend used to sit inside the axis at top-left, over four real markers
+# from the jittered survival cloud — moved out after that was caught in review)
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
@@ -290,7 +294,29 @@ v_lo, v_hi = extrema(decreed)
 println("\nblocks the fit carries: ", first.(logit_fit.blocks))
 ```
 
-**Itchy:** One block, `mu`, and nothing else. There is no `sigma` block to print because there is no σ to estimate. That is not the engine being unhelpful; it is the engine refusing to invent a parameter the family has already spent.
+**Momo:** Numbers. You said "show", and I got two ranges.
+
+**Itchy:** Fair complaint. Here is the shape those numbers came from, not a description of it.
+
+```{julia}
+#| label: fig-variance-decree
+#| fig-cap: "The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter's own logistic fit actually produced: nowhere near either end, so no chick in this file got the free ride of near-zero noise."
+p_grid = range(0, 1, length = 200)
+var_grid = p_grid .* (1 .- p_grid)
+
+fig = Figure(size = (480, 360))
+ax = Axis(fig[1, 1]; xlabel = "p", ylabel = "Var(y) = p(1 - p)",
+    title = "the noise Binomial() decrees")
+# fitted range shaded first, curve drawn on top so it is never hidden by it
+vspan!(ax, p_lo, p_hi; color = (:grey, 0.15), label = "this fit's p_lo–p_hi")
+lines!(ax, p_grid, var_grid; linewidth = 2.5, label = "Var = p(1 - p)")
+scatter!(ax, [0.5], [0.25]; markersize = 9, color = Cycled(2), label = "peak: p = 1/2, Var = 1/4")
+# legend outside the axis, matching tools/figures.jl
+Legend(fig[1, 2], ax; framevisible = false)
+fig
+```
+
+**Itchy:** That curve is not fitted to anything. It is what `Binomial()` commits you to the moment you say the word, for every p from zero to one, on every dataset that will ever exist. The shaded strip is where this chapter's own chicks actually live — `{julia} round(p_lo, digits = 3)` to `{julia} round(p_hi, digits = 3)` — and notice it sits well short of either wall, so nothing in this file was promised the near-zero noise the curve allows at its extremes. And notice what the picture cannot show you: no `Mass2` on either axis, no `BroodSize`, no predictor at all. The variance function does not know what moved the mean. It only knows the mean itself. One block, `mu`, and nothing else. There is no `sigma` block to print because there is no σ to estimate. That is not the engine being unhelpful; it is the engine refusing to invent a parameter the family has already spent.
 
 **Momo:** And if the decree is wrong?
 
@@ -348,7 +374,7 @@ AIC: 1936
 
 ```{julia}
 #| label: fig-diagnostic
-#| fig-cap: "Worm plot of the two-predictor logistic fit's randomised quantile residuals: the residuals lined up from smallest to largest, each compared with where a perfect standard-normal draw would sit, so a good model gives a flat scatter near zero and a bad one wriggles. Here the scatter sits close to the zero line and inside the grey band — the shape a diagnostic takes when there is nothing left to find, and the baseline the Poisson plot is about to look different from."
+#| fig-cap: "Worm plot of the two-predictor logistic fit's randomised quantile residuals: the residuals lined up from smallest to largest, each compared with where a perfect standard-normal draw would sit, so a good model gives a flat scatter near zero and a bad one wriggles. Here the scatter sits close to the zero line and inside the pale band — the shape a diagnostic takes when there is nothing left to find. The vertical scale is fixed and shared with the Poisson worm plot below, so the two are honestly comparable by eye rather than each stretched to fill its own axis."
 qres = residuals(logit2; type = :quantile, rng = MersenneTwister(3))
 
 # An SD estimated from n standard normal draws has Monte Carlo SE 1/sqrt(2n).
@@ -360,7 +386,12 @@ z_logit = abs(std(qres) - 1) / mcse_logit
         mean(qres), std(qres))
 @printf("Monte Carlo SE of that SD : %.4f, so the SD sits %.2f SE from 1\n", mcse_logit, z_logit)
 
-fig_diagnostic(qres; title = "logistic fit, randomised quantile residuals")
+fig_l = fig_diagnostic(qres; title = "logistic fit, randomised quantile residuals")
+# Fixed, shared y-limits so this panel and the Poisson one below are on the
+# same vertical scale — both panels' real extent (checked at build time) sits
+# well inside ±1.2, so nothing is clipped by fixing the window.
+ylims!(fig_l.content[1], -1.2, 1.2)
+fig_l
 ```
 
 **Momo:** That looks like nothing much is happening.
@@ -425,7 +456,7 @@ v_counts = var(females.Fledglings)
 
 ```{julia}
 #| label: fig-diagnostic-poisson
-#| fig-cap: "Worm plot of the Poisson fit's randomised quantile residuals. The tilt is the overdispersion the variance-to-mean ratio already showed: the residuals are spread wider than a standard normal, so the line of sorted residuals climbs from left to right instead of lying flat inside the grey band."
+#| fig-cap: "Worm plot of the Poisson fit's randomised quantile residuals, on the same fixed vertical scale as the logistic worm plot above. The tilt is the overdispersion the variance-to-mean ratio already showed: the residuals are spread wider than a standard normal, so the line of sorted residuals climbs from left to right instead of lying flat inside the pale band — and because both panels now share one axis, that extra spread is something the eye can see, not only the printed standard deviations."
 qres_pois = residuals(pois_fit; type = :quantile, rng = MersenneTwister(4))
 
 mcse_pois = 1 / sqrt(2 * length(qres_pois))
@@ -434,7 +465,12 @@ z_pois = abs(std(qres_pois) - 1) / mcse_pois
 @printf("logistic fit, quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)\n", std(qres), z_logit)
 @printf("Poisson fit,  quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)\n", std(qres_pois), z_pois)
 
-fig_diagnostic(qres_pois; title = "Poisson fit, randomised quantile residuals")
+fig_p = fig_diagnostic(qres_pois; title = "Poisson fit, randomised quantile residuals")
+# Same fixed window as fig-diagnostic above (see the comment there); both
+# panels' real extent sits well inside it, so this is a shared display
+# window, not a number pulled from nowhere.
+ylims!(fig_p.content[1], -1.2, 1.2)
+fig_p
 ```
 
 **Itchy:** Compare the two lines, and compare each against its own error bar, because a spread is an estimate like anything else. There is a formula for the wobble in an SD computed from random draws — its Monte Carlo standard error — and it is one over the square root of twice the sample size: `{julia} round(mcse_logit, digits = 4)` for the chicks, `{julia} round(mcse_pois, digits = 4)` for the females. The logistic SD is `{julia} round(z_logit, digits = 1)` of those from one, which is noise. The Poisson SD is `{julia} round(z_pois, digits = 1)` of them, which is not. And the Poisson residuals are wide *after* age has been accounted for, so it is not something age can explain. Two different checks, one verdict, and the verdict is that the family is claiming a tidiness these females do not have.
@@ -457,7 +493,8 @@ ax = Axis(fig[1, 1]; xlabel = "age (years)", ylabel = "fledglings",
     title = "counts, and the rate the model expects")
 scatter!(ax, age_jit, females.Fledglings; markersize = 6, color = (:grey, 0.5))
 lines!(ax, age_grid, rate_curve; linewidth = 2.5, label = "Poisson, log link")
-axislegend(ax; position = :lt)
+# legend outside the axis, for the same reason as fig-curve and fig-two-shapes above
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 

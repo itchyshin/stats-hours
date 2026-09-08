@@ -311,8 +311,9 @@ organism, and ask whether the model believes anything absurd. Draw it.</p></div>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, chicks.Mass2, chicks.Survival <span class="op">.+</span> jitter;</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.35</span>))</span>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_wrong[<span class="fl">1</span>] <span class="op">.+</span> b_wrong[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Gaussian"</span>)</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis so it can never sit over a data point, matching tools/figures.jl</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div id="fig-two-shapes" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -432,8 +433,11 @@ put the two models on the same picture.</p></div>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_wrong[<span class="fl">1</span>] <span class="op">.+</span> b_wrong[<span class="fl">2</span>] <span class="op">.*</span> xs;</span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"Gaussian"</span>)</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, p_curve; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Binomial, logit link"</span>)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis so it can never sit over a data point, matching tools/figures.jl</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co"># (this legend used to sit inside the axis at top-left, over four real markers</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co"># from the jittered survival cloud — moved out after that was caught in review)</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <div id="fig-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -571,10 +575,49 @@ decreed variance p(1-p): 0.0194 to 0.2500
 blocks the fit carries: [:mu]</code></pre>
 </div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>One block, <code>mu</code>, and nothing else. There is no
-<code>sigma</code> block to print because there is no σ to estimate.
-That is not the engine being unhelpful; it is the engine refusing to
-invent a parameter the family has already spent.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Numbers. You said “show”, and I got two ranges.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Fair complaint. Here is the shape those numbers came from, not a
+description of it.</p></div>
+<div id="cell-fig-variance-decree" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>p_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">1</span>, length <span class="op">=</span> <span class="fl">200</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>var_grid <span class="op">=</span> p_grid <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_grid)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"p"</span>, ylabel <span class="op">=</span> <span class="st">"Var(y) = p(1 - p)"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the noise Binomial() decrees"</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># fitted range shaded first, curve drawn on top so it is never hidden by it</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">vspan!</span>(ax, p_lo, p_hi; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.15</span>), label <span class="op">=</span> <span class="st">"this fit's p_lo–p_hi"</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, p_grid, var_grid; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Var = p(1 - p)"</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, [<span class="fl">0.5</span>], [<span class="fl">0.25</span>]; markersize <span class="op">=</span> <span class="fl">9</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>), label <span class="op">=</span> <span class="st">"peak: p = 1/2, Var = 1/4"</span>)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis, matching tools/figures.jl</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div id="fig-variance-decree" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-variance-decree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk3-glms_files/figure-html/fig-variance-decree-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-variance-decree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter’s own logistic fit actually produced: nowhere near either end, so no chick in this file got the free ride of near-zero noise.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>That curve is not fitted to anything. It is what <code>Binomial()</code>
+commits you to the moment you say the word, for every p from zero to
+one, on every dataset that will ever exist. The shaded strip is where
+this chapter’s own chicks actually live — 0.122 to 0.98 — and notice it
+sits well short of either wall, so nothing in this file was promised the
+near-zero noise the curve allows at its extremes. And notice what the
+picture cannot show you: no <code>Mass2</code> on either axis, no
+<code>BroodSize</code>, no predictor at all. The variance function does
+not know what moved the mean. It only knows the mean itself. One block,
+<code>mu</code>, and nothing else. There is no <code>sigma</code> block
+to print because there is no σ to estimate. That is not the engine being
+unhelpful; it is the engine refusing to invent a parameter the family
+has already spent.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And if the decree is wrong?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>For Toto’s chicks it cannot be, and that is worth saying slowly, because
 it is the one place where the word “assumption” misleads. A response
@@ -600,21 +643,21 @@ out loud and we do not.</p></div>
 <p>Two things follow. First, when you read somebody else’s R output, that line is not boilerplate; it is the model’s claim about the noise. For a 0/1 response it is a claim arithmetic already guarantees; for counts, and for proportions out of a denominator, it is a claim the data can contradict, and Class 4 is entirely about those times. Second, “taken to be 1” is phrased as an instruction rather than a finding for a reason: nothing was estimated, and nothing was checked.</p>
 <p>The R block below was <strong>run once, by hand</strong>, with R on 2026-09-07 against the same archived file this chapter reads. It is not run again when the site is built, which is why it carries a date.</p>
 </blockquote>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; not re-run when the site is built. Produced with:</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/ChickSurvival.csv</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m &lt;- glm(Survival ~ Mass2 + BroodSize, data = d, family = binomial)</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>Coefficients<span class="sc">:</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error z value <span class="fu">Pr</span>(<span class="sc">&gt;</span><span class="er">|</span>z<span class="sc">|</span>)</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>(Intercept) <span class="sc">-</span><span class="fl">3.45607</span>    <span class="fl">0.30994</span>  <span class="sc">-</span><span class="fl">11.15</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>Mass2        <span class="fl">0.72040</span>    <span class="fl">0.05227</span>   <span class="fl">13.78</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>BroodSize    <span class="fl">0.14953</span>    <span class="fl">0.05457</span>    <span class="fl">2.74</span>  <span class="fl">0.00614</span> <span class="sc">**</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>(Dispersion parameter <span class="cf">for</span> binomial family taken to be <span class="dv">1</span>)</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    Null deviance<span class="sc">:</span> <span class="fl">2159.9</span>  on <span class="dv">1575</span>  degrees of freedom</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>Residual deviance<span class="sc">:</span> <span class="fl">1930.0</span>  on <span class="dv">1573</span>  degrees of freedom</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>AIC<span class="sc">:</span> <span class="dv">1936</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; not re-run when the site is built. Produced with:</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/ChickSurvival.csv</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m &lt;- glm(Survival ~ Mass2 + BroodSize, data = d, family = binomial)</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>Coefficients<span class="sc">:</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error z value <span class="fu">Pr</span>(<span class="sc">&gt;</span><span class="er">|</span>z<span class="sc">|</span>)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>(Intercept) <span class="sc">-</span><span class="fl">3.45607</span>    <span class="fl">0.30994</span>  <span class="sc">-</span><span class="fl">11.15</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>Mass2        <span class="fl">0.72040</span>    <span class="fl">0.05227</span>   <span class="fl">13.78</span>  <span class="sc">&lt;</span> <span class="fl">2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>BroodSize    <span class="fl">0.14953</span>    <span class="fl">0.05457</span>    <span class="fl">2.74</span>  <span class="fl">0.00614</span> <span class="sc">**</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>(Dispersion parameter <span class="cf">for</span> binomial family taken to be <span class="dv">1</span>)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    Null deviance<span class="sc">:</span> <span class="fl">2159.9</span>  on <span class="dv">1575</span>  degrees of freedom</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>Residual deviance<span class="sc">:</span> <span class="fl">1930.0</span>  on <span class="dv">1573</span>  degrees of freedom</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>AIC<span class="sc">:</span> <span class="dv">1936</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <h3 id="is-it-any-good" class="anchored">Is it any good?</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Before anybody writes this down: residuals. And a plain residual is
 useless here, because “observed minus fitted” for a chick that lived is
@@ -630,31 +673,36 @@ number, so you draw uniformly inside it — that is the
 normal. If the model is right, the answers are standard normal draws
 whatever the family was, so one diagnostic plot works for every chapter
 in this book. They involve a random draw, so they get a seed.</p></div>
-<div id="cell-fig-diagnostic" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>qres <span class="op">=</span> <span class="fu">residuals</span>(logit2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">3</span>))</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># An SD estimated from n standard normal draws has Monte Carlo SE 1/sqrt(2n).</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Judge "near 1" against that, not against your eye.</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>mcse_logit <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres))</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>z_logit <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_logit</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residuals: mean %.4f, SD %.4f  (both should be near 0 and 1)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(qres), <span class="fu">std</span>(qres))</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Monte Carlo SE of that SD : %.4f, so the SD sits %.2f SE from 1</span><span class="sc">\n</span><span class="st">"</span>, mcse_logit, z_logit)</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres; title <span class="op">=</span> <span class="st">"logistic fit, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-diagnostic" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>qres <span class="op">=</span> <span class="fu">residuals</span>(logit2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">3</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># An SD estimated from n standard normal draws has Monte Carlo SE 1/sqrt(2n).</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Judge "near 1" against that, not against your eye.</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>mcse_logit <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres))</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>z_logit <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_logit</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residuals: mean %.4f, SD %.4f  (both should be near 0 and 1)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(qres), <span class="fu">std</span>(qres))</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Monte Carlo SE of that SD : %.4f, so the SD sits %.2f SE from 1</span><span class="sc">\n</span><span class="st">"</span>, mcse_logit, z_logit)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>fig_l <span class="op">=</span> <span class="fu">fig_diagnostic</span>(qres; title <span class="op">=</span> <span class="st">"logistic fit, randomised quantile residuals"</span>)</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed, shared y-limits so this panel and the Poisson one below are on the</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co"># same vertical scale — both panels' real extent (checked at build time) sits</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="co"># well inside ±1.2, so nothing is clipped by fixing the window.</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(fig_l.content[<span class="fl">1</span>], <span class="op">-</span><span class="fl">1.2</span>, <span class="fl">1.2</span>)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>fig_l</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>quantile residuals: mean -0.0188, SD 1.0201  (both should be near 0 and 1)
 Monte Carlo SE of that SD : 0.0178, so the SD sits 1.13 SE from 1</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="20">
+<div class="cell-output cell-output-display" data-execution_count="22">
 <div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk3-glms_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Worm plot of the two-predictor logistic fit’s randomised quantile residuals: the residuals lined up from smallest to largest, each compared with where a perfect standard-normal draw would sit, so a good model gives a flat scatter near zero and a bad one wriggles. Here the scatter sits close to the zero line and inside the grey band — the shape a diagnostic takes when there is nothing left to find, and the baseline the Poisson plot is about to look different from.
+Figure&nbsp;4: Worm plot of the two-predictor logistic fit’s randomised quantile residuals: the residuals lined up from smallest to largest, each compared with where a perfect standard-normal draw would sit, so a good model gives a flat scatter near zero and a bad one wriggles. Here the scatter sits close to the zero line and inside the pale band — the shape a diagnostic takes when there is nothing left to find. The vertical scale is fixed and shared with the Poisson worm plot below, so the two are honestly comparable by eye rather than each stretched to fill its own axis.
 </figcaption>
 </figure>
 </div>
@@ -676,16 +724,16 @@ minutes, when Momo’s counts give it something.</p></div>
 <h3 id="momos-counts" class="anchored">Momo’s counts</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Right. Momo has been patient. Different file, different question, same
 two changes.</p></div>
-<div id="cell-read-females" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d</span><span class="sc">\n</span><span class="st">"</span>, n_fem)</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(females, <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-read-females" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d</span><span class="sc">\n</span><span class="st">"</span>, n_fem)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(females, <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows: 163</code></pre>
 </div>
-<div id="read-females" class="cell-output cell-output-display" data-execution_count="22">
+<div id="read-females" class="cell-output cell-output-display" data-execution_count="24">
 <div><div style="float: left;"><span>3×6 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
 <thead>
@@ -745,10 +793,10 @@ two changes.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>And the response is a <strong>count</strong>. Never negative, never a
 half, and there is no upper limit written anywhere. That is a different
 shape again, and it gets a different family and a different link.</p></div>
-<div id="cell-fit-poisson" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pois_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>pois_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-poisson" class="cell-output cell-output-display" data-execution_count="24">
+<div id="cell-fit-poisson" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pois_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>pois_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-poisson" class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>Distributional regression fit (Poisson)
   nobs = 163   logLik = -367.9932   converged = true
 
@@ -759,12 +807,12 @@ Mean model (μ):
   Age          0.2325     0.0478  4.8667  1.135e-06</code></pre>
 </div>
 </div>
-<div id="poisson-scale" class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>b_pois <span class="op">=</span> <span class="fu">coef</span>(pois_fit, <span class="op">:</span>mu)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>rate_ratio <span class="op">=</span> <span class="fu">exp</span>(b_pois[<span class="fl">2</span>])</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on the log scale : %.4f</span><span class="sc">\n</span><span class="st">"</span>, b_pois[<span class="fl">2</span>])</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"exp(slope), rate ratio : %.4f</span><span class="sc">\n</span><span class="st">"</span>, rate_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="poisson-scale" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>b_pois <span class="op">=</span> <span class="fu">coef</span>(pois_fit, <span class="op">:</span>mu)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>rate_ratio <span class="op">=</span> <span class="fu">exp</span>(b_pois[<span class="fl">2</span>])</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on the log scale : %.4f</span><span class="sc">\n</span><span class="st">"</span>, b_pois[<span class="fl">2</span>])</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"exp(slope), rate ratio : %.4f</span><span class="sc">\n</span><span class="st">"</span>, rate_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>slope on the log scale : 0.2325
 exp(slope), rate ratio : 1.2618</code></pre>
@@ -783,13 +831,13 @@ the literature.</p></div>
 one. <strong>Poisson says the variance equals the mean.</strong> One
 number for both. That is an extremely strong claim about a real animal
 and it is testable in one line, so test it.</p></div>
-<div id="mean-vs-variance" class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f   (Poisson decrees 1)</span><span class="sc">\n</span><span class="st">"</span>, v_counts <span class="op">/</span> m_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="mean-vs-variance" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f   (Poisson decrees 1)</span><span class="sc">\n</span><span class="st">"</span>, v_counts <span class="op">/</span> m_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>mean of the counts     : 3.2086
 variance of the counts : 5.4377
@@ -808,28 +856,33 @@ subject. I am not going to fix it today. I am going to make sure you can
 variation with variation the predictors explain. And the honest one, on
 the residuals of the actual fit, where anything the model explained has
 already been taken out.</p></div>
-<div id="cell-fig-diagnostic-poisson" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>qres_pois <span class="op">=</span> <span class="fu">residuals</span>(pois_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">4</span>))</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>mcse_pois <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres_pois))</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>z_pois <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres_pois) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_pois</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"logistic fit, quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres), z_logit)</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Poisson fit,  quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_pois), z_pois)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_pois; title <span class="op">=</span> <span class="st">"Poisson fit, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-diagnostic-poisson" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>qres_pois <span class="op">=</span> <span class="fu">residuals</span>(pois_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">4</span>))</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>mcse_pois <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">length</span>(qres_pois))</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>z_pois <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres_pois) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_pois</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"logistic fit, quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres), z_logit)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Poisson fit,  quantile residual SD : %.4f  (%.2f Monte Carlo standard errors from 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_pois), z_pois)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>fig_p <span class="op">=</span> <span class="fu">fig_diagnostic</span>(qres_pois; title <span class="op">=</span> <span class="st">"Poisson fit, randomised quantile residuals"</span>)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Same fixed window as fig-diagnostic above (see the comment there); both</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="co"># panels' real extent sits well inside it, so this is a shared display</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="co"># window, not a number pulled from nowhere.</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(fig_p.content[<span class="fl">1</span>], <span class="op">-</span><span class="fl">1.2</span>, <span class="fl">1.2</span>)</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>fig_p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>logistic fit, quantile residual SD : 1.0201  (1.13 Monte Carlo standard errors from 1)
 Poisson fit,  quantile residual SD : 1.2981  (5.38 Monte Carlo standard errors from 1)</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell-output cell-output-display" data-execution_count="31">
 <div id="fig-diagnostic-poisson" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-diagnostic-poisson-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk3-glms_files/figure-html/fig-diagnostic-poisson-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-poisson-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Worm plot of the Poisson fit’s randomised quantile residuals. The tilt is the overdispersion the variance-to-mean ratio already showed: the residuals are spread wider than a standard normal, so the line of sorted residuals climbs from left to right instead of lying flat inside the grey band.
+Figure&nbsp;5: Worm plot of the Poisson fit’s randomised quantile residuals, on the same fixed vertical scale as the logistic worm plot above. The tilt is the overdispersion the variance-to-mean ratio already showed: the residuals are spread wider than a standard normal, so the line of sorted residuals climbs from left to right instead of lying flat inside the pale band — and because both panels now share one axis, that extra spread is something the eye can see, not only the printed standard deviations.
 </figcaption>
 </figure>
 </div>
@@ -850,28 +903,29 @@ claiming a tidiness these females do not have.</p></div>
 how it is wrong, which is a great deal better than most published
 models, and that the repair has a name, a chapter and a one-line change
 in the same <code>bf</code> box. Draw the fit before you go.</p></div>
-<div id="cell-fig-fledglings" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>age_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(females.Age), <span class="fu">maximum</span>(females.Age), length <span class="op">=</span> <span class="fl">100</span>)</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>rate_curve <span class="op">=</span> <span class="fu">predict</span>(pois_fit, (; Age <span class="op">=</span> <span class="fu">collect</span>(age_grid)))</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>rng2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">99</span>)</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>age_jit <span class="op">=</span> females.Age <span class="op">.+</span> <span class="fl">0.06</span> <span class="op">.*</span> <span class="fu">randn</span>(rng2, n_fem)</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"age (years)"</span>, ylabel <span class="op">=</span> <span class="st">"fledglings"</span>,</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"counts, and the rate the model expects"</span>)</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, age_jit, females.Fledglings; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>))</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, age_grid, rate_curve; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Poisson, log link"</span>)</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>lt)</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div id="cell-fig-fledglings" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>age_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(females.Age), <span class="fu">maximum</span>(females.Age), length <span class="op">=</span> <span class="fl">100</span>)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>rate_curve <span class="op">=</span> <span class="fu">predict</span>(pois_fit, (; Age <span class="op">=</span> <span class="fu">collect</span>(age_grid)))</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>rng2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">99</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>age_jit <span class="op">=</span> females.Age <span class="op">.+</span> <span class="fl">0.06</span> <span class="op">.*</span> <span class="fu">randn</span>(rng2, n_fem)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"age (years)"</span>, ylabel <span class="op">=</span> <span class="st">"fledglings"</span>,</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"counts, and the rate the model expects"</span>)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, age_jit, females.Fledglings; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>))</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, age_grid, rate_curve; linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"Poisson, log link"</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis, for the same reason as fig-curve and fig-two-shapes above</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
 <div id="fig-fledglings" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-fledglings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk3-glms_files/figure-html/fig-fledglings-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fledglings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Fledgling counts against female age, jittered horizontally, with the Poisson fit’s rate curve laid over them bending gently upward on the log scale. The vertical scatter at each age is wider than that curve’s own decree allows — the overdispersion the chapter has already shown by two other routes.
+Figure&nbsp;6: Fledgling counts against female age, jittered horizontally, with the Poisson fit’s rate curve laid over them bending gently upward on the log scale. The vertical scatter at each age is wider than that curve’s own decree allows — the overdispersion the chapter has already shown by two other routes.
 </figcaption>
 </figure>
 </div>
@@ -914,25 +968,25 @@ did not choose it, and Class 4 is what happens when it is wrong.</p></div>
 <li><strong>Seeding.</strong> Every random draw in this chapter — the jitter in two figures, both sets of quantile residuals, and the simulation below — is made from an explicit <code>MersenneTwister</code> handed to the function as <code>rng</code>, never from the global generator. That is what makes the page reproducible rather than merely repeatable.</li>
 <li><strong>The simulation thread.</strong> From Class 2 onward, the last thing you do with a fit is ask it to invent data and see what a refit makes of them. Here it is for a logistic model, where the invention is a coin flip per chick. <code>simulate(fit; nsim = k, rng = MersenneTwister(seed))</code> takes the same <code>rng</code> keyword <code>residuals</code> does, and for the same reason.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask the fitted model for new chicks: one Bernoulli draw per row, at that</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># row's fitted probability. Then refit and see how far the slope wanders when</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># nothing at all has changed except the coin flips.</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(logit_fit; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_slope</span>(y)</span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Survival <span class="op">=</span> y, Mass2 <span class="op">=</span> chicks.Mass2)</span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Binomial</span>(); data <span class="op">=</span> d), <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [<span class="fu">refit_slope</span>(ysim[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the slope we fitted            : %.4f</span><span class="sc">\n</span><span class="st">"</span>, slope_logodds)</span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its reported standard error    : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">stderror</span>(logit_fit)[<span class="fl">2</span>])</span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean slope over %d refits     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(slopes), <span class="fu">mean</span>(slopes))</span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of slopes over those refits : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(slopes))</span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated responses seen       : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sort</span>(<span class="fu">unique</span>(ysim)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-refit" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask the fitted model for new chicks: one Bernoulli draw per row, at that</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># row's fitted probability. Then refit and see how far the slope wanders when</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># nothing at all has changed except the coin flips.</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(logit_fit; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_slope</span>(y)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Survival <span class="op">=</span> y, Mass2 <span class="op">=</span> chicks.Mass2)</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Binomial</span>(); data <span class="op">=</span> d), <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [<span class="fu">refit_slope</span>(ysim[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the slope we fitted            : %.4f</span><span class="sc">\n</span><span class="st">"</span>, slope_logodds)</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its reported standard error    : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">stderror</span>(logit_fit)[<span class="fl">2</span>])</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean slope over %d refits     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(slopes), <span class="fu">mean</span>(slopes))</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of slopes over those refits : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(slopes))</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated responses seen       : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sort</span>(<span class="fu">unique</span>(ysim)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>the slope we fitted            : 0.6999
 its reported standard error    : 0.0514

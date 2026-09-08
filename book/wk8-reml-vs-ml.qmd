@@ -523,16 +523,22 @@ ll_tad, su_tad = profile_tau(tadpoles, taus)
 @printf("closed form vs engine, logLik :  puddles %.5f / %.5f   tadpoles %.5f / %.5f\n",
         maximum(ll_pud), loglik(fit_b_full), maximum(ll_tad), loglik(fit_ml))
 
-fig = Figure(size = (520, 380))
+fig = Figure(size = (620, 380))
 ax = Axis(fig[1, 1];
     xlabel = "sigma_u (mm)", ylabel = "profile log-likelihood minus its maximum",
     title = "Where the maximum sits")
 lines!(ax, su_pud, ll_pud .- maximum(ll_pud), label = "puddles (true sigma_u = 0)")
 lines!(ax, su_tad, ll_tad .- maximum(ll_tad), label = "tadpoles (true sigma_u = 1.2)")
-vlines!(ax, [0.0]; linestyle = :dash, label = "the boundary")
+# explicit, non-cycled colour: vlines! cycles its own :color independently of
+# the lines! calls above and was landing on the same palette slot as "puddles"
+# (the same collision fig_shrinkage's boundary line was fixed for)
+vlines!(ax, [0.0]; linestyle = :dash, color = (:grey, 0.6), label = "the boundary")
 ylims!(ax, -8, 0.5)
 xlims!(ax, -0.05, 2.5)
-axislegend(ax; position = :rb)
+# legend outside the axis so it can never hide a group (same fix as the helpers
+# in tools/figures.jl: an inside legend at :rb was painting over the puddles
+# curve's declining tail)
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
@@ -589,22 +595,22 @@ repeat, not the first one. Nothing is hidden that has not already been shown.
 """
 function boundary_study(fit_red, design, nsim; rng)
     y = simulate(fit_red; nsim = nsim, rng = rng)
-    piled = 0
     stats = Float64[]
+    piled = falses(nsim)   # which replicates landed exactly on the boundary
     with_logger(NullLogger()) do
         for k in 1:size(y, 2)
             d = DataFrame(pond = design.pond, days = design.days, length = y[:, k])
             f = drm(bf(@formula(length ~ days + (1|pond))), Gaussian(); data = d)
             r = drm(bf(@formula(length ~ days)),            Gaussian(); data = d)
-            re_sd(f)[:pond] < 1e-8 && (piled += 1)
+            piled[k] = re_sd(f)[:pond] < 1e-8
             push!(stats, 2 * (loglik(f) - loglik(r)))
         end
     end
-    return piled / nsim, stats
+    return count(piled) / nsim, stats, piled
 end
 
 # a seed is a promise: anyone who runs this line gets the same draw
-pile, stats = boundary_study(fit_b_red, puddles, 2000; rng = MersenneTwister(800))
+pile, stats, piled = boundary_study(fit_b_red, puddles, 2000; rng = MersenneTwister(800))
 nrep = length(stats)
 mcse(phat) = sqrt(phat * (1 - phat) / nrep)
 
@@ -624,6 +630,34 @@ rate_chibar = mean(chibar .< alpha)
         alpha, rate_chibar, mcse(rate_chibar), alpha)
 @printf("\nrate the pile-up alone would predict   : %.4f   = (1 - %.4f) * %.2f\n",
         (1 - pile) * 2alpha, pile, 2alpha)
+```
+
+**Jaro:** Before you read that off a printout, look at the shape it came from.
+
+```{julia}
+#| label: fig-boundary-mixture
+#| fig-cap: "The null distribution of the likelihood-ratio statistic, from the same 2000 replicates as the printout above. Left: the fraction of fits that landed exactly on the boundary — the point mass in Self and Liang's mixture — against a dashed line at the one-half the asymptotic theory predicts. Right: a density histogram of the replicates that did not land on the boundary, with the chi-squared-with-one-degree-of-freedom curve — the reference the naive test uses for the whole statistic — drawn over the half of the mixture it is actually meant to describe."
+away = stats[.!piled]   # the replicates that did not pile up at zero
+chisq1_pdf(x) = exp(-x / 2) / sqrt(2 * pi * x)
+
+fig = Figure(size = (700, 340))
+
+ax1 = Axis(fig[1, 1]; xticks = ([1], ["at the boundary"]),
+    ylabel = "fraction of 2000 replicates", title = "How much piles up")
+xlims!(ax1, 0.3, 1.7)
+ylims!(ax1, 0, max(0.5, pile) * 1.2)
+barplot!(ax1, [1], [pile]; width = 0.6, color = LIGHT.accent)
+# explicit grey, not the default cycle: this is a reference line, not a second
+# data series, and the default cycle would land it on the same colour as the bar
+hlines!(ax1, [0.5]; linestyle = :dash, color = (:grey, 0.5), linewidth = 2)
+
+ax2 = Axis(fig[1, 2]; xlabel = "likelihood-ratio statistic", ylabel = "density",
+    title = "The rest of the mixture")
+hist!(ax2, away; bins = 30, normalization = :pdf, color = LIGHT.accent)
+xs = range(0.02, quantile(away, 0.98), length = 300)
+lines!(ax2, xs, chisq1_pdf.(xs); linewidth = 2.5, color = (:grey, 0.5))
+
+fig
 ```
 
 **Momo:** The pile is bigger than half, and the plus-or-minus says that is not luck.

@@ -186,13 +186,42 @@ now_url=$(git remote get-url origin)
 [ "$now_url" = "$archive_url" ] || die "FATAL: origin did not repoint to the archive (got '$now_url'). Fix by hand before doing anything else: git remote set-url origin $archive_url"
 say "OK: origin -> $archive_url (a habitual 'git push origin main' can no longer reach the public repo)"
 
-if gh repo view "$repo" >/dev/null 2>&1; then
+# Does the public repository already exist? Ask by IDENTITY, never by name.
+# The rename above leaves GitHub redirecting the old name to the archive, so a
+# bare "gh repo view $repo" answers yes and names the ARCHIVE. Believing it
+# skips the create and pushes the squashed commit straight at the private
+# repository holding the unsquashed history. That happened; only git's
+# non-fast-forward rule stopped it. So compare the full name that comes back
+# against the one asked for, and treat anything else as "does not exist yet".
+resolved=$(gh api "repos/$repo" --jq .full_name 2>/dev/null || true)
+if [ "$resolved" = "$repo" ]; then
   say "STATE: $repo already exists on GitHub — reusing it (a previous run must have created it)"
-  git remote add release "https://github.com/$repo.git" 2>/dev/null || git remote set-url release "https://github.com/$repo.git"
+  git remote add release "git@github.com:$repo.git" 2>/dev/null || git remote set-url release "git@github.com:$repo.git"
 else
+  if [ -n "$resolved" ]; then
+    say "NOTE: the name $repo currently redirects to $resolved (the rename's redirect). Creating the real public repository now, which ends the redirect."
+  fi
   say "CREATING the public repository $repo (the name is now public)"
-  gh repo create "$repo" --public --source="$wt" --remote=release
+  # Create it empty, then wire the remote here. NOT --source="$wt": a linked
+  # worktree keeps its .git as a FILE rather than a directory, and gh rejects
+  # it as "not a git repository". The squashed commit lives in the shared
+  # object store either way, so it pushes fine from this clone.
+  gh repo create "$repo" --public \
+    --description "Stats Hours with Itchy - an open-access statistics book, taught in Julia, every number and figure produced by a real run" \
+    || die "could not create $repo"
+  git remote add release "git@github.com:$repo.git" 2>/dev/null \
+    || git remote set-url release "git@github.com:$repo.git"
 fi
+
+# Whatever route we took, refuse to push until the release remote resolves to
+# the public repository and not to the archive. A push is the irreversible act.
+rel=$(git remote get-url release)
+case "$rel" in
+  *"$archive_newname"*) die "FATAL: the release remote points at the archive ($rel). Refusing to push." ;;
+esac
+rel_full=$(gh api "repos/$repo" --jq .full_name 2>/dev/null || true)
+[ "$rel_full" = "$repo" ] || die "FATAL: $repo still does not resolve to itself (got '${rel_full:-nothing}'). Refusing to push."
+say "OK: release -> $rel, and $repo resolves to itself"
 
 say "pushing the squashed commit"
 git push release "$release_branch:main"

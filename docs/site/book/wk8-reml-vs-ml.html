@@ -868,17 +868,23 @@ estimate.</p></div>
 <span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"closed form vs engine, logLik :  puddles %.5f / %.5f   tadpoles %.5f / %.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">maximum</span>(ll_pud), <span class="fu">loglik</span>(fit_b_full), <span class="fu">maximum</span>(ll_tad), <span class="fu">loglik</span>(fit_ml))</span>
 <span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">620</span>, <span class="fl">380</span>))</span>
 <span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>];</span>
 <span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a>    xlabel <span class="op">=</span> <span class="st">"sigma_u (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"profile log-likelihood minus its maximum"</span>,</span>
 <span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Where the maximum sits"</span>)</span>
 <span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, su_pud, ll_pud <span class="op">.-</span> <span class="fu">maximum</span>(ll_pud), label <span class="op">=</span> <span class="st">"puddles (true sigma_u = 0)"</span>)</span>
 <span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, su_tad, ll_tad <span class="op">.-</span> <span class="fu">maximum</span>(ll_tad), label <span class="op">=</span> <span class="st">"tadpoles (true sigma_u = 1.2)"</span>)</span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"the boundary"</span>)</span>
-<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(ax, <span class="op">-</span><span class="fl">8</span>, <span class="fl">0.5</span>)</span>
-<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="op">-</span><span class="fl">0.05</span>, <span class="fl">2.5</span>)</span>
-<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>rb)</span>
-<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a><span class="co"># explicit, non-cycled colour: vlines! cycles its own :color independently of</span></span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a><span class="co"># the lines! calls above and was landing on the same palette slot as "puddles"</span></span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a><span class="co"># (the same collision fig_shrinkage's boundary line was fixed for)</span></span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"the boundary"</span>)</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(ax, <span class="op">-</span><span class="fl">8</span>, <span class="fl">0.5</span>)</span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="op">-</span><span class="fl">0.05</span>, <span class="fl">2.5</span>)</span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis so it can never hide a group (same fix as the helpers</span></span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a><span class="co"># in tools/figures.jl: an inside legend at :rb was painting over the puddles</span></span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a><span class="co"># curve's declining tail)</span></span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>closed form vs engine, sigma_u:  puddles 0.00000 / 0.00000   tadpoles 0.96917 / 0.96943
 closed form vs engine, logLik :  puddles -56.56830 / -56.56830   tadpoles -180.33994 / -180.33993</code></pre>
@@ -971,22 +977,22 @@ Exercise 5 will ask you to run on your own design.</p></div>
 <span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
 <span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">boundary_study</span>(fit_red, design, nsim; rng)</span>
 <span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">simulate</span>(fit_red; nsim <span class="op">=</span> nsim, rng <span class="op">=</span> rng)</span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    piled <span class="op">=</span> <span class="fl">0</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    stats <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    stats <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    piled <span class="op">=</span> <span class="fu">falses</span>(nsim)   <span class="co"># which replicates landed exactly on the boundary</span></span>
 <span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_logger</span>(<span class="fu">NullLogger</span>()) <span class="cf">do</span></span>
 <span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(y, <span class="fl">2</span>)</span>
 <span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>            d <span class="op">=</span> <span class="fu">DataFrame</span>(pond <span class="op">=</span> design.pond, days <span class="op">=</span> design.days, length <span class="op">=</span> y[<span class="op">:</span>, k])</span>
 <span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>            f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
 <span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>            <span class="fu">re_sd</span>(f)[<span class="op">:</span>pond] <span class="op">&lt;</span> <span class="fl">1e-8</span> <span class="op">&amp;&amp;</span> (piled <span class="op">+=</span> <span class="fl">1</span>)</span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>            piled[k] <span class="op">=</span> <span class="fu">re_sd</span>(f)[<span class="op">:</span>pond] <span class="op">&lt;</span> <span class="fl">1e-8</span></span>
 <span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>            <span class="fu">push!</span>(stats, <span class="fl">2</span> <span class="op">*</span> (<span class="fu">loglik</span>(f) <span class="op">-</span> <span class="fu">loglik</span>(r)))</span>
 <span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
 <span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> piled <span class="op">/</span> nsim, stats</span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">count</span>(piled) <span class="op">/</span> nsim, stats, piled</span>
 <span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
 <span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a><span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
-<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>pile, stats <span class="op">=</span> <span class="fu">boundary_study</span>(fit_b_red, puddles, <span class="fl">2000</span>; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">800</span>))</span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>pile, stats, piled <span class="op">=</span> <span class="fu">boundary_study</span>(fit_b_red, puddles, <span class="fl">2000</span>; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">800</span>))</span>
 <span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>nrep <span class="op">=</span> <span class="fu">length</span>(stats)</span>
 <span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a><span class="fu">mcse</span>(phat) <span class="op">=</span> <span class="fu">sqrt</span>(phat <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> phat) <span class="op">/</span> nrep)</span>
 <span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a></span>
@@ -1013,6 +1019,42 @@ naive chi-squared rejections at 0.05   : 0.0110  +/- 0.0023  (nominal: 0.0500)
 chi-bar-squared rejections at 0.05     : 0.0220  +/- 0.0033  (nominal: 0.0500)
 
 rate the pile-up alone would predict   : 0.0438   = (1 - 0.5625) * 0.10</code></pre>
+</div>
+</div>
+<div class="line"><span class="who jaro">Jaro</span><p>Before you read that off a printout, look at the shape it came from.</p></div>
+<div id="cell-fig-boundary-mixture" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>away <span class="op">=</span> stats[.!piled]   <span class="co"># the replicates that did not pile up at zero</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chisq1_pdf</span>(x) <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span>x <span class="op">/</span> <span class="fl">2</span>) <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> <span class="cn">pi</span> <span class="op">*</span> x)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">700</span>, <span class="fl">340</span>))</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> ([<span class="fl">1</span>], [<span class="st">"at the boundary"</span>]),</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"fraction of 2000 replicates"</span>, title <span class="op">=</span> <span class="st">"How much piles up"</span>)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax1, <span class="fl">0.3</span>, <span class="fl">1.7</span>)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ylims!</span>(ax1, <span class="fl">0</span>, <span class="fu">max</span>(<span class="fl">0.5</span>, pile) <span class="op">*</span> <span class="fl">1.2</span>)</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot!</span>(ax1, [<span class="fl">1</span>], [pile]; width <span class="op">=</span> <span class="fl">0.6</span>, color <span class="op">=</span> LIGHT.accent)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="co"># explicit grey, not the default cycle: this is a reference line, not a second</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co"># data series, and the default cycle would land it on the same colour as the bar</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax1, [<span class="fl">0.5</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>), linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>]; xlabel <span class="op">=</span> <span class="st">"likelihood-ratio statistic"</span>, ylabel <span class="op">=</span> <span class="st">"density"</span>,</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"The rest of the mixture"</span>)</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax2, away; bins <span class="op">=</span> <span class="fl">30</span>, normalization <span class="op">=</span> <span class="op">:</span>pdf, color <span class="op">=</span> LIGHT.accent)</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0.02</span>, <span class="fu">quantile</span>(away, <span class="fl">0.98</span>), length <span class="op">=</span> <span class="fl">300</span>)</span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax2, xs, <span class="fu">chisq1_pdf</span>.(xs); linewidth <span class="op">=</span> <span class="fl">2.5</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>))</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div id="fig-boundary-mixture" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-boundary-mixture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk8-reml-vs-ml_files/figure-html/fig-boundary-mixture-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boundary-mixture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: The null distribution of the likelihood-ratio statistic, from the same 2000 replicates as the printout above. Left: the fraction of fits that landed exactly on the boundary — the point mass in Self and Liang’s mixture — against a dashed line at the one-half the asymptotic theory predicts. Right: a density histogram of the replicates that did not land on the boundary, with the chi-squared-with-one-degree-of-freedom curve — the reference the naive test uses for the whole statistic — drawn over the half of the mixture it is actually meant to describe.
+</figcaption>
+</figure>
+</div>
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>The pile is bigger than half, and the plus-or-minus says that is not
@@ -1060,36 +1102,36 @@ file this chapter’s first cell writes
 (<code>data/ch8/tadpoles.csv</code>), and pasted here as it came out; it
 is not re-run when the page is made.</p>
 </div>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, lme4 2.0.1, reading data/ch8/tadpoles.csv (117 rows, 12 ponds)</span></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_default &lt;- lmer(length ~ days + (1 | pond), data = d)</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_ml      &lt;- lmer(length ~ days + (1 | pond), data = d, REML = FALSE)</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer <span class="fu">default</span> (<span class="at">REML =</span> <span class="cn">TRUE</span>) <span class="sc">---</span></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by REML [<span class="st">'lmerMod'</span>]</span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">1.033</span>    <span class="fl">1.017</span></span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.018</span>    <span class="fl">1.009</span></span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
-<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18813</span>    <span class="fl">0.38865</span>   <span class="fl">21.07</span></span>
-<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34643</span>    <span class="fl">0.01386</span>   <span class="fl">25.00</span></span>
-<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer REML <span class="ot">=</span> <span class="cn">FALSE</span> (ML) <span class="sc">---</span></span>
-<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by maximum likelihood  [<span class="st">'lmerMod'</span>]</span>
-<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>      AIC       BIC    logLik <span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">log</span>(L)  df.resid</span>
-<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>    <span class="fl">368.7</span>     <span class="fl">379.7</span>    <span class="sc">-</span><span class="fl">180.3</span>     <span class="fl">360.7</span>       <span class="dv">113</span></span>
-<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
-<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
-<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">0.9398</span>   <span class="fl">0.9694</span></span>
-<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.0086</span>   <span class="fl">1.0043</span></span>
-<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
-<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
-<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
-<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18949</span>    <span class="fl">0.37760</span>   <span class="fl">21.69</span></span>
-<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34637</span>    <span class="fl">0.01379</span>   <span class="fl">25.12</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, lme4 2.0.1, reading data/ch8/tadpoles.csv (117 rows, 12 ponds)</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_default &lt;- lmer(length ~ days + (1 | pond), data = d)</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   m_ml      &lt;- lmer(length ~ days + (1 | pond), data = d, REML = FALSE)</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer <span class="fu">default</span> (<span class="at">REML =</span> <span class="cn">TRUE</span>) <span class="sc">---</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by REML [<span class="st">'lmerMod'</span>]</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">1.033</span>    <span class="fl">1.017</span></span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.018</span>    <span class="fl">1.009</span></span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18813</span>    <span class="fl">0.38865</span>   <span class="fl">21.07</span></span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34643</span>    <span class="fl">0.01386</span>   <span class="fl">25.00</span></span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lmer REML <span class="ot">=</span> <span class="cn">FALSE</span> (ML) <span class="sc">---</span></span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>Linear mixed model fit by maximum likelihood  [<span class="st">'lmerMod'</span>]</span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>      AIC       BIC    logLik <span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">log</span>(L)  df.resid</span>
+<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>    <span class="fl">368.7</span>     <span class="fl">379.7</span>    <span class="sc">-</span><span class="fl">180.3</span>     <span class="fl">360.7</span>       <span class="dv">113</span></span>
+<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>Random effects<span class="sc">:</span></span>
+<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a> Groups   Name        Variance Std.Dev.</span>
+<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a> <span class="fu">pond</span>     (Intercept) <span class="fl">0.9398</span>   <span class="fl">0.9694</span></span>
+<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a> Residual             <span class="fl">1.0086</span>   <span class="fl">1.0043</span></span>
+<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a>Number of obs<span class="sc">:</span> <span class="dv">117</span>, groups<span class="sc">:</span>  pond, <span class="dv">12</span></span>
+<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a>Fixed effects<span class="sc">:</span></span>
+<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error t value</span>
+<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="fl">8.18949</span>    <span class="fl">0.37760</span>   <span class="fl">21.69</span></span>
+<span id="cb40-30"><a href="#cb40-30" aria-hidden="true" tabindex="-1"></a>days         <span class="fl">0.34637</span>    <span class="fl">0.01379</span>   <span class="fl">25.12</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Compare that block with the table this chapter printed a few cells ago,
 row by row.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>They match. Both of them match.</p></div>
@@ -1113,13 +1155,13 @@ is a ratio of two of them.</p></div>
 default here too?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Try to use it for something and find out. Fit two REML models with
 different fixed effects and compare them.</p></div>
-<div id="reml-guard" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>reml_full    <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>();</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>reml_reduced <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))),    <span class="fu">Gaussian</span>();</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(reml_reduced, reml_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="reml-guard" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>reml_full    <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>();</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>reml_reduced <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))),    <span class="fu">Gaussian</span>();</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> tadpoles, method <span class="op">=</span> <span class="op">:</span>REML)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(reml_reduced, reml_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>ArgumentError: lrtest: cannot compare REML fits with different fixed-effect (mean) structures — REML log-likelihoods are not comparable across mean structures (only across variance structures). Refit both with method = :ML for a cross-mean-structure test.

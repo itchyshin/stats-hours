@@ -408,25 +408,42 @@ arithmetic choice, not a bug in either package.
 
 ```{julia}
 #| label: fig-disagree
-#| fig-cap: "The same fitted line (females, fit2), two residual-SD divisors: ÷n (ours) vs ÷(n−p) (R's lm())."
+#| fig-cap: "Left: the fitted line for females (fit2) with DRM.jl's ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the 0.89% gap that would sit under a fraction of a pixel at wing-length scale (left) is a full-height separation here."
 # fit2's mu coefficients are [Intercept, Tarsus, Sex:male]; female is the
 # baseline. A smooth grid at Sex = female avoids the zigzag that
 # plotting fitted() at each observation would give once Sex is in the model.
+# The scatter on the left is filtered to females too: fit2's ~2.5 mm sex
+# effect is bigger than the ~1.4 mm band, so plotting both sexes around a
+# female-only band would bury the divisor question under an unrelated,
+# unlabelled population offset.
 b = coef(fit2, :mu)
 xs = range(minimum(sparrows.Tarsus), maximum(sparrows.Tarsus); length = 100)
 mu2 = b[1] .+ b[2] .* xs
 p_mu = length(b)                                      # 3: intercept, Tarsus, Sex
 sigma_ours = sigma(fit2)[1]                           # ÷n   (DRM.jl, ML)
 sigma_r = sigma_ours * sqrt(nobs(fit2) / (nobs(fit2) - p_mu))  # ÷(n−p) (R lm())
+females = sparrows.Sex .== "female"
 
-fig = Figure(size = (480, 360))
-ax = Axis(fig[1, 1]; xlabel = "Tarsus (mm)", ylabel = "Wing (mm)",
-    title = "Same μ, two residual SDs")
-scatter!(ax, sparrows.Tarsus, sparrows.Wing; markersize = 6, color = (:grey, 0.5))
-band!(ax, xs, mu2 .- sigma_r, mu2 .+ sigma_r; label = "R lm(): ÷(n−p)")
-band!(ax, xs, mu2 .- sigma_ours, mu2 .+ sigma_ours; label = "DRM.jl: ÷n")
-lines!(ax, xs, mu2; linewidth = 2, color = :black, label = "fitted μ")
-axislegend(ax; position = :rt)
+fig = Figure(size = (760, 340))
+ax1 = Axis(fig[1, 1]; xlabel = "Tarsus (mm)", ylabel = "Wing (mm)",
+    title = "Fitted line, females only")
+# band and line first, real data drawn LAST so no point is ever painted over
+band!(ax1, xs, mu2 .- sigma_ours, mu2 .+ sigma_ours)
+lines!(ax1, xs, mu2; linewidth = 2, color = :black)
+scatter!(ax1, sparrows.Tarsus[females], sparrows.Wing[females]; markersize = 6)
+
+# The two divisors are a deterministic ratio of one another (sqrt(n/(n-p))),
+# not two independent estimates, so no error bars: whiskers sized to the
+# fit's own sampling SE (~0.076 mm) would be ~6x wider than the 0.013 mm gap
+# between them and would swallow the very difference this panel exists to
+# show. Two plain points, y-axis zoomed to just the two of them, is honest.
+ax2 = Axis(fig[1, 2];
+    xticks = (1:2, ["R lm()\n÷(n−p)", "DRM.jl\n÷n"]),
+    ylabel = "residual SD (mm)",
+    title = "Same gap, zoomed in")
+xlims!(ax2, 0.5, 2.5)
+scatter!(ax2, [1], [sigma_r]; markersize = 14, color = Cycled(1))
+scatter!(ax2, [2], [sigma_ours]; markersize = 14, marker = :diamond, color = Cycled(2))
 fig
 ```
 
@@ -535,6 +552,27 @@ sex_sigma_mdr   = round(exp((1.96 + 0.84) * sex_sigma_se); digits = 3)
 **Itchy:** No — it was the *correct* thing to try, and it just did not survive contact with real sparrows. That is a better lesson than the one I was expecting to teach you. AIC is not a formality you run to confirm what you already believed; it is the referee, and today it overruled me. We added seven characters, asked a real question, and the honest answer was not "no" — it was *not detected*, and those are different claims.
 
 **Itchy:** And now the row I promised you this morning. Look at `Sex: male` in the σ table. It has a z of `{julia} sex_sigma_z` and a *p* of `{julia} sex_sigma_p`, and the null printed above it is the one that is worth testing: equal dispersion, males and females varying by the same amount. Read the coefficient as a ratio and the claim gets sharper: males vary `{julia} sex_sigma_ratio`× as much as females, 95% interval [`{julia} sex_sigma_lo`, `{julia} sex_sigma_hi`] — an interval that sits on both sides of 1. And at `{julia} nobs(fit3)` sparrows, the smallest ratio this sample would have caught four times out of five — that is what "80% power" means — is `{julia} sex_sigma_mdr`-fold; ours is nowhere near that. That is not a unit-dependent curiosity like the intercept's σ = 1. That is a question about sparrows, and the honest answer is not disproved, it is not detected: the interval includes 1, and this sample could not have told us about a sex difference smaller than `{julia} sex_sigma_mdr`-fold even if one were sitting right there in the birds. Two referees, arriving from different directions, agreeing.
+
+**Itchy:** *(chalk, not keyboard)* Let me put that last sentence on the board instead of in your ears.
+
+```{julia}
+#| label: fig-sigma-sex-ratio
+#| fig-cap: "The male:female ratio of residual SD from fit3 (Sex in σ), with its 95% interval. The dashed line at 1 marks equal dispersion — no sex difference in spread. The interval straddles it: not disproved, not detected."
+fig = Figure(size = (300, 380))
+ax = Axis(fig[1, 1];
+    xticks = ([1], ["male : female"]),
+    ylabel = "residual-SD ratio",
+    title = "Sex effect on spread (fit3)")
+xlims!(ax, 0.5, 1.5)
+hlines!(ax, [1.0]; linestyle = :dash, color = (:grey, 0.6))
+rangebars!(ax, [1], [sex_sigma_lo], [sex_sigma_hi]; whiskerwidth = 14, color = Cycled(1))
+scatter!(ax, [1], [sex_sigma_ratio]; markersize = 16, color = Cycled(1))
+fig
+```
+
+**Toto:** The dot's above the line, but the bar still crosses it.
+
+**Itchy:** That is exactly the finding, in one glance, and it took me four sentences to say it in words a minute ago. The point estimate says males vary a bit more — that dot sitting above 1 is real, it is what the fit actually returned. The bar is what tells you not to trust it yet: it reaches down past 1, so "males vary a bit more" and "no difference at all" are both still standing after `{julia} nobs(fit3)` sparrows.
 
 **Momo:** Then give me the R² for this one and I will go home.
 

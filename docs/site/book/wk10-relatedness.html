@@ -521,22 +521,24 @@ unrelated  CC0188 (sire TA14523, dam TA14549) vs CC0182 (sire VX04364, dam TA146
 of parents, a half. One parent shared, a quarter. Nothing shared,
 nothing. Now look at it.</p></div>
 <div id="cell-fig-relatedness" class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One sire with more than one mate, so the block shows 1, 1/2, 1/4 and 0 at once.</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>busy_sire <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sort</span>(sire_mates, <span class="op">:</span>n, rev <span class="op">=</span> <span class="cn">true</span>).Dad)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>rows_shown <span class="op">=</span> <span class="fu">findall</span>(<span class="op">==</span>(busy_sire), sire)[<span class="fl">1</span><span class="op">:</span><span class="fu">min</span>(<span class="kw">end</span>, <span class="fl">18</span>)]</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>Ablock <span class="op">=</span> A[rows_shown, rows_shown]</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>codes <span class="op">=</span> chicks.ChickNo[rows_shown]</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">480</span>))</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"chick"</span>, ylabel <span class="op">=</span> <span class="st">"chick"</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"relatedness among </span><span class="sc">$</span>(<span class="fu">length</span>(rows_shown))<span class="st"> chicks of one sire"</span>,</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(codes), codes), yticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(codes), codes),</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    xticklabelrotation <span class="op">=</span> <span class="cn">pi</span> <span class="op">/</span> <span class="fl">2</span>, xticklabelsize <span class="op">=</span> <span class="fl">8</span>, yticklabelsize <span class="op">=</span> <span class="fl">8</span>,</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    yreversed <span class="op">=</span> <span class="cn">true</span>)</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>hm <span class="op">=</span> <span class="fu">heatmap!</span>(ax, <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(rows_shown), <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(rows_shown), Ablock<span class="op">'</span>;</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    colorrange <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">1</span>))</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], hm; label <span class="op">=</span> <span class="st">"A"</span>)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One sire with more than one mate: the block shows 1 (self), 1/2 (full sibs, same</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># dam too) and 1/4 (half sibs, a different dam) -- never 0, because every row here</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># shares this one father, so no pair in this slice can be unrelated.</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>busy_sire <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sort</span>(sire_mates, <span class="op">:</span>n, rev <span class="op">=</span> <span class="cn">true</span>).Dad)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>rows_shown <span class="op">=</span> <span class="fu">findall</span>(<span class="op">==</span>(busy_sire), sire)[<span class="fl">1</span><span class="op">:</span><span class="fu">min</span>(<span class="kw">end</span>, <span class="fl">18</span>)]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>Ablock <span class="op">=</span> A[rows_shown, rows_shown]</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>codes <span class="op">=</span> chicks.ChickNo[rows_shown]</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">480</span>))</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"chick"</span>, ylabel <span class="op">=</span> <span class="st">"chick"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"relatedness among </span><span class="sc">$</span>(<span class="fu">length</span>(rows_shown))<span class="st"> chicks of one sire"</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(codes), codes), yticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(codes), codes),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    xticklabelrotation <span class="op">=</span> <span class="cn">pi</span> <span class="op">/</span> <span class="fl">2</span>, xticklabelsize <span class="op">=</span> <span class="fl">8</span>, yticklabelsize <span class="op">=</span> <span class="fl">8</span>,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    yreversed <span class="op">=</span> <span class="cn">true</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>hm <span class="op">=</span> <span class="fu">heatmap!</span>(ax, <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(rows_shown), <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(rows_shown), Ablock<span class="op">'</span>;</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    colorrange <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">1</span>))</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], hm; label <span class="op">=</span> <span class="st">"A"</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div id="fig-relatedness" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -1460,6 +1462,39 @@ ago when I refused to fob you off with the residual divisor. REML on the
 same datasets is closer, and the paired difference — same data, two
 estimators — is 0.0043, which is the same size as the gap the real
 sparrows showed.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Look at where each one lands against the truth, not just at the table,
+because a whisker this narrow next to a gap this size is the whole
+argument in one picture.</p></div>
+<div id="cell-fig-reml-price" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mc_ci</span>(v) <span class="op">=</span> (<span class="fu">mean</span>(v) <span class="op">-</span> z95 <span class="op">*</span> <span class="fu">mcse</span>(v), <span class="fu">mean</span>(v) <span class="op">+</span> z95 <span class="op">*</span> <span class="fu">mcse</span>(v))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>ci_ml, ci_reml <span class="op">=</span> <span class="fu">mc_ci</span>(w1.est), <span class="fu">mc_ci</span>(w1.est_reml)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>col_ml, col_reml <span class="op">=</span> Makie.<span class="fu">wong_colors</span>()[<span class="fl">1</span>], Makie.<span class="fu">wong_colors</span>()[<span class="fl">2</span>]</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">420</span>, <span class="fl">360</span>))</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"ML"</span>, <span class="st">"REML"</span>]), ylabel <span class="op">=</span> <span class="st">"mean h² over 500 replicates"</span>,</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the price of ML, world 1"</span>)</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="co"># truth drawn first, estimates drawn last, so no estimate is ever painted over</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [truth1]; color <span class="op">=</span> <span class="op">:</span>black, linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">1.5</span>, label <span class="op">=</span> <span class="st">"truth (simulated)"</span>)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax, [<span class="fl">1</span>], [ci_ml[<span class="fl">1</span>]], [ci_ml[<span class="fl">2</span>]]; whiskerwidth <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> col_ml)</span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax, [<span class="fl">2</span>], [ci_reml[<span class="fl">1</span>]], [ci_reml[<span class="fl">2</span>]]; whiskerwidth <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> col_reml)</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, [<span class="fl">1</span>], [<span class="fu">mean</span>(w1.est)]; markersize <span class="op">=</span> <span class="fl">12</span>, color <span class="op">=</span> col_ml, label <span class="op">=</span> <span class="st">"ML mean"</span>)</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, [<span class="fl">2</span>], [<span class="fu">mean</span>(w1.est_reml)]; markersize <span class="op">=</span> <span class="fl">12</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> col_reml, label <span class="op">=</span> <span class="st">"REML mean"</span>)</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<div id="fig-reml-price" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-reml-price-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk10-relatedness_files/figure-html/fig-reml-price-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-reml-price-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: World 1 (genes only, no brood): the mean estimated h² by maximum likelihood and by REML across the same 500 simulated datasets, each with a 95% interval for that MEAN (±z × its own Monte Carlo SE — an interval for how well the average is known, not for a single dataset). The dashed line is the truth used to simulate the data. Both intervals are far narrower than the gap between them and the truth: a measured, repeatable shift, not Monte Carlo noise.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <div class="line"><span class="who momo">Momo</span><p>So the number we are going to report is low by about 3.3%, and we cannot
 fix it, because the engine will not fit REML on this route.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Say which number you mean. That one is what this simulation measures for
@@ -1473,66 +1508,66 @@ brood-sharing matrix cannot be untangled by a single change of
 coordinates the way the pedigree and the residual can — but a single
 real-data comparison is one such grind, twice, by the same code with one
 line changed, exactly as above.</p></div>
-<div id="reml-two-component" class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The rotation shortcut above needs every matrix in the model to line up on the same</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co"># axes. That holds for ONE structured term (the animal-only model has only A); it does</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># not hold for two -- A and the brood-sharing matrix cannot be lined up together, so</span></span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># every two-component refit works on the full n x n matrix. That rules out a recovery STUDY at this cost across replicates;</span></span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="co"># it does not rule out ONE real-data comparison, run once rather than five hundred</span></span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="co"># times, by the same code with `reml` flipped.</span></span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>Bshare <span class="op">=</span> <span class="fu">Float64</span>.(chicks.BroodNo <span class="op">.==</span> <span class="fu">permutedims</span>(chicks.BroodNo))</span>
-<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="st">Dense profile log-likelihood of the two-component model at (h_a, h_b), the shares</span></span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="st">of total variance from A and from the brood. No rotation shortcut applies here,</span></span>
-<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a><span class="st">so every evaluation works on the full n x n matrix.</span></span>
-<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">profile_ll_dense</span>(y, h_a, h_b; reml <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> h_a <span class="op">.*</span> A <span class="op">.+</span> h_b <span class="op">.*</span> Bshare</span>
-<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>    W[<span class="fu">diagind</span>(W)] <span class="op">.+=</span> (<span class="fl">1</span> <span class="op">-</span> h_a <span class="op">-</span> h_b)</span>
-<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>    Wc <span class="op">=</span> <span class="fu">cholesky</span>(<span class="fu">Symmetric</span>(W))</span>
-<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>    b  <span class="op">=</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">\</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> y))</span>
-<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>    r  <span class="op">=</span> y <span class="op">-</span> Xdes <span class="op">*</span> b</span>
-<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>    m  <span class="op">=</span> reml ? n <span class="op">-</span> p_fixed <span class="op">:</span> n</span>
-<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>    s2 <span class="op">=</span> <span class="fu">dot</span>(r, Wc <span class="op">\</span> r) <span class="op">/</span> m</span>
-<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>    ll <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (m <span class="op">*</span> <span class="fu">log</span>(s2) <span class="op">+</span> <span class="fu">logdet</span>(Wc) <span class="op">+</span> m <span class="op">+</span> m <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>π))</span>
-<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> reml ? ll <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">logdet</span>(Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">:</span> ll</span>
-<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a><span class="st">"Total variance at (h_a, h_b), so sigma_A, sigma_B and sigma can be read back off."</span></span>
-<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">total_var_dense</span>(y, h_a, h_b; reml <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> h_a <span class="op">.*</span> A <span class="op">.+</span> h_b <span class="op">.*</span> Bshare</span>
-<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>    W[<span class="fu">diagind</span>(W)] <span class="op">.+=</span> (<span class="fl">1</span> <span class="op">-</span> h_a <span class="op">-</span> h_b)</span>
-<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>    Wc <span class="op">=</span> <span class="fu">cholesky</span>(<span class="fu">Symmetric</span>(W))</span>
-<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>    b  <span class="op">=</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">\</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> y))</span>
-<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>    r  <span class="op">=</span> y <span class="op">-</span> Xdes <span class="op">*</span> b</span>
-<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">dot</span>(r, Wc <span class="op">\</span> r) <span class="op">/</span> (reml ? n <span class="op">-</span> p_fixed <span class="op">:</span> n)</span>
-<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a><span class="st">"Coordinate ascent: alternate golden section on h_a then h_b until both settle."</span></span>
-<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">fit_two</span>(y; reml <span class="op">=</span> <span class="cn">false</span>, ha0 <span class="op">=</span> h2_full.estimate, hb0 <span class="op">=</span> brood_full.estimate)</span>
-<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>    ha, hb <span class="op">=</span> ha0, hb0</span>
-<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span></span>
-<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>        ha <span class="op">=</span> <span class="fu">golden</span>(h <span class="op">-&gt;</span> <span class="fu">profile_ll_dense</span>(y, h, hb; reml <span class="op">=</span> reml), <span class="fu">max</span>(ha <span class="op">-</span> <span class="fl">0.03</span>, <span class="fl">1e-4</span>), ha <span class="op">+</span> <span class="fl">0.03</span>)</span>
-<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>        hb <span class="op">=</span> <span class="fu">golden</span>(h <span class="op">-&gt;</span> <span class="fu">profile_ll_dense</span>(y, ha, h; reml <span class="op">=</span> reml),</span>
-<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">max</span>(hb <span class="op">-</span> <span class="fl">0.05</span>, <span class="fl">1e-4</span>), <span class="fu">min</span>(hb <span class="op">+</span> <span class="fl">0.05</span>, <span class="fl">0.999</span> <span class="op">-</span> ha))</span>
-<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a>    s2 <span class="op">=</span> <span class="fu">total_var_dense</span>(y, ha, hb; reml <span class="op">=</span> reml)</span>
-<span id="cb42-45"><a href="#cb42-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (h2 <span class="op">=</span> ha, brood <span class="op">=</span> hb, s2 <span class="op">=</span> s2, ll <span class="op">=</span> <span class="fu">profile_ll_dense</span>(y, ha, hb; reml <span class="op">=</span> reml))</span>
-<span id="cb42-46"><a href="#cb42-46" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb42-47"><a href="#cb42-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-48"><a href="#cb42-48" aria-hidden="true" tabindex="-1"></a>y_mass   <span class="op">=</span> <span class="fu">Float64</span>.(chicks.Mass2)</span>
-<span id="cb42-49"><a href="#cb42-49" aria-hidden="true" tabindex="-1"></a>two_ml   <span class="op">=</span> <span class="fu">fit_two</span>(y_mass; reml <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb42-50"><a href="#cb42-50" aria-hidden="true" tabindex="-1"></a>two_reml <span class="op">=</span> <span class="fu">fit_two</span>(y_mass; reml <span class="op">=</span> <span class="cn">true</span>)</span>
-<span id="cb42-51"><a href="#cb42-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-52"><a href="#cb42-52" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"two-component, real data   %10s %10s %10s %14s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"h2"</span>, <span class="st">"brood"</span>, <span class="st">"sigma_A"</span>, <span class="st">"logLik"</span>)</span>
-<span id="cb42-53"><a href="#cb42-53" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ML  (checks full_model)  %10.6f %10.6f %10.5f %14.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb42-54"><a href="#cb42-54" aria-hidden="true" tabindex="-1"></a>        two_ml.h2, two_ml.brood, <span class="fu">sqrt</span>(two_ml.h2 <span class="op">*</span> two_ml.s2), two_ml.ll)</span>
-<span id="cb42-55"><a href="#cb42-55" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  REML                     %10.6f %10.6f %10.5f %14.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb42-56"><a href="#cb42-56" aria-hidden="true" tabindex="-1"></a>        two_reml.h2, two_reml.brood, <span class="fu">sqrt</span>(two_reml.h2 <span class="op">*</span> two_reml.s2), two_reml.ll)</span>
-<span id="cb42-57"><a href="#cb42-57" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>()</span>
-<span id="cb42-58"><a href="#cb42-58" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 REML / ML on the two-component fit : %.5f  (%+.1f%% of the ML value)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb42-59"><a href="#cb42-59" aria-hidden="true" tabindex="-1"></a>        two_reml.h2 <span class="op">/</span> two_ml.h2, <span class="fl">100</span> <span class="op">*</span> (two_reml.h2 <span class="op">/</span> two_ml.h2 <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="reml-two-component" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The rotation shortcut above needs every matrix in the model to line up on the same</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># axes. That holds for ONE structured term (the animal-only model has only A); it does</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co"># not hold for two -- A and the brood-sharing matrix cannot be lined up together, so</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># every two-component refit works on the full n x n matrix. That rules out a recovery STUDY at this cost across replicates;</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co"># it does not rule out ONE real-data comparison, run once rather than five hundred</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="co"># times, by the same code with `reml` flipped.</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>Bshare <span class="op">=</span> <span class="fu">Float64</span>.(chicks.BroodNo <span class="op">.==</span> <span class="fu">permutedims</span>(chicks.BroodNo))</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="st">Dense profile log-likelihood of the two-component model at (h_a, h_b), the shares</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a><span class="st">of total variance from A and from the brood. No rotation shortcut applies here,</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a><span class="st">so every evaluation works on the full n x n matrix.</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">profile_ll_dense</span>(y, h_a, h_b; reml <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> h_a <span class="op">.*</span> A <span class="op">.+</span> h_b <span class="op">.*</span> Bshare</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>    W[<span class="fu">diagind</span>(W)] <span class="op">.+=</span> (<span class="fl">1</span> <span class="op">-</span> h_a <span class="op">-</span> h_b)</span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>    Wc <span class="op">=</span> <span class="fu">cholesky</span>(<span class="fu">Symmetric</span>(W))</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>    b  <span class="op">=</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">\</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> y))</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>    r  <span class="op">=</span> y <span class="op">-</span> Xdes <span class="op">*</span> b</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    m  <span class="op">=</span> reml ? n <span class="op">-</span> p_fixed <span class="op">:</span> n</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>    s2 <span class="op">=</span> <span class="fu">dot</span>(r, Wc <span class="op">\</span> r) <span class="op">/</span> m</span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>    ll <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (m <span class="op">*</span> <span class="fu">log</span>(s2) <span class="op">+</span> <span class="fu">logdet</span>(Wc) <span class="op">+</span> m <span class="op">+</span> m <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>π))</span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> reml ? ll <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">logdet</span>(Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">:</span> ll</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a><span class="st">"Total variance at (h_a, h_b), so sigma_A, sigma_B and sigma can be read back off."</span></span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">total_var_dense</span>(y, h_a, h_b; reml <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> h_a <span class="op">.*</span> A <span class="op">.+</span> h_b <span class="op">.*</span> Bshare</span>
+<span id="cb43-29"><a href="#cb43-29" aria-hidden="true" tabindex="-1"></a>    W[<span class="fu">diagind</span>(W)] <span class="op">.+=</span> (<span class="fl">1</span> <span class="op">-</span> h_a <span class="op">-</span> h_b)</span>
+<span id="cb43-30"><a href="#cb43-30" aria-hidden="true" tabindex="-1"></a>    Wc <span class="op">=</span> <span class="fu">cholesky</span>(<span class="fu">Symmetric</span>(W))</span>
+<span id="cb43-31"><a href="#cb43-31" aria-hidden="true" tabindex="-1"></a>    b  <span class="op">=</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> Xdes)) <span class="op">\</span> (Xdes<span class="op">'</span> <span class="op">*</span> (Wc <span class="op">\</span> y))</span>
+<span id="cb43-32"><a href="#cb43-32" aria-hidden="true" tabindex="-1"></a>    r  <span class="op">=</span> y <span class="op">-</span> Xdes <span class="op">*</span> b</span>
+<span id="cb43-33"><a href="#cb43-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">dot</span>(r, Wc <span class="op">\</span> r) <span class="op">/</span> (reml ? n <span class="op">-</span> p_fixed <span class="op">:</span> n)</span>
+<span id="cb43-34"><a href="#cb43-34" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb43-35"><a href="#cb43-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-36"><a href="#cb43-36" aria-hidden="true" tabindex="-1"></a><span class="st">"Coordinate ascent: alternate golden section on h_a then h_b until both settle."</span></span>
+<span id="cb43-37"><a href="#cb43-37" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">fit_two</span>(y; reml <span class="op">=</span> <span class="cn">false</span>, ha0 <span class="op">=</span> h2_full.estimate, hb0 <span class="op">=</span> brood_full.estimate)</span>
+<span id="cb43-38"><a href="#cb43-38" aria-hidden="true" tabindex="-1"></a>    ha, hb <span class="op">=</span> ha0, hb0</span>
+<span id="cb43-39"><a href="#cb43-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span></span>
+<span id="cb43-40"><a href="#cb43-40" aria-hidden="true" tabindex="-1"></a>        ha <span class="op">=</span> <span class="fu">golden</span>(h <span class="op">-&gt;</span> <span class="fu">profile_ll_dense</span>(y, h, hb; reml <span class="op">=</span> reml), <span class="fu">max</span>(ha <span class="op">-</span> <span class="fl">0.03</span>, <span class="fl">1e-4</span>), ha <span class="op">+</span> <span class="fl">0.03</span>)</span>
+<span id="cb43-41"><a href="#cb43-41" aria-hidden="true" tabindex="-1"></a>        hb <span class="op">=</span> <span class="fu">golden</span>(h <span class="op">-&gt;</span> <span class="fu">profile_ll_dense</span>(y, ha, h; reml <span class="op">=</span> reml),</span>
+<span id="cb43-42"><a href="#cb43-42" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">max</span>(hb <span class="op">-</span> <span class="fl">0.05</span>, <span class="fl">1e-4</span>), <span class="fu">min</span>(hb <span class="op">+</span> <span class="fl">0.05</span>, <span class="fl">0.999</span> <span class="op">-</span> ha))</span>
+<span id="cb43-43"><a href="#cb43-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb43-44"><a href="#cb43-44" aria-hidden="true" tabindex="-1"></a>    s2 <span class="op">=</span> <span class="fu">total_var_dense</span>(y, ha, hb; reml <span class="op">=</span> reml)</span>
+<span id="cb43-45"><a href="#cb43-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (h2 <span class="op">=</span> ha, brood <span class="op">=</span> hb, s2 <span class="op">=</span> s2, ll <span class="op">=</span> <span class="fu">profile_ll_dense</span>(y, ha, hb; reml <span class="op">=</span> reml))</span>
+<span id="cb43-46"><a href="#cb43-46" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb43-47"><a href="#cb43-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-48"><a href="#cb43-48" aria-hidden="true" tabindex="-1"></a>y_mass   <span class="op">=</span> <span class="fu">Float64</span>.(chicks.Mass2)</span>
+<span id="cb43-49"><a href="#cb43-49" aria-hidden="true" tabindex="-1"></a>two_ml   <span class="op">=</span> <span class="fu">fit_two</span>(y_mass; reml <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb43-50"><a href="#cb43-50" aria-hidden="true" tabindex="-1"></a>two_reml <span class="op">=</span> <span class="fu">fit_two</span>(y_mass; reml <span class="op">=</span> <span class="cn">true</span>)</span>
+<span id="cb43-51"><a href="#cb43-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-52"><a href="#cb43-52" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"two-component, real data   %10s %10s %10s %14s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"h2"</span>, <span class="st">"brood"</span>, <span class="st">"sigma_A"</span>, <span class="st">"logLik"</span>)</span>
+<span id="cb43-53"><a href="#cb43-53" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ML  (checks full_model)  %10.6f %10.6f %10.5f %14.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb43-54"><a href="#cb43-54" aria-hidden="true" tabindex="-1"></a>        two_ml.h2, two_ml.brood, <span class="fu">sqrt</span>(two_ml.h2 <span class="op">*</span> two_ml.s2), two_ml.ll)</span>
+<span id="cb43-55"><a href="#cb43-55" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  REML                     %10.6f %10.6f %10.5f %14.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb43-56"><a href="#cb43-56" aria-hidden="true" tabindex="-1"></a>        two_reml.h2, two_reml.brood, <span class="fu">sqrt</span>(two_reml.h2 <span class="op">*</span> two_reml.s2), two_reml.ll)</span>
+<span id="cb43-57"><a href="#cb43-57" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>()</span>
+<span id="cb43-58"><a href="#cb43-58" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 REML / ML on the two-component fit : %.5f  (%+.1f%% of the ML value)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb43-59"><a href="#cb43-59" aria-hidden="true" tabindex="-1"></a>        two_reml.h2 <span class="op">/</span> two_ml.h2, <span class="fl">100</span> <span class="op">*</span> (two_reml.h2 <span class="op">/</span> two_ml.h2 <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>two-component, real data           h2      brood    sigma_A         logLik
   ML  (checks full_model)    0.053374   0.392685    0.27451     -2513.5437
@@ -1563,32 +1598,38 @@ supposed to do. So the design is not hopeless. It is
 <strong>specific</strong>: it can measure additive genetic variance, and
 it cannot tell that variance apart from anything else that makes full
 sibs alike. Draw all three.</p></div>
-<div id="cell-fig-recovery" class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histograms drawn by hand rather than with hist!, so the bins are stated in the</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co"># cell and the three worlds share them exactly.</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>edges <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0.0</span>, <span class="fl">0.45</span>, length <span class="op">=</span> <span class="fl">46</span>)</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>mids  <span class="op">=</span> (edges[<span class="fl">1</span><span class="op">:</span><span class="kw">end</span><span class="op">-</span><span class="fl">1</span>] <span class="op">.+</span> edges[<span class="fl">2</span><span class="op">:</span><span class="kw">end</span>]) <span class="op">./</span> <span class="fl">2</span></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="fu">count_in</span>(v) <span class="op">=</span> [<span class="fu">count</span>(x <span class="op">-&gt;</span> edges[b] <span class="op">&lt;=</span> x <span class="op">&lt;</span> edges[b <span class="op">+</span> <span class="fl">1</span>], v) for b <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(mids)]</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">620</span>, <span class="fl">400</span>))</span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"estimated h² from the animal-only model"</span>,</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"replicates"</span>, title <span class="op">=</span> <span class="st">"</span><span class="sc">$</span>(n_rep)<span class="st"> simulated datasets per world, one estimator"</span>)</span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k, (w, r, truth)) <span class="kw">in</span> <span class="fu">enumerate</span>(<span class="fu">zip</span>(worlds, results, truths))</span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    col <span class="op">=</span> Makie.<span class="fu">wong_colors</span>()[k]</span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, mids, <span class="fu">Float64</span>.(<span class="fu">count_in</span>(r.est)); color <span class="op">=</span> col, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> w[<span class="fl">1</span>])</span>
-<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vlines!</span>(ax, [truth]; color <span class="op">=</span> col, linewidth <span class="op">=</span> <span class="fl">1.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash)</span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [h2_naive.estimate]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">2.5</span>)</span>
-<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="37">
+<div id="cell-fig-recovery" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histograms drawn by hand rather than with hist!, so the bins are stated in the</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co"># cell and the three worlds share them exactly.</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>edges <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0.0</span>, <span class="fl">0.45</span>, length <span class="op">=</span> <span class="fl">46</span>)</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>mids  <span class="op">=</span> (edges[<span class="fl">1</span><span class="op">:</span><span class="kw">end</span><span class="op">-</span><span class="fl">1</span>] <span class="op">.+</span> edges[<span class="fl">2</span><span class="op">:</span><span class="kw">end</span>]) <span class="op">./</span> <span class="fl">2</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="fu">count_in</span>(v) <span class="op">=</span> [<span class="fu">count</span>(x <span class="op">-&gt;</span> edges[b] <span class="op">&lt;=</span> x <span class="op">&lt;</span> edges[b <span class="op">+</span> <span class="fl">1</span>], v) for b <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(mids)]</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">620</span>, <span class="fl">400</span>))</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"estimated h² from the animal-only model"</span>,</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"replicates"</span>, title <span class="op">=</span> <span class="st">"</span><span class="sc">$</span>(n_rep)<span class="st"> simulated datasets per world, one estimator"</span>)</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>styles <span class="op">=</span> [<span class="op">:</span>solid, <span class="op">:</span>dash, <span class="op">:</span>dot]  <span class="co"># colour is not the only channel: greyscale-legible too</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k, (w, r, truth)) <span class="kw">in</span> <span class="fu">enumerate</span>(<span class="fu">zip</span>(worlds, results, truths))</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>    col <span class="op">=</span> Makie.<span class="fu">wong_colors</span>()[k]</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, mids, <span class="fu">Float64</span>.(<span class="fu">count_in</span>(r.est)); color <span class="op">=</span> col, linewidth <span class="op">=</span> <span class="fl">2</span>,</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>        linestyle <span class="op">=</span> styles[k], label <span class="op">=</span> w[<span class="fl">1</span>])</span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> k <span class="op">==</span> <span class="fl">1</span></span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">vlines!</span>(ax, [truth]; color <span class="op">=</span> col, linewidth <span class="op">=</span> <span class="fl">1.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dashdot, label <span class="op">=</span> <span class="st">"truth"</span>)</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">vlines!</span>(ax, [truth]; color <span class="op">=</span> col, linewidth <span class="op">=</span> <span class="fl">1.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dashdot)</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [h2_naive.estimate]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">2.5</span>, label <span class="op">=</span> <span class="st">"real sparrows, h²"</span>)</span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="39">
 <div id="fig-recovery" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-recovery-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk10-relatedness_files/figure-html/fig-recovery-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-recovery-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Histograms of estimated h² from the animal-only model, one per simulated world — no nest effect, a large nest effect, and no heritability at all — each with its own truth marked by a dashed line in its colour, and the h² the real sparrows actually gave marked by the solid black line. That line sits inside all three distributions: one variance ratio from one fit cannot tell the worlds apart, only a second variance component can.
+Figure&nbsp;5: Histograms of estimated h² from the animal-only model, one per simulated world — no nest effect, a large nest effect, and no heritability at all — distinguished by colour AND line style, each with its own truth marked by a dash-dot line in its colour (legend: ‘truth’), and the h² the real sparrows actually gave marked by the solid black line. World 1’s truth is, by construction, exactly the naive fit’s own estimate, so its dash-dot line sits exactly under the solid black one and only the black line shows there — that is not an error, the two values really are identical. That line sits inside all three distributions: one variance ratio from one fit cannot tell the worlds apart, only a second variance component can.
 </figcaption>
 </figure>
 </div>
@@ -1625,41 +1666,41 @@ Cousins. Anything two steps away.</p></div>
 common environment attached, and every such pair is a lever prying the
 two apart. Count it properly — in pairs, not in families and broods,
 because the information lives in the pairs.</p></div>
-<div id="leverage-pairs" class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># "Families" and "broods" count GROUPS. The leverage that separates genes from</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co"># nest lives in PAIRS: a related pair that does NOT share a brood is a lever --</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># it carries covariance the pedigree predicts with no common environment attached.</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># One pass over A and the brood ids counts every pair by both criteria at once.</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">count_pairs</span>(A, brood, n)</span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>    full_same <span class="op">=</span> <span class="fl">0</span>; full_diff <span class="op">=</span> <span class="fl">0</span>; half_same <span class="op">=</span> <span class="fl">0</span>; half_diff <span class="op">=</span> <span class="fl">0</span>; unrel_same <span class="op">=</span> <span class="fl">0</span></span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n, j <span class="kw">in</span> (i <span class="op">+</span> <span class="fl">1</span>)<span class="op">:</span>n</span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>        sb <span class="op">=</span> brood[i] <span class="op">==</span> brood[j]</span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> A[i, j] <span class="op">==</span> <span class="fl">0.5</span></span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>            sb ? (full_same <span class="op">+=</span> <span class="fl">1</span>) <span class="op">:</span> (full_diff <span class="op">+=</span> <span class="fl">1</span>)</span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> A[i, j] <span class="op">==</span> <span class="fl">0.25</span></span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>            sb ? (half_same <span class="op">+=</span> <span class="fl">1</span>) <span class="op">:</span> (half_diff <span class="op">+=</span> <span class="fl">1</span>)</span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> sb</span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>            unrel_same <span class="op">+=</span> <span class="fl">1</span></span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (full_same <span class="op">=</span> full_same, full_diff <span class="op">=</span> full_diff,</span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>            half_same <span class="op">=</span> half_same, half_diff <span class="op">=</span> half_diff, unrel_same <span class="op">=</span> unrel_same)</span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>pc <span class="op">=</span> <span class="fu">count_pairs</span>(A, chicks.BroodNo, n)</span>
-<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>n_related    <span class="op">=</span> pc.full_same <span class="op">+</span> pc.full_diff <span class="op">+</span> pc.half_same <span class="op">+</span> pc.half_diff</span>
-<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>diff_related <span class="op">=</span> pc.full_diff <span class="op">+</span> pc.half_diff</span>
-<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8s %10s %16s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"pair type"</span>, <span class="st">"total"</span>, <span class="st">"same brood"</span>, <span class="st">"different brood"</span>)</span>
-<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"full sibs (A = 1/2)"</span>,</span>
-<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>        pc.full_same <span class="op">+</span> pc.full_diff, pc.full_same, pc.full_diff,</span>
-<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> pc.full_diff <span class="op">/</span> (pc.full_same <span class="op">+</span> pc.full_diff))</span>
-<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"half sibs (A = 1/4)"</span>,</span>
-<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>        pc.half_same <span class="op">+</span> pc.half_diff, pc.half_same, pc.half_diff,</span>
-<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> pc.half_diff <span class="op">/</span> (pc.half_same <span class="op">+</span> pc.half_diff))</span>
-<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"any relatives"</span>,</span>
-<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>        n_related, pc.full_same <span class="op">+</span> pc.half_same, diff_related, <span class="fl">100</span> <span class="op">*</span> diff_related <span class="op">/</span> n_related)</span>
-<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unrelated pairs that DO share a brood: %d</span><span class="sc">\n</span><span class="st">"</span>, pc.unrel_same)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="leverage-pairs" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># "Families" and "broods" count GROUPS. The leverage that separates genes from</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="co"># nest lives in PAIRS: a related pair that does NOT share a brood is a lever --</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="co"># it carries covariance the pedigree predicts with no common environment attached.</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># One pass over A and the brood ids counts every pair by both criteria at once.</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">count_pairs</span>(A, brood, n)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    full_same <span class="op">=</span> <span class="fl">0</span>; full_diff <span class="op">=</span> <span class="fl">0</span>; half_same <span class="op">=</span> <span class="fl">0</span>; half_diff <span class="op">=</span> <span class="fl">0</span>; unrel_same <span class="op">=</span> <span class="fl">0</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n, j <span class="kw">in</span> (i <span class="op">+</span> <span class="fl">1</span>)<span class="op">:</span>n</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>        sb <span class="op">=</span> brood[i] <span class="op">==</span> brood[j]</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> A[i, j] <span class="op">==</span> <span class="fl">0.5</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>            sb ? (full_same <span class="op">+=</span> <span class="fl">1</span>) <span class="op">:</span> (full_diff <span class="op">+=</span> <span class="fl">1</span>)</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> A[i, j] <span class="op">==</span> <span class="fl">0.25</span></span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>            sb ? (half_same <span class="op">+=</span> <span class="fl">1</span>) <span class="op">:</span> (half_diff <span class="op">+=</span> <span class="fl">1</span>)</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elseif</span> sb</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>            unrel_same <span class="op">+=</span> <span class="fl">1</span></span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (full_same <span class="op">=</span> full_same, full_diff <span class="op">=</span> full_diff,</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>            half_same <span class="op">=</span> half_same, half_diff <span class="op">=</span> half_diff, unrel_same <span class="op">=</span> unrel_same)</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a>pc <span class="op">=</span> <span class="fu">count_pairs</span>(A, chicks.BroodNo, n)</span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>n_related    <span class="op">=</span> pc.full_same <span class="op">+</span> pc.full_diff <span class="op">+</span> pc.half_same <span class="op">+</span> pc.half_diff</span>
+<span id="cb46-23"><a href="#cb46-23" aria-hidden="true" tabindex="-1"></a>diff_related <span class="op">=</span> pc.full_diff <span class="op">+</span> pc.half_diff</span>
+<span id="cb46-24"><a href="#cb46-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-25"><a href="#cb46-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8s %10s %16s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"pair type"</span>, <span class="st">"total"</span>, <span class="st">"same brood"</span>, <span class="st">"different brood"</span>)</span>
+<span id="cb46-26"><a href="#cb46-26" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"full sibs (A = 1/2)"</span>,</span>
+<span id="cb46-27"><a href="#cb46-27" aria-hidden="true" tabindex="-1"></a>        pc.full_same <span class="op">+</span> pc.full_diff, pc.full_same, pc.full_diff,</span>
+<span id="cb46-28"><a href="#cb46-28" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> pc.full_diff <span class="op">/</span> (pc.full_same <span class="op">+</span> pc.full_diff))</span>
+<span id="cb46-29"><a href="#cb46-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"half sibs (A = 1/4)"</span>,</span>
+<span id="cb46-30"><a href="#cb46-30" aria-hidden="true" tabindex="-1"></a>        pc.half_same <span class="op">+</span> pc.half_diff, pc.half_same, pc.half_diff,</span>
+<span id="cb46-31"><a href="#cb46-31" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> pc.half_diff <span class="op">/</span> (pc.half_same <span class="op">+</span> pc.half_diff))</span>
+<span id="cb46-32"><a href="#cb46-32" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %8d %10d %11d (%.1f%%)</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"any relatives"</span>,</span>
+<span id="cb46-33"><a href="#cb46-33" aria-hidden="true" tabindex="-1"></a>        n_related, pc.full_same <span class="op">+</span> pc.half_same, diff_related, <span class="fl">100</span> <span class="op">*</span> diff_related <span class="op">/</span> n_related)</span>
+<span id="cb46-34"><a href="#cb46-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unrelated pairs that DO share a brood: %d</span><span class="sc">\n</span><span class="st">"</span>, pc.unrel_same)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>pair type                   total same brood  different brood
 full sibs (A = 1/2)         11423       1598        9825 (86.0%)
@@ -1690,11 +1731,11 @@ fit anything.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>Class 6 said repeatability caps heritability. Use that. It is free.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>It is free and I would love to, and this file will not give it to me.
 Count the measurements per chick.</p></div>
-<div id="no-repeatability" class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>per_chick <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(chicks, <span class="op">:</span>ChickNo), nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"measurements per chick: min %d, max %d, mean %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(per_chick.k), <span class="fu">maximum</span>(per_chick.k), <span class="fu">mean</span>(per_chick.k))</span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"chicks measured more than once: %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">count</span>(<span class="fu">&gt;</span>(<span class="fl">1</span>), per_chick.k))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="no-repeatability" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>per_chick <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(chicks, <span class="op">:</span>ChickNo), nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"measurements per chick: min %d, max %d, mean %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(per_chick.k), <span class="fu">maximum</span>(per_chick.k), <span class="fu">mean</span>(per_chick.k))</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"chicks measured more than once: %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">count</span>(<span class="fu">&gt;</span>(<span class="fl">1</span>), per_chick.k))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>measurements per chick: min 1, max 1, mean 1.0000
 chicks measured more than once: 0</code></pre>
@@ -1708,26 +1749,26 @@ quoting somebody else’s. Toto, you are about to suggest something.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Class 6 computed a repeatability from the sparrow body-size file. Use
 that one.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Compute it, so we can look at what we would be doing.</p></div>
-<div id="class6-r" class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's file, Class 6's rows, and Class 6's CEILING formula. Class 6 computes BOTH</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an adjusted and an unadjusted repeatability of wing length, hands the reader the</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ADJUSTED one, and says: match the conditioning when you quote it. Fetch the wrong</span></span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="co"># one and you have made the second mistake in the same paragraph as the first.</span></span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>adults <span class="op">=</span> <span class="fu">dropmissing</span>(CSV.<span class="fu">read</span>(<span class="st">"../data/2012/BodySize.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>),</span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>                     [<span class="op">:</span>Tarsus, <span class="op">:</span>Wing])</span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>R_adj <span class="op">=</span> <span class="fu">repeatability</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span> <span class="op">|</span> BirdID))),</span>
-<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">Gaussian</span>(); data <span class="op">=</span> adults))</span>
-<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>R_un  <span class="op">=</span> <span class="fu">repeatability</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span> <span class="op">|</span> BirdID))),</span>
-<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">Gaussian</span>(); data <span class="op">=</span> adults))</span>
-<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Class 6's file: %d measurements on %d birds</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">nrow</span>(adults), <span class="fu">length</span>(<span class="fu">unique</span>(adults.BirdID)))</span>
-<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R of adult wing, ADJUSTED for tarsus : %.4f (95%% CI %.4f to %.4f)  &lt;- Class 6's ceiling</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>        R_adj.estimate, R_adj.ci.lower, R_adj.ci.upper)</span>
-<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  bias %+.5f, bias-corrected point estimate %.4f  &lt;- what that CI is actually centred on</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>        R_adj.bias, R_adj.corrected)</span>
-<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R of adult wing, unadjusted          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_un.estimate)</span>
-<span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"today's heritability of chick mass   : h2 = %.4f</span><span class="sc">\n</span><span class="st">"</span>, h2_full.estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="class6-r" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's file, Class 6's rows, and Class 6's CEILING formula. Class 6 computes BOTH</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="co"># an adjusted and an unadjusted repeatability of wing length, hands the reader the</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ADJUSTED one, and says: match the conditioning when you quote it. Fetch the wrong</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># one and you have made the second mistake in the same paragraph as the first.</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>adults <span class="op">=</span> <span class="fu">dropmissing</span>(CSV.<span class="fu">read</span>(<span class="st">"../data/2012/BodySize.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>),</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>                     [<span class="op">:</span>Tarsus, <span class="op">:</span>Wing])</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>R_adj <span class="op">=</span> <span class="fu">repeatability</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span> <span class="op">|</span> BirdID))),</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">Gaussian</span>(); data <span class="op">=</span> adults))</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>R_un  <span class="op">=</span> <span class="fu">repeatability</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span> <span class="op">|</span> BirdID))),</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">Gaussian</span>(); data <span class="op">=</span> adults))</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Class 6's file: %d measurements on %d birds</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">nrow</span>(adults), <span class="fu">length</span>(<span class="fu">unique</span>(adults.BirdID)))</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R of adult wing, ADJUSTED for tarsus : %.4f (95%% CI %.4f to %.4f)  &lt;- Class 6's ceiling</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>        R_adj.estimate, R_adj.ci.lower, R_adj.ci.upper)</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  bias %+.5f, bias-corrected point estimate %.4f  &lt;- what that CI is actually centred on</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>        R_adj.bias, R_adj.corrected)</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R of adult wing, unadjusted          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_un.estimate)</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"today's heritability of chick mass   : h2 = %.4f</span><span class="sc">\n</span><span class="st">"</span>, h2_full.estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Class 6's file: 459 measurements on 171 birds
 R of adult wing, ADJUSTED for tarsus : 0.7189 (95% CI 0.6556 to 0.7800)  &lt;- Class 6's ceiling
@@ -1864,19 +1905,19 @@ deliberate rather than accidental.</p></div>
 <p>The check itself reaches past the public interface: <code>drmTMB:::drm_pedigree_additive_relationship</code> is an internal function, not part of drmTMB’s public interface. It is used here only to expose the matrix for comparison and is not a call to write in your own analysis — the three routes above are.</p>
 <p>The R block below was <strong>run once, by hand</strong>, with R on 2026-09-07, by the script kept at <code>data/ch10/ch10-r-box.R</code>. It is not run again when the site is built, which is why it carries a date.</p>
 </blockquote>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; not re-run when the site is built.</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="co"># drmTMB 0.7.0 / R 4.6.0. Produced by data/ch10/ch10-r-box.R,</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="co"># reading data/2012/SparrowSurvival.csv.</span></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   ped &lt;- rbind(data.frame(id = founders, dam = NA, sire = NA),</span></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                data.frame(id = d$ChickNo, dam = d$Mum, sire = d$Dad))</span></span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   A_r &lt;- drmTMB:::drm_pedigree_additive_relationship(ped)</span></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   A_r &lt;- A_r[d$ChickNo, d$ChickNo]        # the chick block, in file order</span></span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>pedigree <span class="fu">rows</span> (chicks <span class="sc">+</span> founders)<span class="sc">:</span> <span class="dv">1928</span></span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>chick block of A<span class="sc">:</span> <span class="dv">1675</span> x <span class="dv">1675</span></span>
-<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>distinct off<span class="sc">-</span>diagonal values<span class="sc">:</span> <span class="dv">0</span> <span class="fl">0.25</span> <span class="fl">0.5</span></span>
-<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>max <span class="sc">|</span>A_drmTMB <span class="sc">-</span> A_by_hand<span class="sc">|</span> over all <span class="dv">1675</span><span class="sc">^</span><span class="dv">2</span> entries<span class="sc">:</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; not re-run when the site is built.</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="co"># drmTMB 0.7.0 / R 4.6.0. Produced by data/ch10/ch10-r-box.R,</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="co"># reading data/2012/SparrowSurvival.csv.</span></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   ped &lt;- rbind(data.frame(id = founders, dam = NA, sire = NA),</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                data.frame(id = d$ChickNo, dam = d$Mum, sire = d$Dad))</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   A_r &lt;- drmTMB:::drm_pedigree_additive_relationship(ped)</span></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   A_r &lt;- A_r[d$ChickNo, d$ChickNo]        # the chick block, in file order</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>pedigree <span class="fu">rows</span> (chicks <span class="sc">+</span> founders)<span class="sc">:</span> <span class="dv">1928</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>chick block of A<span class="sc">:</span> <span class="dv">1675</span> x <span class="dv">1675</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>distinct off<span class="sc">-</span>diagonal values<span class="sc">:</span> <span class="dv">0</span> <span class="fl">0.25</span> <span class="fl">0.5</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>max <span class="sc">|</span>A_drmTMB <span class="sc">-</span> A_by_hand<span class="sc">|</span> over all <span class="dv">1675</span><span class="sc">^</span><span class="dv">2</span> entries<span class="sc">:</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Zero to the last bit, which is what you want and not what you assume.
 Two implementations of one recursion, one written in a book by a
 lecturer and one shipped in a package, agreeing exactly. When they do
@@ -1916,17 +1957,17 @@ just told it about. The matrix is a hypothesis. Test it like one.</p></div>
 <li><code>cholesky(Symmetric(A)).L</code>: how you <em>draw</em> a correlated random effect. <code>σ_A * L * randn(rng, n)</code> has covariance σ_A² A, and it is the only correct way to simulate one.</li>
 <li><strong>The simulation thread.</strong> Every chapter ends by asking the fit to invent data. Here is that cell, and it repeats Class 6’s trap because the trap is worse in this chapter, not better.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20261007</span>)     <span class="co"># a seed is a promise: the same draw every time the site is built</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(full_model; nsim <span class="op">=</span> <span class="fl">50</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> ysim <span class="op">.-</span> <span class="fu">fitted</span>(full_model)</span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed SD about the fixed part  : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(chicks.Mass2 <span class="op">.-</span> <span class="fu">fitted</span>(full_model)))</span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated SD about the fixed part : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev, <span class="fl">2</span>)))</span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"residual sigma alone              : %.4f</span><span class="sc">\n</span><span class="st">"</span>, sE)</span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(V_A + V_B + V_R)             : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(V_P))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-refit" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20261007</span>)     <span class="co"># a seed is a promise: the same draw every time the site is built</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(full_model; nsim <span class="op">=</span> <span class="fl">50</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> ysim <span class="op">.-</span> <span class="fu">fitted</span>(full_model)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed SD about the fixed part  : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(chicks.Mass2 <span class="op">.-</span> <span class="fu">fitted</span>(full_model)))</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated SD about the fixed part : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev, <span class="fl">2</span>)))</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"residual sigma alone              : %.4f</span><span class="sc">\n</span><span class="st">"</span>, sE)</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(V_A + V_B + V_R)             : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(V_P))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>observed SD about the fixed part  : 1.1820
 simulated SD about the fixed part : 0.8857

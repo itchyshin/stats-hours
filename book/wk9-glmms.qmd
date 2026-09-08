@@ -255,6 +255,32 @@ println("\nvc(glmm_fit): ", vc(glmm_fit))
 
 **Itchy:** Nothing in the data does, and that is exactly why the number needs a label. Class 6 divided the between-bird variance by the between-bird variance plus σ², and σ was a real spread in real millimetres. Here there is no σ. The family spent it. So to get a ratio at all you have to invent a denominator, and the standard move is to imagine a **latent** continuous variable underneath the coin flip: the chick has a hidden propensity, it survives if the propensity clears a threshold, and a logit link is what you get when that hidden propensity has a standard logistic distribution. A standard logistic distribution has variance π²/3. That is the whole derivation, and Nakagawa and Schielzeth (2010) work it through properly along with the alternatives.
 
+**Eddie:** I still cannot picture "hidden propensity" from a sentence.
+
+**Itchy:** Then stop trying to picture the coin flip and picture what is underneath it. Same shape every time — a standard logistic curve, the one that gave you π²/3 — just slid sideways by however far that brood's own u_j pushes it. Slide it far enough and the whole curve ends up on one side of the line.
+
+```{julia}
+#| label: fig-latent-threshold
+#| fig-cap: "The logit link as a threshold on a hidden scale. Each curve is the same standard logistic density — one chick's own luck, the assumed distribution behind π²/3 — centred at a different brood's linear predictor: an average-mass chick in an average brood (middle), and the same chick in a brood pushed one and a half population standard deviations of σ_b to either side. A chick survives if its point on this scale clears the dashed threshold at zero, and the area of a curve to the right of that line is its brood's survival probability. A random effect only slides the curve; it never changes its shape — which is why a brood pushed far enough ends up almost entirely on one side of the line, the mechanism behind the unanimous broods counted at the top of this chapter."
+eta_bar = mean(b_glmm[1] .+ b_glmm[2] .* chicks.Mass2)   # an average chick, fixed part only
+mus      = eta_bar .+ [-1.5, 0.0, 1.5] .* sigma_b
+labels_u = ["1.5 σ_b below average", "an average brood", "1.5 σ_b above average"]
+zgrid    = range(minimum(mus) - 5, maximum(mus) + 5, length = 400)
+
+fig = Figure(size = (680, 380))
+ax = Axis(fig[1, 1]; xlabel = "latent propensity to survive (log-odds scale)",
+    ylabel = "density", title = "a threshold on a hidden scale")
+vlines!(ax, [0.0]; color = :black, linestyle = :dash, linewidth = 2,
+    label = "threshold: survives above, dies below")
+for (mu, lab) in zip(mus, labels_u)
+    dens = Distributions.pdf.(Distributions.Logistic(mu, 1.0), zgrid)
+    lines!(ax, zgrid, dens; linewidth = 2.5, label = lab)
+end
+# legend outside the axis so it can never hide a group (reviewer: pond P05 sat under it)
+Legend(fig[1, 2], ax; framevisible = false)
+fig
+```
+
 **Momo:** So the number is a ratio of one thing we estimated to one thing we assumed.
 
 **Itchy:** It is a ratio of one thing we estimated to one thing the **link function** assumed on your behalf, which is worse than assuming it yourself, because you were not asked. Say it out loud every time: **latent-scale**. About `{julia} string(round(Int, 100 * icc), "%")` of the variation in the latent propensity to survive is differences between broods, and the rest is a chick differing from its own siblings. Choose a **probit** link instead — the same idea as logit, a threshold on a hidden propensity, but built from the normal curve instead of the logistic one — and the denominator becomes one rather than π²/3, and the number changes without a single chick changing. It is a real quantity and it is scale-bound, and a repeatability quoted without its scale is not a repeatability, it is a rumour.
@@ -413,7 +439,7 @@ p_marg = [mean(logistic.(b_glmm[1] + b_glmm[2] * m .+ u_draw)) for m in mass_gri
 rng_jit = MersenneTwister(77)
 jit = 0.03 .* randn(rng_jit, n)
 
-fig = Figure(size = (540, 380))
+fig = Figure(size = (680, 380))
 ax = Axis(fig[1, 1]; xlabel = "mass at day 2 (g)", ylabel = "probability of surviving",
     title = "one fit, two curves")
 hlines!(ax, [0.0, 1.0]; color = (:grey, 0.5), linestyle = :dot)
@@ -421,7 +447,9 @@ scatter!(ax, chicks.Mass2, chicks.Survival .+ jit; markersize = 3, color = (:gre
 lines!(ax, mass_grid, p_cond; linewidth = 2.5, label = "one average brood (u = 0)")
 lines!(ax, mass_grid, p_marg; linewidth = 2.5, linestyle = :dash,
     label = "averaged over broods")
-axislegend(ax; position = :lt)
+# legend outside the axis so it can never hide a group (reviewer: an in-axis
+# legend at :lt sat over more than a third of the 'survived' scatter here)
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
@@ -644,7 +672,7 @@ by_hand = [ (sum(chicks.Mass2[rows_of[j]] .- mu0) / s_e^2) /
 
 ```{julia}
 #| label: fig-shrinkage
-#| fig-cap: "Brood effects on the log-odds scale, drawn with the chapter's own labels rather than Class 6's: circles are the unpenalised maximiser where a finite one exists, diamonds are what the fit actually keeps after the population pulls back. On the broods where every chick lived or every chick died there is no finite circle to draw — the plotted value is only where the optimiser gave up — and every diamond still sits closer to zero than its circle."
+#| fig-cap: "Brood effects on the log-odds scale, for a sample of the *mixed* broods only — the ones where at least one chick lived and at least one died, so a finite unpenalised estimate exists to draw. Circles are that unpenalised maximiser; diamonds are what the fit actually keeps after the population pulls back. (Elsewhere in the data, on the unanimous broods not shown here, there is no finite circle at all — the two lines printed above the plot report what happens there instead.) Every diamond in the plot still sits closer to zero than its circle."
 # The unshrunk effect: the same maximisation with the penalty switched off.
 u_own, _ = brood_effects(chicks.Survival, eta_fixed, rows_of, sigma_b; penalised = false)
 
@@ -1082,7 +1110,8 @@ in which broods do not differ, and the wrong way to ask whether the brood varian
 For that, draw the brood effects too.
 
 ```{julia}
-#| label: recovery
+#| label: fig-recovery
+#| fig-cap: "The brood standard deviation recovered from 100 refits of data the fitted model invented itself: each replicate draws its own brood effects from N(0, σ_b²), flips every chick's coin, and refits the same GLMM on the same n chicks and J broods. The dashed line is σ_b from the real fit, treated here as the ground truth the simulation drew from. The spread of the histogram around that line is the Monte Carlo evidence behind the bias and coverage numbers printed above and below."
 # Draw u_j ~ N(0, sigma_b^2), flip each chick's coin at logistic(eta_i + u_j), refit
 # the full GLMM, and ask two things: does the estimator land on the truth, and does
 # its interval cover the truth as often as it claims?
@@ -1090,6 +1119,8 @@ rng_rec = MersenneTwister(90909)
 R = 100
 log_true = log(sigma_b)
 sd_hat  = Float64[]
+log_est = Float64[]   # kept for fig-coverage below: the same log sigma_b each refit reported
+log_se  = Float64[]   # and the same Wald SE, so that figure draws the identical intervals tested here
 covered = Bool[]
 
 for _ in 1:R
@@ -1100,7 +1131,9 @@ for _ in 1:R
             data = DataFrame(Survival = y, Mass2 = chicks.Mass2, BroodNo = chicks.BroodNo))
     push!(sd_hat, re_sd(f)[:BroodNo])
     # the fit reports log sigma_b with a Wald SE; test the interval on its own scale
-    push!(covered, abs(coef(f, :resd)[1] - log_true) <= 1.96 * stderror(f)[3])
+    push!(log_est, coef(f, :resd)[1])
+    push!(log_se, stderror(f)[3])
+    push!(covered, abs(log_est[end] - log_true) <= 1.96 * log_se[end])
 end
 
 mean_sd   = mean(sd_hat)
@@ -1118,12 +1151,13 @@ mcse_cov  = sqrt(coverage * (1 - coverage) / R)
 cov_lo, cov_hi = coverage - 1.96 * mcse_cov, coverage + 1.96 * mcse_cov
 @printf("that coverage's own interval    : [%.3f, %.3f]\n", cov_lo, cov_hi)
 
-fig = Figure(size = (540, 360))
+fig = Figure(size = (620, 360))
 ax = Axis(fig[1, 1]; xlabel = "brood SD recovered from a refit", ylabel = "refits",
     title = "$R refits of data the fit invented")
 hist!(ax, sd_hat; bins = 18)
 vlines!(ax, [sigma_b]; linewidth = 2.5, linestyle = :dash, label = "the truth")
-axislegend(ax; position = :rt)
+# legend outside the axis so it can never hide a bar (reviewer: pond P05 sat under it)
+Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
@@ -1139,6 +1173,32 @@ anything down to about `{julia} string(round(Int, 100 * cov_lo), "%")` — a gap
 `{julia} round(Int, 100 * (0.95 - cov_lo))` points, which is not "a couple". Read it as "no evidence
 of gross under-coverage" and not as a coverage study; Appendix A is where a real one is run, and it
 says how many replicates that takes.
+
+Draw the width instead of reading it off two percentages. Here are all `{julia} R` intervals, the same
+ones just tested, sorted by their own estimate and coloured by whether each one caught the truth.
+
+```{julia}
+#| label: fig-coverage
+#| fig-cap: "All 100 Wald intervals on log σ_b from the recovery refits above, sorted by estimate and coloured by whether each one caught the dashed line — the log σ_b of the real fit, treated as the truth the simulation drew from. This is the picture behind the two coverage percentages printed above: how many misses there are, and how wide a band of true coverage rates a run of this size cannot rule out."
+ord = sortperm(log_est)
+fig = Figure(size = (640, 560))
+ax = Axis(fig[1, 1]; xlabel = "log σ_b, Wald interval from each refit",
+    ylabel = "refit, sorted by its own estimate",
+    title = "$R intervals: does the 95% interval catch the truth?")
+vlines!(ax, [log_true]; color = :black, linestyle = :dash, linewidth = 2)
+for (row, i) in enumerate(ord)
+    lo, hi = log_est[i] - 1.96 * log_se[i], log_est[i] + 1.96 * log_se[i]
+    lines!(ax, [lo, hi], [row, row]; linewidth = 1.5,
+        color = covered[i] ? Cycled(1) : Cycled(2))
+end
+truth_elem = LineElement(color = :black, linestyle = :dash, linewidth = 2)
+hit_elem   = LineElement(color = Cycled(1), linewidth = 2)
+miss_elem  = LineElement(color = Cycled(2), linewidth = 2)
+# legend outside the axis so it can never hide a group (reviewer: pond P05 sat under it)
+Legend(fig[1, 2], [truth_elem, hit_elem, miss_elem],
+    ["truth (log σ_b, real fit)", "covers it", "misses it"]; framevisible = false)
+fig
+```
 
 ---
 

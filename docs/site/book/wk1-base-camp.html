@@ -594,13 +594,18 @@ genuinely all you have. Draw it.</p></div>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the same cloud, with sex marked"</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, females.Tarsus, females.Wing; markersize <span class="op">=</span> <span class="fl">7</span>, label <span class="op">=</span> <span class="st">"female"</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, males.Tarsus, males.Wing; markersize <span class="op">=</span> <span class="fl">7</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, label <span class="op">=</span> <span class="st">"male"</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [wing_f]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [wing_m]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the plot, so it cannot sit on top of the points it labels</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>fig[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">=</span> <span class="fu">Legend</span>(fig, ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># the shared band goes down FIRST, low-opacity, so every point still sits on</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># top of it — this is band_lo:band_hi from the cell above, drawn rather than</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># only stated, so "n_band of 171 birds fall in a range both sexes occupy" is</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># something the reader sees, not just a number in the prose</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">hspan!</span>(ax, band_lo, band_hi; color <span class="op">=</span> (LIGHT.muted, <span class="fl">0.15</span>), label <span class="op">=</span> <span class="st">"wing range shared by both sexes"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, females.Tarsus, females.Wing; markersize <span class="op">=</span> <span class="fl">7</span>, label <span class="op">=</span> <span class="st">"female"</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, males.Tarsus, males.Wing; markersize <span class="op">=</span> <span class="fl">7</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, label <span class="op">=</span> <span class="st">"male"</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [wing_f]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [wing_m]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the plot, so it cannot sit on top of the points it labels</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>fig[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">=</span> <span class="fu">Legend</span>(fig, ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <div id="fig-sexes" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -608,7 +613,7 @@ genuinely all you have. Draw it.</p></div>
 <img src="wk1-base-camp_files/figure-html/fig-sexes-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sexes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: The same cloud, split by sex, with the two group means as dashed lines.
+Figure&nbsp;3: The same cloud, split by sex: the shaded band is the wing-length range both sexes share, the dashed lines are the two group means.
 </figcaption>
 </figure>
 </div>
@@ -975,7 +980,7 @@ two runs.</p></div>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two seeds, one coin"</span>)</span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.5</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.8</span>))</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_a); linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"seed 20260907"</span>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_c); linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"seed 20260908"</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_c); linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"seed 20260908"</span>)</span>
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co"># full 0-1 range: the first few flips really do sit at 0 or 1, and clipping them</span></span>
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># to a narrower window would hide exactly the wildness this figure is about.</span></span>
 <span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>ax.limits <span class="op">=</span> (<span class="cn">nothing</span>, <span class="cn">nothing</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>)</span>

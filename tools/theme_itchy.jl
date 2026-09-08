@@ -67,7 +67,20 @@ function theme_itchy(mode::Symbol=:light)
         textcolor = c.ink,
         fontsize = 16,
         font = SERIF_FONT,
-        palette = (color = [c.accent, c.warn, c.muted, c.ink],),
+        palette = (
+            color = [c.accent, c.warn, c.muted, c.ink],
+            # `band!`'s fill colour comes from Makie's Mesh recipe, which
+            # declares `cycle = [:color => :patchcolor]` — i.e. its `color`
+            # attribute is cycled from `palette.patchcolor`, NOT resolved
+            # from a `Theme(Band = (color = ...))` block (verified against
+            # the installed Makie source: `default_theme(scene, T)` never
+            # consults a per-type theme override for an `@inherit`-defaulted
+            # attribute, so the `Band = (...)` key below was always dead —
+            # every band! silently fell back to Makie's own default
+            # `palette.patchcolor` (a Wong-blue blend, opaque). Setting it
+            # here is what actually reaches the plot.
+            patchcolor = [(c.accent, 0.18)],
+        ),
         Axis = (
             backgroundcolor = c.raised,
             xgridcolor = (c.muted, 0.15),
@@ -94,7 +107,8 @@ function theme_itchy(mode::Symbol=:light)
         ),
         Scatter = (color = c.accent, strokecolor = c.ink, strokewidth = 0.5),
         Lines = (color = c.accent,),
-        Band = (color = (c.accent, 0.18),),
+        # (no `Band = (color = ...)` block: see `palette.patchcolor` above —
+        # that is the key `band!` actually reads.)
     )
 end
 

@@ -176,7 +176,7 @@ band!(ax, [egg_lo - 0.5, egg_hi + 0.5], fill(band_lo, 2), fill(band_hi, 2);
     color = (:grey, 0.28), label = "Age-only Poisson, mean ± 1 SD")
 lines!(ax, [egg_lo - 0.5, egg_hi + 0.5], [egg_lo - 0.5, egg_hi + 0.5];
     linewidth = 2, linestyle = :dash, label = "ceiling: fledglings = eggs")
-scatter!(ax, egg_jit, females.Fledglings; markersize = 6, color = (:grey, 0.6))
+scatter!(ax, egg_jit, females.Fledglings; markersize = 6, color = (:grey, 0.6), label = "a female")
 Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
@@ -470,7 +470,7 @@ w_bin, w_bb = worm_outside(qres_bin), worm_outside(qres_bb)
 @printf("BetaBinomial : those %d sit between theoretical quantile %.2f and %.2f, and %d of the lowest %d deviations are negative\n",
         w_bb.out, w_bb.lo, w_bb.hi, w_bb.neg_left, w_bb.third)
 
-fig_diagnostic(qres_bb; title = "beta-binomial fit, detrended quantile residuals")
+fig_diagnostic(qres_bb; title = "beta-binomial fit")
 ```
 
 **Momo:** From `{julia} round(std(qres_bin), digits = 2)` down to `{julia} round(std(qres_bb), digits = 2)`.
@@ -580,7 +580,7 @@ lines!(ax, mgrid, mgrid; linewidth = 2, linestyle = :dash,
 lines!(ax, mgrid, mgrid .+ mgrid .^ 2 ./ theta; linewidth = 2.5,
     label = "NB2: var = mean + mean²/θ")
 scatter!(ax, byage.m, byage.v; markersize = 3 .* sqrt.(byage.n),
-    color = (:grey, 0.75))
+    color = (:grey, 0.75), label = "observed (age bin), area ∝ n")
 Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
@@ -730,16 +730,21 @@ is_m = sparrows.Sex .== "male"
 fig = Figure(size = (560, 400))
 ax = Axis(fig[1, 1]; xlabel = "tarsus (mm)", ylabel = "wing (mm)",
     title = "two lines, two widths, one of them unearned")
-band!(ax, tg, mu_f .- sigma_f, mu_f .+ sigma_f; color = (:grey, 0.30),
+# Bands and lines share one colour per sex (accent = female, warn = male) so a
+# reader can match a band to its line by hue, not only by which one sits
+# higher; the near-equal alpha keeps the WIDTH comparison — the point of this
+# figure — the thing that reads as similar, not the shading. Data drawn LAST
+# so no bird is ever painted over by the model on top of it.
+band!(ax, tg, mu_f .- sigma_f, mu_f .+ sigma_f; color = (LIGHT.accent, 0.22),
     label = "females, ±σ")
-band!(ax, tg, mu_m .- sigma_m, mu_m .+ sigma_m; color = (:grey, 0.18),
+band!(ax, tg, mu_m .- sigma_m, mu_m .+ sigma_m; color = (LIGHT.warn, 0.22),
     label = "males, ±σ")
+lines!(ax, tg, mu_f; linewidth = 2.5, color = LIGHT.accent, label = "female mean")
+lines!(ax, tg, mu_m; linewidth = 2.5, linestyle = :dash, color = LIGHT.warn, label = "male mean")
 scatter!(ax, sparrows.Tarsus[.!is_m], sparrows.Wing[.!is_m];
     markersize = 6, color = (:grey, 0.6), label = "female")
 scatter!(ax, sparrows.Tarsus[is_m], sparrows.Wing[is_m];
     markersize = 6, marker = :diamond, color = (:grey, 0.6), label = "male")
-lines!(ax, tg, mu_f; linewidth = 2.5)
-lines!(ax, tg, mu_m; linewidth = 2.5, linestyle = :dash)
 Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
@@ -823,6 +828,23 @@ bias_pct = 100 * (median(thetas) - theta) / theta
 @printf("                  the large-sample formula would have said %.4f, which is wider)\n", mcse_asymptotic)
 @printf("                  refits: 10th pct %.4f, 90th pct %.4f, max %.4f\n",
         quantile(thetas, 0.1), quantile(thetas, 0.9), maximum(thetas))
+```
+
+The numbers above say "strongly asymmetric" six ways; here is the shape itself, so you can see it rather than assemble it from percentiles.
+
+```{julia}
+#| label: fig-theta-refits
+#| fig-cap: "The sampling distribution of θ across the 200 parametric refits: two hundred counts of a single fitted parameter, from data the fitted model itself generated. The dashed line marks the θ the one real fit reported; the dotted line marks the median of the 200 refits. A symmetric standard error would draw a bell centred on the dashed line — this is not that."
+fig = Figure(size = (560, 360))
+ax = Axis(fig[1, 1]; xlabel = "θ (refit)", ylabel = "count of refits (of 200)",
+    title = "two hundred refits of one parameter")
+hist!(ax, thetas; bins = 25, color = (:grey, 0.55))
+vlines!(ax, [theta]; linewidth = 2.5, linestyle = :dash, color = LIGHT.accent,
+    label = "fitted θ")
+vlines!(ax, [median(thetas)]; linewidth = 2.5, linestyle = :dot, color = LIGHT.warn,
+    label = "median of refits")
+Legend(fig[1, 2], ax; framevisible = false)
+fig
 ```
 
 The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly **asymmetric** — the mean printed above sits higher than the median, the largest refit is `{julia} round(maximum(thetas) / theta, digits = 1)` times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about `{julia} round(theta, digits = 2)`. The median itself is `{julia} round(bias_pct, digits = 1)`% off the generating value, which is `{julia} round(abs(median(thetas) - theta) / mcse_median, digits = 2)` Monte-Carlo standard errors. Read that as **two hundred refits cannot resolve a bias of a few per cent**, not as *there is no bias*: the two sentences are different, and only the first one is what these two hundred refits measured. Note also which error bar it is measured against. The textbook Monte-Carlo standard error of a median, 1.2533 × SD/√n, is a large-sample approximation, and on a distribution this skewed it comes out at `{julia} round(mcse_asymptotic, digits = 3)` where resampling the refits themselves gives `{julia} round(mcse_median, digits = 3)` — so the formula understates the evidence by being too generous with the error bar, which is a nice inversion of the usual complaint. The asymmetry, though, is unmistakable, and it is why an interval read off the likelihood itself beats the plain estimate-plus-or-minus-two-standard-errors kind — the **Wald** interval, which assumes the uncertainty is the same size on both sides — for this parameter, and why quoting a dispersion to three decimal places is theatre. Appendix A takes that apart properly.

@@ -43,10 +43,11 @@ function fig_fit_ribbon(x, y, μ, σ; xlabel = "x", ylabel = "y", title = "")
     xs, μs, σs = x[ord], μ[ord], σ[ord]
     fig = Figure(size = (480, 360))
     ax = Axis(fig[1, 1]; xlabel, ylabel, title)
-    scatter!(ax, x, y; markersize = 6, color = (:grey, 0.0))
-    scatter!(ax, x, y; markersize = 6)
+    # band and fitted line first, real data drawn LAST so no point is ever
+    # painted over (a point at ~1σ from μ used to sit under the band itself)
     band!(ax, xs, μs .- σs, μs .+ σs; label = "±σ")
     lines!(ax, xs, μs; linewidth = 2, label = "fitted μ")
+    scatter!(ax, x, y; markersize = 6)
     # legend outside the axis so it can never hide a group (reviewer: pond P05 sat under it)
     Legend(fig[1, 2], ax; framevisible = false)
     fig
@@ -58,26 +59,33 @@ end
     fig_varcomp(labels, est_ml, ci_ml, est_reml, ci_reml; ylabel="variance component")
 
 `ci_ml`/`ci_reml` are vectors of `(lo, hi)` tuples, aligned to `labels`.
-Draws ML and REML estimates side by side per component, with CI whiskers.
+Small multiples: one panel per component, each with its own y-scale, so a
+component with a narrow CI (a small, real difference) is not squashed onto
+the same axis as one with a wide CI — a shared axis makes the narrow one's
+gap sub-pixel regardless of how real it is. ML and REML are plotted side by
+side within each panel, with CI whiskers.
 """
 function fig_varcomp(labels, est_ml, ci_ml, est_reml, ci_reml; ylabel = "variance component")
     n = length(labels)
-    fig = Figure(size = (480, 360))
-    ax = Axis(fig[1, 1];
-        xticks = (1:n, string.(labels)), ylabel, title = "ML vs REML")
-    dodge = 0.12
+    fig = Figure(size = (220 * n + 100, 360))
     for i in 1:n
+        ax = Axis(fig[1, i];
+            xticks = (1:2, ["ML", "REML"]),
+            ylabel = i == 1 ? ylabel : "",
+            title = string(labels[i]))
+        xlims!(ax, 0.5, 2.5)
         lo_ml, hi_ml = ci_ml[i]
         lo_re, hi_re = ci_reml[i]
         # one colour per ESTIMATOR, not per label: ML is always palette 1, REML palette 2
-        rangebars!(ax, [i - dodge], [lo_ml], [hi_ml]; whiskerwidth = 8, color = Cycled(1))
-        rangebars!(ax, [i + dodge], [lo_re], [hi_re]; whiskerwidth = 8, color = Cycled(2))
-        scatter!(ax, [i - dodge], [est_ml[i]]; markersize = 10, color = Cycled(1))
-        scatter!(ax, [i + dodge], [est_reml[i]]; markersize = 10, marker = :diamond, color = Cycled(2))
+        rangebars!(ax, [1], [lo_ml], [hi_ml]; whiskerwidth = 8, color = Cycled(1))
+        rangebars!(ax, [2], [lo_re], [hi_re]; whiskerwidth = 8, color = Cycled(2))
+        scatter!(ax, [1], [est_ml[i]]; markersize = 10, color = Cycled(1))
+        scatter!(ax, [2], [est_reml[i]]; markersize = 10, marker = :diamond, color = Cycled(2))
     end
     elem_ml = MarkerElement(marker = :circle, markersize = 10, color = Cycled(1))
     elem_reml = MarkerElement(marker = :diamond, markersize = 10, color = Cycled(2))
-    axislegend(ax, [elem_ml, elem_reml], ["ML", "REML"]; position = :rt)
+    # legend outside the axes so it can never hide a group (reviewer: pond P05 sat under it)
+    Legend(fig[1, n + 1], [elem_ml, elem_reml], ["ML", "REML"]; framevisible = false)
     fig
 end
 
@@ -103,8 +111,8 @@ function fig_diagnostic(resid_quantiles; title = "Worm plot")
     fig = Figure(size = (480, 360))
     ax = Axis(fig[1, 1]; xlabel = "theoretical quantile", ylabel = "deviation", title)
     band!(ax, theo, -2 .* se, 2 .* se; label = "±2SE")
-    hlines!(ax, [0.0]; linestyle = :dash)
-    scatter!(ax, theo, dev; markersize = 6)
+    hlines!(ax, [0.0]; linestyle = :dash, label = "0 = correct model")
+    scatter!(ax, theo, dev; markersize = 6, label = "deviation")
     # legend outside the axis so it can never hide a group (reviewer: pond P05 sat under it)
     Legend(fig[1, 2], ax; framevisible = false)
     fig
@@ -136,13 +144,21 @@ function fig_shrinkage(groups, raw_means, blups; boundary = false)
         xticks = (1:n, string.(g)), xticklabelrotation = π / 4,
         ylabel = "group effect",
         title = boundary ? "Shrinkage (zero-variance boundary)" : "Shrinkage")
+    # raw mean and BLUP are the two things this plot exists to compare, so
+    # neither may sit on top of the other: dodge them apart in x rather than
+    # stacking both markers at the same point, where one hid the other
+    # whenever shrinkage was mild.
+    dodge = 0.15
     for i in 1:n
-        lines!(ax, [i, i], [raw[i], blup[i]]; color = (:grey, 0.6))
+        lines!(ax, [i - dodge, i + dodge], [raw[i], blup[i]]; color = (:grey, 0.6))
     end
-    scatter!(ax, 1:n, raw; markersize = 8, label = "raw mean")
-    scatter!(ax, 1:n, blup; markersize = 8, marker = :diamond, label = "BLUP")
+    scatter!(ax, (1:n) .- dodge, raw; markersize = 8, label = "raw mean")
+    scatter!(ax, (1:n) .+ dodge, blup; markersize = 8, marker = :diamond, label = "BLUP")
     if boundary
-        hlines!(ax, [0.0]; linestyle = :dot, label = "boundary")
+        # explicit, non-cycled colour: hlines! cycles its own :color
+        # independently of the scatters above and was landing on the same
+        # palette slot as "raw mean"
+        hlines!(ax, [0.0]; linestyle = :dot, color = (:grey, 0.6), label = "boundary")
     end
     # legend outside the axis so it can never hide a group (reviewer: pond P05 sat under it)
     Legend(fig[1, 2], ax; framevisible = false)

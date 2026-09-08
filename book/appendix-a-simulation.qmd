@@ -263,11 +263,38 @@ mcse_cov = sqrt(coverage_rate * (1 - coverage_rate) / nrep)
 #| output: false
 coverage_rate_r = round(coverage_rate; digits = 4)
 mcse_cov_r      = round(mcse_cov;      digits = 4)
+n_miss          = nrep - sum(covered)
 ```
 
 **Toto:** `{julia} coverage_rate_r`. That is not `0.95`.
 
 **Itchy:** It is not exactly `0.95`, and it should not be. That plus-or-minus is the Monte Carlo standard error: the wobble in the fraction that comes only from having used two hundred flocks rather than infinitely many. `{julia} coverage_rate_r` with a Monte Carlo standard error of `{julia} mcse_cov_r` is what "consistent with 95 percent" looks like at two hundred replicates. Report a coverage fraction without its own standard error and you have handed someone a number with no way to tell noise from a real problem. That is a rule for the rest of this course, not only for today.
+
+**Toto:** Show me the two hundred. Not the average.
+
+**Itchy:** Ranked by where each one landed, with the true slope drawn as one line through all of them.
+
+```{julia}
+#| label: fig-coverage-caterpillar
+#| fig-cap: "All 200 refit intervals, ranked by estimated slope, against the true slope (dashed line). A teal interval crosses the line; a rust interval misses it — these are the intervals responsible for the coverage rate above falling short of a perfect 1.0000."
+mids = (los .+ his) ./ 2
+ordc = sortperm(mids)
+los_s, his_s, cov_s = los[ordc], his[ordc], covered[ordc]
+idx = 1:nrep
+fig3 = Figure(size = (640, 380))
+ax3 = Axis(fig3[1, 1]; xlabel = "200 refits, ranked by estimated slope", ylabel = "tarsus slope",
+    title = "coverage, seen rather than counted",
+    xticksvisible = false, xticklabelsvisible = false)
+hlines!(ax3, [true_slope]; color = :black, linewidth = 1.5, linestyle = :dash, label = "true slope")
+rangebars!(ax3, idx[cov_s], los_s[cov_s], his_s[cov_s]; linewidth = 1.3, color = Cycled(1), label = "covered")
+rangebars!(ax3, idx[.!cov_s], los_s[.!cov_s], his_s[.!cov_s]; linewidth = 1.3, color = Cycled(2), label = "missed")
+Legend(fig3[1, 2], ax3; framevisible = false)
+fig3
+```
+
+**Eddie:** `{julia} n_miss` miss it.
+
+**Itchy:** `{julia} n_miss` out of two hundred is exactly what "not quite ninety-five percent" looks like once you can see every interval instead of one summary number.
 
 **Eddie:** So a coverage study is just this, run at the scale of a real question.
 
@@ -300,22 +327,32 @@ wald_lo_r = round(wald_lo; digits = 3)
 wald_hi_r = round(wald_hi; digits = 3)
 boot_lo_r = round(boot_lo; digits = 3)
 boot_hi_r = round(boot_hi; digits = 3)
+gap_lo    = boot_lo - wald_lo
+gap_hi    = boot_hi - wald_hi
+gap_lo_r  = round(gap_lo; digits = 4)
+gap_hi_r  = round(gap_hi; digits = 4)
 ```
+
+**Eddie:** The two bars would sit right on top of each other.
+
+**Itchy:** They would — the matching edges are closer together than the line drawing them is wide, so a bar chart of the two intervals side by side would show agreement it cannot actually resolve. Here is the gap itself, not the bars.
 
 ```{julia}
 #| label: fig-wald-vs-boot
-#| fig-cap: "Wald interval on the real fit against the parametric-bootstrap interval, both from the same 200 refits."
-fig2 = Figure(size = (480, 360))
-ax2 = Axis(fig2[1, 1]; xticks = (1:2, ["Wald", "bootstrap"]),
-    ylabel = "tarsus slope", title = "two ways to an interval")
-rangebars!(ax2, [1], [wald_lo], [wald_hi]; whiskerwidth = 12, color = Cycled(1))
-scatter!(ax2, [1], [true_slope]; markersize = 10, color = Cycled(1))
-rangebars!(ax2, [2], [boot_lo], [boot_hi]; whiskerwidth = 12, color = Cycled(2))
-scatter!(ax2, [2], [mean(slopes)]; markersize = 10, color = Cycled(2))
+#| fig-cap: "Where the bootstrap interval's two bounds sit relative to the Wald interval's, in tarsus-slope units. Both bars point inward: the bootstrap interval is tucked a few thousandths narrower than the Wald interval at each end, not shifted to one side. Drawn at the scale of the disagreement itself the gap is visible; drawn on the interval's own scale, as in the printed bounds above, it is a fraction of a pixel wide."
+fig2 = Figure(size = (560, 360))
+ax2 = Axis(fig2[1, 1]; xticks = (1:2, ["lower bound", "upper bound"]),
+    ylabel = "bootstrap − Wald (tarsus slope)", title = "how far the two intervals disagree")
+xlims!(ax2, 0.5, 2.5)
+hlines!(ax2, [0.0]; color = :black, linestyle = :dash, label = "no disagreement")
+rangebars!(ax2, [1, 2], [min(0, gap_lo), min(0, gap_hi)], [max(0, gap_lo), max(0, gap_hi)];
+    whiskerwidth = 14, color = Cycled(1))
+scatter!(ax2, [1, 2], [gap_lo, gap_hi]; markersize = 10, color = Cycled(1))
+axislegend(ax2; position = :rt)
 fig2
 ```
 
-**Momo:** Wald gives `{julia} wald_lo_r` to `{julia} wald_hi_r`. Bootstrap gives `{julia} boot_lo_r` to `{julia} boot_hi_r`. Those are almost the same interval.
+**Momo:** Wald gives `{julia} wald_lo_r` to `{julia} wald_hi_r`. Bootstrap gives `{julia} boot_lo_r` to `{julia} boot_hi_r`. Those are almost the same interval — the plot says by how much: `{julia} gap_lo_r` at the lower bound, `{julia} gap_hi_r` at the upper bound, both a few thousandths of a slope unit.
 
 **Itchy:** They are, here, and that agreement is itself the finding, not a formality on the way to a more interesting one. One honest sentence, and hold on to it: the two intervals agree closely exactly when the thing being estimated is far from any boundary and its sampling distribution — the spread of values the estimate would take if you repeated the study over and over — is close to symmetric, the way a slope from a hundred and seventy-one birds is; they pull apart hardest for a parameter that is skewed, or pinned against a wall it cannot cross, and that is not a hypothetical case; it is what Class 8 asks you to estimate.
 

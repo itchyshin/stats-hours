@@ -600,3 +600,66 @@ put it back after the second. On the last chapter gated in this sweep, it did no
 to be restored from the commit rather than from the gate's own bookkeeping. Whoever reverifies that
 ledger next should check `_freeze/` afterwards, the same caution the Gotchas section above already
 gives for a manual `--reverify`, now confirmed against a real run rather than stated as a risk.
+
+---
+
+## Publication Addendum: 2026-09-07
+
+Written after the closing addendum above. That addendum described publication as the author's
+remaining step. It has now happened.
+
+The book published on 2026-09-07 and is live at https://itchyshin.github.io/stats-hours/. The
+repository `itchyshin/stats-hours` is public and holds exactly one commit, `892cf38`, whose tree is
+byte-identical to the private `main` it was squashed from. The former repository was renamed to
+`itchyshin/stats-hours-prescrub` and stays private, holding the full thirty-commit history. The
+working clone's `origin` points at that archive, and no remote in the working clone reaches the
+public repository, so an ordinary push from this checkout cannot send the unsquashed history there.
+
+`tools/verify-public.sh` was run after publication and returned `PUBLIC-OK`. It cloned the published
+repository and checked from outside it, not from any local belief about what had happened:
+visibility public, one commit in the published history, none of it carrying the private-path
+pattern, the three pre-scrub commits confirmed unreachable, Pages serving from `main` and the `docs`
+directory, and the landing page, the book and the Colab notebook link all returning 200.
+
+It took four attempts. Every failure was a refusal rather than damage: nothing published, nothing
+overwrote the archive, nothing needed rolling back. Recorded here worst first, because two of the
+four were real defects that no rehearsal could have caught, and the reason is structural: a
+rehearsal cannot rename a repository, and the rename is what created both.
+
+The worst was the rename redirect fooling a name check. After the rename, GitHub redirects requests
+for the old name to the renamed repository. The script asked whether a public repository already
+existed under that name, was told yes, and was shown the archive. It skipped creating anything and
+pushed the squashed commit at what it believed was the public repository. That address redirected to
+the private archive holding the unsquashed history. Git refused the push, because the two histories
+share no common ancestor, and that refusal is the only reason the archive survived intact. The check
+now compares the full name that comes back against the name it asked for, and the script refuses to
+push until the target resolves to itself.
+
+Second: a guard added earlier killed the verifier silently. The guard that proves the scrub pattern
+compiles runs a grep that is supposed to find nothing. Under `set -e` that non-zero exit ended the
+script before it could read the result, so the verifier exited non-zero with no output at all. That
+reads exactly like a failed verification and was in fact no verification whatsoever. Fixed by
+disabling the errexit trap for the one line whose failure is the answer being sought.
+
+Third: the GitHub CLI cannot use a linked worktree as a creation source, because a linked worktree
+keeps its `.git` as a file rather than a directory. The repository is now created empty and pushed to
+instead.
+
+Fourth: a token cannot push a `.github/workflows` file without the workflow scope, and this
+repository ships one. The release remote now uses SSH, as `origin` already did.
+
+The lesson worth keeping, stated plainly: the two real defects were both of the same shape as one an
+adversary had already found and the hardening had already fixed, for the `origin` remote
+specifically. Fixing an instance is not fixing a class. Anything that identifies a GitHub repository
+by name rather than by identity is suspect the moment a rename is in play.
+
+What remains, and none of it is urgent. The publication script has no update mode: publishing a
+change to the public repository means adding a new squashed commit, not pushing this history, so the
+fixes this run earned are committed to the archive but are not yet in the published tree. Timing the
+two hosted-notebook bootstrap cells is possible for the first time, because the bootstrap fetches
+from the public raw-content URL and that URL only resolves now that the repository is public. Making
+the whole book say twelve rungs and a coda rather than thirteen is still open, six sites, all or
+nothing. And the blind spot no external check can close remains exactly as described in §6 above: a
+commit reachable only by its SHA, on the far side of a force-push or a deleted branch, is invisible
+from outside GitHub. The verifier's clean answer is sound for a repository that has received exactly
+one push. It stops being sound the moment anyone force-pushes or deletes a branch there.

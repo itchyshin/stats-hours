@@ -740,22 +740,39 @@ this term.</p></div>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit2's mu coefficients are [Intercept, Tarsus, Sex:male]; female is the</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># baseline. A smooth grid at Sex = female avoids the zigzag that</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting fitted() at each observation would give once Sex is in the model.</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit2, <span class="op">:</span>mu)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus); length <span class="op">=</span> <span class="fl">100</span>)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>mu2 <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> xs</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>p_mu <span class="op">=</span> <span class="fu">length</span>(b)                                      <span class="co"># 3: intercept, Tarsus, Sex</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>sigma_ours <span class="op">=</span> <span class="fu">sigma</span>(fit2)[<span class="fl">1</span>]                           <span class="co"># ÷n   (DRM.jl, ML)</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>sigma_r <span class="op">=</span> sigma_ours <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fu">nobs</span>(fit2) <span class="op">/</span> (<span class="fu">nobs</span>(fit2) <span class="op">-</span> p_mu))  <span class="co"># ÷(n−p) (R lm())</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"Tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"Wing (mm)"</span>,</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Same μ, two residual SDs"</span>)</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.5</span>))</span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, xs, mu2 <span class="op">.-</span> sigma_r, mu2 <span class="op">.+</span> sigma_r; label <span class="op">=</span> <span class="st">"R lm(): ÷(n−p)"</span>)</span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, xs, mu2 <span class="op">.-</span> sigma_ours, mu2 <span class="op">.+</span> sigma_ours; label <span class="op">=</span> <span class="st">"DRM.jl: ÷n"</span>)</span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, mu2; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="op">:</span>black, label <span class="op">=</span> <span class="st">"fitted μ"</span>)</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax; position <span class="op">=</span> <span class="op">:</span>rt)</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The scatter on the left is filtered to females too: fit2's ~2.5 mm sex</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"># effect is bigger than the ~1.4 mm band, so plotting both sexes around a</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># female-only band would bury the divisor question under an unrelated,</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"># unlabelled population offset.</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit2, <span class="op">:</span>mu)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus); length <span class="op">=</span> <span class="fl">100</span>)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>mu2 <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> xs</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>p_mu <span class="op">=</span> <span class="fu">length</span>(b)                                      <span class="co"># 3: intercept, Tarsus, Sex</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>sigma_ours <span class="op">=</span> <span class="fu">sigma</span>(fit2)[<span class="fl">1</span>]                           <span class="co"># ÷n   (DRM.jl, ML)</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>sigma_r <span class="op">=</span> sigma_ours <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fu">nobs</span>(fit2) <span class="op">/</span> (<span class="fu">nobs</span>(fit2) <span class="op">-</span> p_mu))  <span class="co"># ÷(n−p) (R lm())</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> sparrows.Sex <span class="op">.==</span> <span class="st">"female"</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">760</span>, <span class="fl">340</span>))</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"Tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"Wing (mm)"</span>,</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Fitted line, females only"</span>)</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="co"># band and line first, real data drawn LAST so no point is ever painted over</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax1, xs, mu2 <span class="op">.-</span> sigma_ours, mu2 <span class="op">.+</span> sigma_ours)</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax1, xs, mu2; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="op">:</span>black)</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax1, sparrows.Tarsus[females], sparrows.Wing[females]; markersize <span class="op">=</span> <span class="fl">6</span>)</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="co"># The two divisors are a deterministic ratio of one another (sqrt(n/(n-p))),</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a><span class="co"># not two independent estimates, so no error bars: whiskers sized to the</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a><span class="co"># fit's own sampling SE (~0.076 mm) would be ~6x wider than the 0.013 mm gap</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="co"># between them and would swallow the very difference this panel exists to</span></span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a><span class="co"># show. Two plain points, y-axis zoomed to just the two of them, is honest.</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>];</span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"R lm()</span><span class="sc">\n</span><span class="st">÷(n−p)"</span>, <span class="st">"DRM.jl</span><span class="sc">\n</span><span class="st">÷n"</span>]),</span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"residual SD (mm)"</span>,</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Same gap, zoomed in"</span>)</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>], [sigma_r]; markersize <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">2</span>], [sigma_ours]; markersize <span class="op">=</span> <span class="fl">14</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="30">
 <div id="fig-disagree" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -763,7 +780,7 @@ this term.</p></div>
 <img src="wk2-linear-models_files/figure-html/fig-disagree-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-disagree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: The same fitted line (females, fit2), two residual-SD divisors: ÷n (ours) vs ÷(n−p) (R’s lm()).
+Figure&nbsp;4: Left: the fitted line for females (fit2) with DRM.jl’s ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the 0.89% gap that would sit under a fraction of a pixel at wing-length scale (left) is a full-height separation here.
 </figcaption>
 </figure>
 </div>
@@ -887,10 +904,43 @@ not detected: the interval includes 1, and this sample could not have
 told us about a sex difference smaller than 1.354-fold even if one were
 sitting right there in the birds. Two referees, arriving from different
 directions, agreeing.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><em>(chalk, not keyboard)</em> Let me put that last sentence on the
+board instead of in your ears.</p></div>
+<div id="cell-fig-sigma-sex-ratio" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">300</span>, <span class="fl">380</span>))</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>];</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> ([<span class="fl">1</span>], [<span class="st">"male : female"</span>]),</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"residual-SD ratio"</span>,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Sex effect on spread (fit3)"</span>)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="fl">0.5</span>, <span class="fl">1.5</span>)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">1.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax, [<span class="fl">1</span>], [sex_sigma_lo], [sex_sigma_hi]; whiskerwidth <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, [<span class="fl">1</span>], [sex_sigma_ratio]; markersize <span class="op">=</span> <span class="fl">16</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="42">
+<div id="fig-sigma-sex-ratio" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-sigma-sex-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk2-linear-models_files/figure-html/fig-sigma-sex-ratio-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sigma-sex-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: The male:female ratio of residual SD from fit3 (Sex in σ), with its 95% interval. The dashed line at 1 marks equal dispersion — no sex difference in spread. The interval straddles it: not disproved, not detected.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p>The dot’s above the line, but the bar still crosses it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is exactly the finding, in one glance, and it took me four
+sentences to say it in words a minute ago. The point estimate says males
+vary a bit more — that dot sitting above 1 is real, it is what the fit
+actually returned. The bar is what tells you not to trust it yet: it
+reaches down past 1, so “males vary a bit more” and “no difference at
+all” are both still standing after 171 sparrows.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Then give me the R² for this one and I will go home.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Try it.</p></div>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_constant_sigma</span>(fit3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_constant_sigma</span>(fit3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>ArgumentError: r2_constant_sigma refuses a MODELLED σ: the `sigma` block carries 1 non-intercept term(s) (Sex: male). The total variance then changes with the covariates, so R² has no single denominator — variance at the mean covariate, averaged over the sample, and at σ's intercept all give different answers. Fit `sigma ~ 1` if you want the ordinary R².
@@ -962,31 +1012,31 @@ some time.</p>
 <li><strong>Reading an <code>ArgumentError</code> from a formula.</strong> Misspell a column and the engine suggests the nearest real name. Use it.</li>
 </ul>
 <p><strong>Simulating from a fitted model.</strong> Every model in this book can generate data as easily as it can fit it, and doing so is the fastest way to check you understand what you fitted.</p>
-<div class="cell" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span>, <span class="bu">Distributions</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2012</span>)</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>mu_hat <span class="op">=</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">1</span>] <span class="op">.+</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>] <span class="op">.*</span> sparrows.Tarsus</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit1, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>wing_sim <span class="op">=</span> [<span class="fu">rand</span>(rng_sim, <span class="fu">Normal</span>(m, sigma_hat)) for m <span class="kw">in</span> mu_hat]</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>sim_df <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Sex <span class="op">=</span> sparrows.Sex,</span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                    Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> wing_sim)</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>fit1_sim <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sim_df);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <div class="cell" data-execution_count="33">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(fit1_sim, <span class="op">:</span>mu)[<span class="fl">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span>, <span class="bu">Distributions</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2012</span>)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>mu_hat <span class="op">=</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">1</span>] <span class="op">.+</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>] <span class="op">.*</span> sparrows.Tarsus</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit1, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>wing_sim <span class="op">=</span> [<span class="fu">rand</span>(rng_sim, <span class="fu">Normal</span>(m, sigma_hat)) for m <span class="kw">in</span> mu_hat]</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>sim_df <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Sex <span class="op">=</span> sparrows.Sex,</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>                    Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> wing_sim)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>fit1_sim <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sim_df);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(fit1_sim, <span class="op">:</span>mu)[<span class="fl">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="47">
 <pre><code>(1.2031120353871703, 1.1875405568706943)</code></pre>
 </div>
 </div>
 <p>By hand, one draw at a time: <code>rand(Normal(μ̂, σ̂))</code> for each bird’s fitted mean, refit the same model, and the tarsus slope above wanders from <code>fit1</code>’s to a slightly different number — same data-generating process (the same recipe for making wing lengths), different noise, different estimate. That wander <em>is</em> sampling variability, made visible instead of assumed.</p>
-<div class="cell" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">200</span>)   <span class="co"># a seed is a promise: the same draw every time this is run</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit1; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <div class="cell" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims <span class="op">.-</span> <span class="fu">fitted</span>(fit1)))), <span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">200</span>)   <span class="co"># a seed is a promise: the same draw every time this is run</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit1; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims <span class="op">.-</span> <span class="fu">fitted</span>(fit1)))), <span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="49">
 <pre><code>(1.8703085195848685, 2.0840219108107236)</code></pre>
 </div>
 </div>

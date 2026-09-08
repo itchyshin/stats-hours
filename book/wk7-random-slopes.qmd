@@ -144,7 +144,7 @@ end
 
 ```{julia}
 #| label: fig-spaghetti-data
-#| fig-cap: "Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird's own captures joined in order of mass and drawn in that bird's own single colour. The house palette has four colours, so this many birds gives each colour to two of them rather than four; fewer birds than the every-sixth rule would show is the price of a colour actually identifying a bird. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness."
+#| fig-cap: "Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird's own captures joined in order of mass. A bird's identity is its colour, its line style and its marker shape together: two of the house palette's four colours sit close enough in brightness that colour alone does not survive greyscale or print, so style and shape carry the difference where colour cannot. The house palette has four colours and three line styles, so twelve birds — not six — gives each of them a colour/style/shape combination no other bird in the plot shares. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness."
 k_of = Dict(r.BirdID => r.k for r in eachrow(per_bird))
 repeat_ids = [b for b in bird_ids if k_of[b] >= 3]
 
@@ -165,12 +165,24 @@ scatter!(ax, sparrows.Weight, sparrows.Wing; markersize = 4, color = (:grey, 0.3
 # is this figure's whole job.
 palette = to_value(Makie.current_default_theme().palette.color)
 
+# Colour alone is not enough here: the palette's "warn" and "muted" swatches
+# are only about 4/255 apart in greyscale luminance, so they land as the same
+# grey blob once colour is taken away (print, e-ink, a colour-vision
+# simplification). Line style and marker shape are a second and third
+# channel, cycled on a period of 3 rather than the colour's 4, so all twelve
+# birds shown here get a unique (colour, style, shape) triple instead of
+# four colours repeating three times each.
+styles  = [:solid, :dash, :dashdot]
+markers = [:circle, :rect, :utriangle]
+
 for (i, b) in enumerate(shown)
     rows = sortperm(sparrows.Weight[sparrows.BirdID .== b])
     m = findall(sparrows.BirdID .== b)[rows]
     col = palette[mod1(i, length(palette))]
-    scatter!(ax, sparrows.Weight[m], sparrows.Wing[m]; markersize = 10, color = col)
-    lines!(ax, sparrows.Weight[m], sparrows.Wing[m]; color = (col, 0.7), linewidth = 1.4)
+    ls = styles[mod1(i, length(styles))]
+    mk = markers[mod1(i, length(markers))]
+    scatter!(ax, sparrows.Weight[m], sparrows.Wing[m]; markersize = 10, color = col, marker = mk)
+    lines!(ax, sparrows.Weight[m], sparrows.Wing[m]; color = (col, 0.7), linewidth = 1.4, linestyle = ls)
 end
 fig
 ```
@@ -376,6 +388,34 @@ end
 **Momo:** And the sign change?
 
 **Itchy:** Is a separate fact with a shared cause — the origin — and I nearly welded them into one sentence. **Where zero is** changes ρ, exactly and reversibly; and **where zero is** also decides whether this optimiser can compute a determinant. One cause, two consequences, neither of which is a boundary. So: report ρ with its origin in the same sentence, and centre a covariate whose zero is outside its range, every time.
+
+**Toto:** Show me the sign change instead of making me read it off a column.
+
+**Itchy:** Fair — ρ is a function of one number, where you put zero, and a function of one number is a curve, not four separate fits. Same Σ, same `shifted` you just watched check the determinant; sweep it and mark the table's four origins on it.
+
+```{julia}
+#| label: fig-origin-rho
+#| fig-cap: "The correlation ρ, as a continuous function of where mass is centred, built from the same Σ and the same `shifted()` algebra as the numbers above — no refitting, because ρ moves by arithmetic alone. It crosses zero at one particular mass, marked where the curve meets the dotted line; negative to the left of that point, positive to the right. The four diamonds are the four origins from the table above, now four points on one curve instead of four separate fits, each labelled with the ρ already read out loud. The shaded strip is the mass this file actually contains: twenty grams, one of the four origins, sits outside it — the arithmetic behind calling ρ there an extrapolation backwards."
+rho_at(t) = (S = shifted(-t); S[1, 2] / sqrt(S[1, 1] * S[2, 2]))
+t_zero = -V[1, 2] / V[2, 2]                      # where the correlation is exactly zero
+t_grid = range(minimum(origins) - w_bar - 1, maximum(origins) - w_bar + 1, length = 200)
+origin_t = origins .- w_bar
+
+fig = Figure(size = (520, 380))
+ax = Axis(fig[1, 1]; xlabel = "origin, as mass minus $(round(w_bar, digits = 1)) g (g)",
+    ylabel = "correlation ρ", title = "One curve, not four fits")
+vspan!(ax, minimum(sparrows.wc), maximum(sparrows.wc); color = (:grey, 0.08))
+hlines!(ax, [0.0]; linestyle = :dot, color = (:grey, 0.6))
+lines!(ax, t_grid, rho_at.(t_grid); linewidth = 2)
+scatter!(ax, origin_t, [r.rho for r in rows]; markersize = 11, marker = :diamond)
+for (t, r) in zip(origin_t, rows)
+    text!(ax, t, r.rho; text = string(round(r.rho, digits = 2)),
+        align = (:center, :bottom), offset = (0, 8), fontsize = 12)
+end
+fig
+```
+
+**Itchy:** `{julia} round(t_zero + w_bar, digits = 2)` grams — that is where ρ is exactly zero, not at some special boundary, just the one mass at which the curve crosses its own axis. Left of it, negative; right of it, positive; and the four points are the four rows of that table, now impossible to mistake for four different models.
 
 **Momo:** Then what is the ρ we have?
 

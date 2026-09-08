@@ -24,8 +24,14 @@ pat=$(cat "$pattern_file")
 # An invalid extended regular expression makes git grep exit 128, which the shell
 # reads as "no match" — so a leaking history would be reported clean. Prove the
 # pattern compiles before trusting any answer it gives.
+# set -e is on, and this grep is SUPPOSED to find nothing, so its exit 1 would
+# kill the script before the status could be read. Disable the trap for the one
+# line whose failure is the answer we want.
+set +e
 printf 'x\n' | grep -qE "$pat" >/dev/null 2>&1
-if [ $? -gt 1 ]; then
+pat_rc=$?
+set -e
+if [ "$pat_rc" -gt 1 ]; then
   echo "verify-public: the pattern in $pattern_file is not a valid extended regular expression — refusing to continue, because an invalid pattern would report a leak as clean" >&2
   exit 2
 fi

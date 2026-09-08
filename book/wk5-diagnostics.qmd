@@ -131,7 +131,7 @@ panels = (("response (chicks)", r_response), ("Pearson", r_pearson),
           ("randomised quantile", r_quantile))
 for (j, (nm, r)) in enumerate(panels)
     ax = Axis(fig[1, j]; xlabel = "fitted count", title = nm,
-        ylabel = j == 1 ? "residual" : "", xticks = 3:5)
+        ylabel = j == 1 ? "residual" : "")
     hlines!(ax, [0.0]; linestyle = :dash, color = (:grey, 0.7))
     scatter!(ax, mu_p, r; markersize = 5, color = (:grey, 0.6))
 end
@@ -305,6 +305,20 @@ q95_se = std([quantile(rand(rng_q, null_out, length(null_out)), 0.95) for _ in 1
         n_fem, out_p, count(null_out .>= out_p), length(null_out))
 @printf("draws with a same-side run of at least %d     : %d of %d\n",
         run_p, count(null_run .>= run_p), length(null_run))
+```
+
+```{julia}
+#| label: fig-null-envelope
+#| fig-cap: "The two null distributions for the same count — points outside the worm plot's ±2SE envelope, over 2000 simulated worlds each. Each panel keeps its own x-scale, on purpose: forcing them onto one shared axis squashes the correct null flat against the naive one's much longer tail, and the axis itself is then the first thing worth reading — one runs out past a hundred, the other barely past ten. The dashed line in each panel is that null's own 95th percentile. It is the ratio of those two dashed lines, not either alone, that is the fivefold gap the prose names."
+fig = Figure(size = (700, 320))
+for (j, (nm, v)) in enumerate((("no model, normal samples", naive_out),
+                                ("simulate -> refit -> residuals", null_out)))
+    ax = Axis(fig[1, j]; xlabel = "points outside the ±2SE envelope",
+        ylabel = j == 1 ? "simulated worlds" : "", title = nm)
+    hist!(ax, v; bins = 30, color = (:grey, 0.55))
+    vlines!(ax, [quantile(v, 0.95)]; linestyle = :dash, linewidth = 2)
+end
+fig
 ```
 
 **Itchy:** Two nulls, and the gap between them is the lesson. Take the wrong one first, because it is the one everybody's intuition draws. Plain normal samples, no model anywhere: the median count outside is `{julia} round(Int, median(naive_out))`, the mean is `{julia} round(mean(naive_out), digits = 2)` against the `{julia} round(2 * Distributions.cdf(Distributions.Normal(), -2) * n_fem, digits = 2)` that the pointwise rate on its own predicts — so Toto was very nearly right on average, and useless about any one picture — and the ninety-fifth percentile is `{julia} round(Int, quantile(naive_out, 0.95))`, `{julia} string(round(Int, 100 * quantile(naive_out, 0.95) / n_fem), "%")` of the sample. That skew *is* the correlation made countable, and one freedom dominates it: the whole worm is free to sit above or below zero, and when it does, everything crosses at once.
@@ -511,7 +525,7 @@ nullp2 = null_counters(pois2, refit_full, 2000, rng_null2)
 @printf("for contrast, the WRONG null (plain normal samples) had %d of %d at least this bad\n",
         count(naive_out .>= out_p2), length(naive_out))
 
-fig_diagnostic(r_quantile2; title = "fledglings ~ age + log(eggs), quantile residuals")
+fig_diagnostic(r_quantile2; title = "age + log(eggs), quantile residuals")
 ```
 
 **Momo:** From `{julia} out_p` points outside to `{julia} out_p2`. That looks fixed.
@@ -652,6 +666,20 @@ end
         mean(null_daic .<= daic_age), lr_age.pvalue)
 ```
 
+```{julia}
+#| label: fig-null-daic
+#| fig-cap: "ΔAIC for adding age to the eggs-only model, across 1000 worlds simulated from a fit where age is genuinely useless. The dashed line at 0 marks equal AIC; the solid line marks the ΔAIC actually observed on the real data. Part of the bar sits left of 0 — a useless parameter still wins by chance sometimes — and the observed value sits inside that same bulk, not out past it."
+fig = Figure(size = (600, 320))
+ax = Axis(fig[1, 1]; xlabel = "ΔAIC (age added to eggs-only model)",
+    ylabel = "simulated worlds", title = "ΔAIC when the extra parameter is useless")
+hist!(ax, null_daic; bins = 40, color = (:grey, 0.55))
+vlines!(ax, [0.0]; linestyle = :dash, linewidth = 2, label = "0 = no change")
+vlines!(ax, [daic_age]; linewidth = 2, color = Cycled(2), label = "observed ΔAIC")
+# legend outside the axis so it can never hide a group (house rule: tools/figures.jl)
+Legend(fig[1, 2], ax; framevisible = false)
+fig
+```
+
 **Toto:** It goes negative sometimes.
 
 **Itchy:** It goes negative in `{julia} string(round(Int, 100 * mean(null_daic .< 0)), "%")` of worlds where the parameter is worth nothing, because the likelihood always improves a little by chance and now and then improves by more than the parameter cost. Its typical value is `{julia} round(median(null_daic), digits = 2)`, not two — so "two units" is the ceiling on a useless parameter's damage, not its usual size. And `{julia} string(round(Int, 100 * mean(null_daic .< -3)), "%")` of worlds have a useless parameter winning by more than three AIC. Our own `{julia} round(abs(daic_age), digits = 2)` turns up in `{julia} string(round(Int, 100 * mean(null_daic .<= daic_age)), "%")` of worlds where age does nothing at all. That is Arnold's (2010) point about uninformative parameters, computed on our own data rather than borrowed from his.
@@ -705,6 +733,31 @@ obs_diff = b1[2] - b2[2]
         length(boot_diff), std(boot_diff), obs_diff / std(boot_diff))
 @printf("95%% interval for the ratio of the two rate ratios : [%.4f, %.4f]\n",
         exp(quantile(boot_diff, 0.025)), exp(quantile(boot_diff, 0.975)))
+```
+
+```{julia}
+#| label: fig-marginal-conditional
+#| fig-cap: "Left: the age rate ratio under two models, point and 95% interval — age alone (marginal) and age with eggs laid held fixed (conditional). The two intervals overlap, which is exactly why comparing them by eye is the wrong move: both are estimated from the same females and the same variation in age, so they are correlated in a way neither interval alone records. Right: the bootstrapped distribution of their difference (log scale, 2000 resamples of the females, both models refitted in each), with 0 (no difference) and the observed difference both marked. The difference sits clear of 0 — this panel is what actually resolves what the left panel cannot."
+fig = Figure(size = (820, 320))
+
+ax1 = Axis(fig[1, 1]; xticks = (1:2, ["age alone", "age + eggs"]),
+    ylabel = "age rate ratio", title = "marginal vs conditional")
+xlims!(ax1, 0.5, 2.5)
+hlines!(ax1, [1.0]; linestyle = :dash, color = (:grey, 0.6))
+rangebars!(ax1, [1], [lo_age1], [hi_age1]; whiskerwidth = 10, color = Cycled(1))
+rangebars!(ax1, [2], [lo_age2], [hi_age2]; whiskerwidth = 10, color = Cycled(2))
+scatter!(ax1, [1], [rr_age1]; markersize = 12, color = Cycled(1))
+scatter!(ax1, [2], [rr_age2]; markersize = 12, color = Cycled(2))
+
+ax2 = Axis(fig[1, 2]; xlabel = "log rate ratio, age alone minus age + eggs",
+    ylabel = "bootstrap resamples", title = "the difference, resampled")
+hist!(ax2, boot_diff; bins = 40, color = (:grey, 0.55))
+vlines!(ax2, [0.0]; linestyle = :dash, linewidth = 2, label = "0 = no difference")
+vlines!(ax2, [obs_diff]; linewidth = 2, color = Cycled(2), label = "observed")
+# legend outside the axis so it can never hide a group (house rule: tools/figures.jl)
+Legend(fig[1, 3], ax2; framevisible = false)
+
+fig
 ```
 
 **Itchy:** The two log rate ratios differ by `{julia} round(obs_diff, digits = 4)`, standard error `{julia} round(std(boot_diff), digits = 4)`, which is `{julia} round(obs_diff / std(boot_diff), digits = 1)` standard errors from zero, and the interval for the ratio of the two rate ratios is clear of one. **That** is the finding: at a fixed clutch a year of age does less than a year of age does in total, and the gap is measured rather than eyeballed. Note that the honest route came out *stronger* than the improper one, because comparing an interval with a point throws away the correlation that makes the difference precise. "The answer is no" would not have been a finding at all.

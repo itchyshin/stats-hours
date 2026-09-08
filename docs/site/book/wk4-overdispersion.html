@@ -287,7 +287,7 @@ without it.</p></div>
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.28</span>), label <span class="op">=</span> <span class="st">"Age-only Poisson, mean ± 1 SD"</span>)</span>
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, [egg_lo <span class="op">-</span> <span class="fl">0.5</span>, egg_hi <span class="op">+</span> <span class="fl">0.5</span>], [egg_lo <span class="op">-</span> <span class="fl">0.5</span>, egg_hi <span class="op">+</span> <span class="fl">0.5</span>];</span>
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"ceiling: fledglings = eggs"</span>)</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, egg_jit, females.Fledglings; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, egg_jit, females.Fledglings; markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"a female"</span>)</span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
@@ -682,7 +682,7 @@ hold.</strong> Now the plot from Class 3, on the repaired model.</p></div>
 <span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : those %d sit between theoretical quantile %.2f and %.2f, and %d of the lowest %d deviations are negative</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>        w_bb.out, w_bb.lo, w_bb.hi, w_bb.neg_left, w_bb.third)</span>
 <span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_bb; title <span class="op">=</span> <span class="st">"beta-binomial fit, detrended quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_bb; title <span class="op">=</span> <span class="st">"beta-binomial fit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Binomial     : quantile residual SD 1.2883 (5.21 Monte Carlo SE from 1), 84 of 163 outside the envelope, longest same-sign run 35
 BetaBinomial : quantile residual SD 1.0722 (1.30 Monte Carlo SE from 1), 4 of 163 outside the envelope, longest same-sign run 3
@@ -931,7 +931,7 @@ claims that relationship must be.</p></div>
 <span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, mgrid, mgrid <span class="op">.+</span> mgrid <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> theta; linewidth <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"NB2: var = mean + mean²/θ"</span>)</span>
 <span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, byage.m, byage.v; markersize <span class="op">=</span> <span class="fl">3</span> <span class="op">.*</span> <span class="fu">sqrt</span>.(byage.n),</span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.75</span>))</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.75</span>), label <span class="op">=</span> <span class="st">"observed (age bin), area ∝ n"</span>)</span>
 <span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
 <span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="36">
@@ -1188,18 +1188,23 @@ looks like.</p></div>
 <span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">400</span>))</span>
 <span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
 <span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two lines, two widths, one of them unearned"</span>)</span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_f <span class="op">.-</span> sigma_f, mu_f <span class="op">.+</span> sigma_f; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.30</span>),</span>
-<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"females, ±σ"</span>)</span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_m <span class="op">.-</span> sigma_m, mu_m <span class="op">.+</span> sigma_m; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.18</span>),</span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"males, ±σ"</span>)</span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[.!is_m], sparrows.Wing[.!is_m];</span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"female"</span>)</span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[is_m], sparrows.Wing[is_m];</span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"male"</span>)</span>
-<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_f; linewidth <span class="op">=</span> <span class="fl">2.5</span>)</span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_m; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash)</span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Bands and lines share one colour per sex (accent = female, warn = male) so a</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a><span class="co"># reader can match a band to its line by hue, not only by which one sits</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="co"># higher; the near-equal alpha keeps the WIDTH comparison — the point of this</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co"># figure — the thing that reads as similar, not the shading. Data drawn LAST</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="co"># so no bird is ever painted over by the model on top of it.</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_f <span class="op">.-</span> sigma_f, mu_f <span class="op">.+</span> sigma_f; color <span class="op">=</span> (LIGHT.accent, <span class="fl">0.22</span>),</span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"females, ±σ"</span>)</span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_m <span class="op">.-</span> sigma_m, mu_m <span class="op">.+</span> sigma_m; color <span class="op">=</span> (LIGHT.warn, <span class="fl">0.22</span>),</span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"males, ±σ"</span>)</span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_f; linewidth <span class="op">=</span> <span class="fl">2.5</span>, color <span class="op">=</span> LIGHT.accent, label <span class="op">=</span> <span class="st">"female mean"</span>)</span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_m; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.warn, label <span class="op">=</span> <span class="st">"male mean"</span>)</span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[.!is_m], sparrows.Wing[.!is_m];</span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"female"</span>)</span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[is_m], sparrows.Wing[is_m];</span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"male"</span>)</span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="47">
 <div id="fig-sparrow-bands" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -1305,6 +1310,31 @@ theta           : fitted 3.9864
                   median is +2.7% of the generating value, 1.12 Monte Carlo SE (bootstrap Monte Carlo SE 0.0966;
                   the large-sample formula would have said 0.1099, which is wider)
                   refits: 10th pct 2.8967, 90th pct 5.9290, max 9.2220</code></pre>
+</div>
+</div>
+<p>The numbers above say “strongly asymmetric” six ways; here is the shape itself, so you can see it rather than assemble it from percentiles.</p>
+<div id="cell-fig-theta-refits" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">360</span>))</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"θ (refit)"</span>, ylabel <span class="op">=</span> <span class="st">"count of refits (of 200)"</span>,</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two hundred refits of one parameter"</span>)</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax, thetas; bins <span class="op">=</span> <span class="fl">25</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [theta]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.accent,</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"fitted θ"</span>)</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fu">median</span>(thetas)]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> LIGHT.warn,</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"median of refits"</span>)</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="50">
+<div id="fig-theta-refits" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-theta-refits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk4-overdispersion_files/figure-html/fig-theta-refits-output-1.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theta-refits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: The sampling distribution of θ across the 200 parametric refits: two hundred counts of a single fitted parameter, from data the fitted model itself generated. The dashed line marks the θ the one real fit reported; the dotted line marks the median of the 200 refits. A symmetric standard error would draw a bell centred on the dashed line — this is not that.
+</figcaption>
+</figure>
+</div>
 </div>
 </div>
 <p>The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly <strong>asymmetric</strong> — the mean printed above sits higher than the median, the largest refit is 2.3 times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about 3.99. The median itself is 2.7% off the generating value, which is 1.12 Monte-Carlo standard errors. Read that as <strong>two hundred refits cannot resolve a bias of a few per cent</strong>, not as <em>there is no bias</em>: the two sentences are different, and only the first one is what these two hundred refits measured. Note also which error bar it is measured against. The textbook Monte-Carlo standard error of a median, 1.2533 × SD/√n, is a large-sample approximation, and on a distribution this skewed it comes out at 0.11 where resampling the refits themselves gives 0.097 — so the formula understates the evidence by being too generous with the error bar, which is a nice inversion of the usual complaint. The asymmetry, though, is unmistakable, and it is why an interval read off the likelihood itself beats the plain estimate-plus-or-minus-two-standard-errors kind — the <strong>Wald</strong> interval, which assumes the uncertainty is the same size on both sides — for this parameter, and why quoting a dispersion to three decimal places is theatre. Appendix A takes that apart properly.</p>

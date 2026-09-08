@@ -227,10 +227,15 @@ n_band = count(w -> band_lo <= w <= band_hi, sparrows.Wing)
 
 ```{julia}
 #| label: fig-sexes
-#| fig-cap: "The same cloud, split by sex, with the two group means as dashed lines."
+#| fig-cap: "The same cloud, split by sex: the shaded band is the wing-length range both sexes share, the dashed lines are the two group means."
 fig = Figure(size = (540, 380))
 ax = Axis(fig[1, 1]; xlabel = "tarsus (mm)", ylabel = "wing (mm)",
     title = "the same cloud, with sex marked")
+# the shared band goes down FIRST, low-opacity, so every point still sits on
+# top of it — this is band_lo:band_hi from the cell above, drawn rather than
+# only stated, so "n_band of 171 birds fall in a range both sexes occupy" is
+# something the reader sees, not just a number in the prose
+hspan!(ax, band_lo, band_hi; color = (LIGHT.muted, 0.15), label = "wing range shared by both sexes")
 scatter!(ax, females.Tarsus, females.Wing; markersize = 7, label = "female")
 scatter!(ax, males.Tarsus, males.Wing; markersize = 7, marker = :diamond, label = "male")
 hlines!(ax, [wing_f]; linestyle = :dash, color = Cycled(1))
@@ -439,7 +444,7 @@ ax = Axis(fig[1, 1]; xlabel = "flips so far", ylabel = "proportion heads",
     title = "two seeds, one coin")
 hlines!(ax, [0.5]; linestyle = :dot, color = (:grey, 0.8))
 lines!(ax, 1:n_flips, running(run_a); linewidth = 2, label = "seed 20260907")
-lines!(ax, 1:n_flips, running(run_c); linewidth = 2, label = "seed 20260908")
+lines!(ax, 1:n_flips, running(run_c); linewidth = 2, linestyle = :dash, label = "seed 20260908")
 # full 0-1 range: the first few flips really do sit at 0 or 1, and clipping them
 # to a narrower window would hide exactly the wildness this figure is about.
 ax.limits = (nothing, nothing, 0.0, 1.0)

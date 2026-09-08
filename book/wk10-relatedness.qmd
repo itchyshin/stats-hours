@@ -202,7 +202,9 @@ end
 ```{julia}
 #| label: fig-relatedness
 #| fig-cap: "Heatmap of the additive relatedness matrix A, restricted to the chicks fathered by one busy sire, coloured from 0 to 1. The bright diagonal is each chick with itself, the blocks off it are full sibs sharing both parents at one-half, and the fainter wash everywhere else is half sibs by a different mother at one-quarter — there is no zero anywhere in this slice, because every chick shown shares the same father."
-# One sire with more than one mate, so the block shows 1, 1/2, 1/4 and 0 at once.
+# One sire with more than one mate: the block shows 1 (self), 1/2 (full sibs, same
+# dam too) and 1/4 (half sibs, a different dam) -- never 0, because every row here
+# shares this one father, so no pair in this slice can be unrelated.
 busy_sire = first(sort(sire_mates, :n, rev = true).Dad)
 rows_shown = findall(==(busy_sire), sire)[1:min(end, 18)]
 Ablock = A[rows_shown, rows_shown]
@@ -786,6 +788,29 @@ cover1 = count(i -> w1.lo[i] <= truth1 <= w1.hi[i], 1:n_rep) / n_rep
 
 **Itchy:** Read the bias column. ML sits **below** the truth by `{julia} round(abs(mean(results[1].est) - truths[1]), digits = 4)`, which is `{julia} round(100 * abs(mean(results[1].est) - truths[1]) / truths[1], digits = 1)`% of it (Monte Carlo standard error `{julia} round(100 * mcse(results[1].est) / truths[1], digits = 1)` points) and `{julia} round(abs(mean(results[1].est) - truths[1]) / (std(results[1].est) / sqrt(n_rep)), digits = 1)` Monte Carlo standard errors from zero. That is not noise and it is not this pedigree failing. **It is the price of maximum likelihood, measured, for the animal-only model** — world 1 carries no brood term at all — and it is the promise I made you an hour ago when I refused to fob you off with the residual divisor. REML on the same datasets is closer, and the paired difference — same data, two estimators — is `{julia} round(mean(results[1].est_reml .- results[1].est), digits = 4)`, which is the same size as the gap the real sparrows showed.
 
+**Itchy:** Look at where each one lands against the truth, not just at the table, because a whisker this narrow next to a gap this size is the whole argument in one picture.
+
+```{julia}
+#| label: fig-reml-price
+#| fig-cap: "World 1 (genes only, no brood): the mean estimated h² by maximum likelihood and by REML across the same 500 simulated datasets, each with a 95% interval for that MEAN (±z × its own Monte Carlo SE — an interval for how well the average is known, not for a single dataset). The dashed line is the truth used to simulate the data. Both intervals are far narrower than the gap between them and the truth: a measured, repeatable shift, not Monte Carlo noise."
+mc_ci(v) = (mean(v) - z95 * mcse(v), mean(v) + z95 * mcse(v))
+ci_ml, ci_reml = mc_ci(w1.est), mc_ci(w1.est_reml)
+col_ml, col_reml = Makie.wong_colors()[1], Makie.wong_colors()[2]
+
+fig = Figure(size = (420, 360))
+ax = Axis(fig[1, 1]; xticks = (1:2, ["ML", "REML"]), ylabel = "mean h² over 500 replicates",
+    title = "the price of ML, world 1")
+xlims!(ax, 0.5, 2.5)
+# truth drawn first, estimates drawn last, so no estimate is ever painted over
+hlines!(ax, [truth1]; color = :black, linestyle = :dash, linewidth = 1.5, label = "truth (simulated)")
+rangebars!(ax, [1], [ci_ml[1]], [ci_ml[2]]; whiskerwidth = 10, color = col_ml)
+rangebars!(ax, [2], [ci_reml[1]], [ci_reml[2]]; whiskerwidth = 10, color = col_reml)
+scatter!(ax, [1], [mean(w1.est)]; markersize = 12, color = col_ml, label = "ML mean")
+scatter!(ax, [2], [mean(w1.est_reml)]; markersize = 12, marker = :diamond, color = col_reml, label = "REML mean")
+Legend(fig[1, 2], ax; framevisible = false)
+fig
+```
+
 **Momo:** So the number we are going to report is low by about `{julia} round(100 * abs(mean(results[1].est) - truths[1]) / truths[1], digits = 1)`%, and we cannot fix it, because the engine will not fit REML on this route.
 
 **Itchy:** Say which number you mean. That one is what this simulation measures for the **animal-only** model — no brood term, and σ_A well away from zero. The number we are actually reporting is the two-component fit, h² = `{julia} round(h2_full.estimate, digits = 3)`, and nothing in world 1 is that estimator. A matching *recovery study* is not affordable — every refit with two structured components has to grind through the whole *n* × *n* matrix from scratch, because the pedigree matrix and the brood-sharing matrix cannot be untangled by a single change of coordinates the way the pedigree and the residual can — but a single real-data comparison is one such grind, twice, by the same code with one line changed, exactly as above.
@@ -863,7 +888,7 @@ println()
 
 ```{julia}
 #| label: fig-recovery
-#| fig-cap: "Histograms of estimated h² from the animal-only model, one per simulated world — no nest effect, a large nest effect, and no heritability at all — each with its own truth marked by a dashed line in its colour, and the h² the real sparrows actually gave marked by the solid black line. That line sits inside all three distributions: one variance ratio from one fit cannot tell the worlds apart, only a second variance component can."
+#| fig-cap: "Histograms of estimated h² from the animal-only model, one per simulated world — no nest effect, a large nest effect, and no heritability at all — distinguished by colour AND line style, each with its own truth marked by a dash-dot line in its colour (legend: 'truth'), and the h² the real sparrows actually gave marked by the solid black line. World 1's truth is, by construction, exactly the naive fit's own estimate, so its dash-dot line sits exactly under the solid black one and only the black line shows there — that is not an error, the two values really are identical. That line sits inside all three distributions: one variance ratio from one fit cannot tell the worlds apart, only a second variance component can."
 # Histograms drawn by hand rather than with hist!, so the bins are stated in the
 # cell and the three worlds share them exactly.
 edges = range(0.0, 0.45, length = 46)
@@ -873,12 +898,18 @@ count_in(v) = [count(x -> edges[b] <= x < edges[b + 1], v) for b in 1:length(mid
 fig = Figure(size = (620, 400))
 ax = Axis(fig[1, 1]; xlabel = "estimated h² from the animal-only model",
     ylabel = "replicates", title = "$(n_rep) simulated datasets per world, one estimator")
+styles = [:solid, :dash, :dot]  # colour is not the only channel: greyscale-legible too
 for (k, (w, r, truth)) in enumerate(zip(worlds, results, truths))
     col = Makie.wong_colors()[k]
-    lines!(ax, mids, Float64.(count_in(r.est)); color = col, linewidth = 2, label = w[1])
-    vlines!(ax, [truth]; color = col, linewidth = 1.5, linestyle = :dash)
+    lines!(ax, mids, Float64.(count_in(r.est)); color = col, linewidth = 2,
+        linestyle = styles[k], label = w[1])
+    if k == 1
+        vlines!(ax, [truth]; color = col, linewidth = 1.5, linestyle = :dashdot, label = "truth")
+    else
+        vlines!(ax, [truth]; color = col, linewidth = 1.5, linestyle = :dashdot)
+    end
 end
-vlines!(ax, [h2_naive.estimate]; color = :black, linewidth = 2.5)
+vlines!(ax, [h2_naive.estimate]; color = :black, linewidth = 2.5, label = "real sparrows, h²")
 Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```

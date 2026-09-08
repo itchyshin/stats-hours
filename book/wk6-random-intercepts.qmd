@@ -133,10 +133,12 @@ ax = Axis(fig[1, 1]; xlabel = "tarsus (mm)", ylabel = "wing (mm)",
 scatter!(ax, sparrows.Tarsus, sparrows.Wing; markersize = 5, color = (:grey, 0.35))
 for (i, b) in enumerate(shown)
     rows = sparrows.BirdID .== b
+    # dots and this bird's own line share one colour source (the 4-colour house
+    # cycle), so a bird's line is never a different hue from its own points
     scatter!(ax, sparrows.Tarsus[rows], sparrows.Wing[rows];
         markersize = 11, color = Cycled(mod1(i, 4)))
     lines!(ax, sparrows.Tarsus[rows], sparrows.Wing[rows];
-        color = (Makie.wong_colors()[mod1(i, 7)], 0.55), linewidth = 1)
+        color = Cycled(mod1(i, 4)), alpha = 0.55, linewidth = 1)
 end
 fig
 ```
@@ -218,6 +220,25 @@ se_lm, se_ri = stderror(lm_fit)[1:2], stderror(ri_fit)[1:2]
 
 se_ratio = se_ri[2] / se_lm[2]
 se_shortfall = 1 - se_lm[2] / se_ri[2];
+```
+
+**Itchy:** A ratio in a table is a number you have to hold in your head. Here is the same comparison drawn, so you do not have to.
+
+```{julia}
+#| label: fig-se-widen
+#| fig-cap: "beta1, the coefficient on tarsus, from the no-bird and with-bird fits: the same point estimate — circle for no-bird, diamond for with-bird — plus or minus about two standard errors, the Wald interval. The two points sit almost on top of each other; the interval around the with-bird fit is visibly wider, because it is paying for the recaptures the no-bird fit counted as independent birds."
+ci_lm_b1 = confint(lm_fit)[2]   # beta1's CI, the model that pretends
+ci_ri_b1 = confint(ri_fit)[2]   # beta1's CI, the model that does not
+
+fig = Figure(size = (320, 360))
+ax = Axis(fig[1, 1]; xticks = (1:2, ["no bird", "with bird"]),
+    ylabel = "beta1 (mm wing per mm tarsus)")
+xlims!(ax, 0.5, 2.5)
+rangebars!(ax, [1], [ci_lm_b1.lower], [ci_lm_b1.upper]; whiskerwidth = 8, color = Cycled(1))
+rangebars!(ax, [2], [ci_ri_b1.lower], [ci_ri_b1.upper]; whiskerwidth = 8, color = Cycled(2))
+scatter!(ax, [1], [b_lm[2]]; markersize = 10, color = Cycled(1))
+scatter!(ax, [2], [b_ri[2]]; markersize = 10, marker = :diamond, color = Cycled(2))
+fig
 ```
 
 **Toto:** The slope hardly changed.
@@ -416,7 +437,7 @@ fig
 
 ```{julia}
 #| label: fig-diagnostic
-#| fig-cap: "Worm plot of the conditional residuals — the marginal residual with the model's own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat and inside the ±2SE band for nearly its whole length; the one row that is not is named in the text below rather than smoothed out of the caption."
+#| fig-cap: "Worm plot of the conditional residuals — the marginal residual with the model's own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat through the middle; a scatter of points sit outside the ±2SE band on both sides, which is the naive count the prose above already warned not to read as a defect tally. The single worst deviation in the whole file, not merely the nearest to the edge, is named in the text below."
 # residuals(fit) is MARGINAL: it still contains the bird effect, so it is NOT the
 # thing sigma describes. Subtract each bird's own BLUP to get the CONDITIONAL
 # residual, which is what the within-bird spread is a claim about.
@@ -434,7 +455,7 @@ cond_resid = residuals(ri_fit) .- [blups[idx[b]] for b in sparrows.BirdID]
 fig_diagnostic(cond_resid ./ std(cond_resid); title = "within-bird residuals")
 ```
 
-**Itchy:** Read the shape, but do not let your eye average away the one row that does not belong in an average. Name it before we go on.
+**Itchy:** Read the shape, but do not let your eye average away the single worst row, the one that does not belong in an average even among the points already outside the band. Name it before we go on.
 
 ```{julia}
 #| label: named-outlier
@@ -454,7 +475,7 @@ refit_drop = drm(bf(@formula(Wing ~ Tarsus + (1|BirdID))), Gaussian(); data = sp
 @printf("R,       row in vs out    : %.4f vs %.4f\n", R.estimate, repeatability(refit_drop).estimate)
 ```
 
-**Itchy:** `{julia} bad_bird`. Read the line above rather than take my word for it: three wings within a couple of millimetres of each other, and a fourth well short of them. It survived the missing-data filter because tarsus was recorded on all four captures, so it is sitting inside this fit whether we discuss it or not. Drop that one row and σ moves from `{julia} round(sigma_e, digits = 4)` to `{julia} round(first(sigma(refit_drop)), digits = 4)`, and R from `{julia} round(R.estimate, digits = 4)` to `{julia} round(repeatability(refit_drop).estimate, digits = 4)` — one row out of `{julia} n`, and not a small move. This bird, and a second one like it, get the full treatment next week: Class 7 names them both and sends them to an exercise. Here I am only asking you to read a worm plot honestly: flat and inside the band almost everywhere, with this one row sitting outside it on its own.
+**Itchy:** `{julia} bad_bird`. Read the line above rather than take my word for it: three wings within a couple of millimetres of each other, and a fourth well short of them. It survived the missing-data filter because tarsus was recorded on all four captures, so it is sitting inside this fit whether we discuss it or not. Drop that one row and σ moves from `{julia} round(sigma_e, digits = 4)` to `{julia} round(first(sigma(refit_drop)), digits = 4)`, and R from `{julia} round(R.estimate, digits = 4)` to `{julia} round(repeatability(refit_drop).estimate, digits = 4)` — one row out of `{julia} n`, and not a small move. This bird, and a second one like it, get the full treatment next week: Class 7 names them both and sends them to an exercise. Here I am only asking you to read a worm plot honestly: flat through the middle, a scatter of points beyond the band on both sides exactly as the naive count above predicts, and this one sitting furthest out of all of them.
 
 **Momo:** The conditional one is smaller than σ. Is that the shrinkage?
 
