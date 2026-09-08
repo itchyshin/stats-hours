@@ -1372,7 +1372,7 @@ a trap that Class 3 did not have.</p></div>
 <img src="wk9-glmms_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. Most points fall outside the plotted band and the whole worm sits above the identity line — but that band assumes independent chicks, the very assumption this chapter exists to drop.
+Figure&nbsp;4: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. Most points fall outside the plotted band and the body of the worm sits above the identity line while both tails dip back below it — but that band assumes independent chicks, the very assumption this chapter exists to drop.
 </figcaption>
 </figure>
 </div>
@@ -1408,13 +1408,14 @@ the fixed-effects standard error was too small. The band is not a
 verdict; it is the same assumption, redrawn.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>So the picture tells us nothing either.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The picture tells you the shape, which is what a worm plot is for, and
-the shape is not the pure scale error I was about to diagnose: the whole
-worm sits <strong>above</strong> the line through the middle, and that
-is the mean of 0.0916 printed two cells ago. A mean is not a spread. But
-before any of that, ask the question that is prior to both:
-<strong>which distribution</strong> were these residuals compared
-against? Class 6 made you ask exactly this about a residual and the
-answer was marginal-or-conditional. Same question, one level harder.</p></div>
+the shape is not the pure scale error I was about to diagnose: the body
+of the worm sits <strong>above</strong> the line through the middle, and
+that is the mean of 0.0916 printed two cells ago — though both tails
+swing back below it. A mean is not a spread. But before any of that, ask
+the question that is prior to both: <strong>which distribution</strong>
+were these residuals compared against? Class 6 made you ask exactly this
+about a residual and the answer was marginal-or-conditional. Same
+question, one level harder.</p></div>
 <div id="qres-reference" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A randomised quantile residual for a 0/1 response is Phi^-1 of</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   u = 1 - p + p*U   if y = 1,      u = (1 - p)*U   if y = 0,   U ~ Uniform(0,1).</span></span>

@@ -146,7 +146,7 @@ vlines!(ax, [mean_wing]; linestyle = :dash, color = (:grey, 0.8))
 fig
 ```
 
-**Itchy:** One hump, roughly symmetric, no second peak hiding out at the right-hand end, nothing stranded at zero because somebody typed a missing value as a number. The dashed line is the mean. Look at this before you believe any summary; it takes four seconds and it is the cheapest thing in this book.
+**Itchy:** One hump, roughly symmetric, with a small shoulder further out in the right tail that keeps it from tapering away evenly, nothing stranded at zero because somebody typed a missing value as a number. The dashed line is the mean. Look at this before you believe any summary; it takes four seconds and it is the cheapest thing in this book.
 
 ### The first figure of the grammar
 

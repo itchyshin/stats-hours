@@ -194,7 +194,7 @@ end
 
 ```{julia}
 #| label: fig-curve
-#| fig-cap: "The same jittered survival cloud, now with the Gaussian line dashed and the logistic curve solid over it. The curve never crosses either dotted bound and flattens at both ends, so an extra gram buys almost nothing near certain death or certain survival, and the most near the steepest point in between."
+#| fig-cap: "The same jittered survival cloud, now with the Gaussian line dashed and the logistic curve solid over it. The curve never crosses either dotted bound. Toward the heavy end it flattens sharply as survival becomes near-certain, so an extra gram buys almost nothing there; toward the light end, within this file's range, it is still climbing well short of flat, and the most any gram buys is near the steepest point in between."
 p_curve = predict(logit_fit, (; Mass2 = collect(xs)))
 
 fig = Figure(size = (540, 380))
@@ -215,7 +215,7 @@ fig
 
 **Toto:** The curve flattens out at both ends.
 
-**Itchy:** Both ends, Toto, and keep the second half of that sentence, because it is the half people drop. The curve cannot go above one or below zero, so at either extreme it runs out of room and an extra gram buys almost nothing. Between the two ends there is a steepest point. Where that point falls is a number, not a feeling, so compute it before you say anything about birds.
+**Itchy:** Look again before you hand me "both." It flattens hard on the heavy end, where survival is already close to certain, and an extra gram buys almost nothing there. On the light end, in the range these chicks actually give you, it has not gotten there yet — it is still climbing. The curve cannot go above one or below zero, so it does run out of room eventually, but "eventually" is not the same as "in this picture." Between the light end and that heavy flattening there is a steepest point. Where that point falls is a number, not a feeling, so compute it before you say anything about birds.
 
 ```{julia}
 #| label: where-a-gram-matters
@@ -300,7 +300,7 @@ println("\nblocks the fit carries: ", first.(logit_fit.blocks))
 
 ```{julia}
 #| label: fig-variance-decree
-#| fig-cap: "The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter's own logistic fit actually produced: nowhere near either end, so no chick in this file got the free ride of near-zero noise."
+#| fig-cap: "The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter's own logistic fit actually produced: the low end sits comfortably clear of zero, but the high end sits close to the p = 1 wall, where the decreed variance has already dropped to a small fraction of its peak — so it is really only the low end that is nowhere near an end, and no chick in this file got the free ride of literally zero noise."
 p_grid = range(0, 1, length = 200)
 var_grid = p_grid .* (1 .- p_grid)
 
@@ -316,7 +316,7 @@ Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
-**Itchy:** That curve is not fitted to anything. It is what `Binomial()` commits you to the moment you say the word, for every p from zero to one, on every dataset that will ever exist. The shaded strip is where this chapter's own chicks actually live — `{julia} round(p_lo, digits = 3)` to `{julia} round(p_hi, digits = 3)` — and notice it sits well short of either wall, so nothing in this file was promised the near-zero noise the curve allows at its extremes. And notice what the picture cannot show you: no `Mass2` on either axis, no `BroodSize`, no predictor at all. The variance function does not know what moved the mean. It only knows the mean itself. One block, `mu`, and nothing else. There is no `sigma` block to print because there is no σ to estimate. That is not the engine being unhelpful; it is the engine refusing to invent a parameter the family has already spent.
+**Itchy:** That curve is not fitted to anything. It is what `Binomial()` commits you to the moment you say the word, for every p from zero to one, on every dataset that will ever exist. The shaded strip is where this chapter's own chicks actually live — `{julia} round(p_lo, digits = 3)` to `{julia} round(p_hi, digits = 3)` — and the two ends are not the same distance from a wall: the variance at the low end, `{julia} round(p_lo * (1 - p_lo), digits = 3)`, is still well above zero, but the variance at the high end, `{julia} round(p_hi * (1 - p_hi), digits = 3)`, has nearly reached it. So it is the low end, not both, that got nowhere near a wall; nothing in this file was promised literally zero noise, but the heaviest-surviving chicks come close. And notice what the picture cannot show you: no `Mass2` on either axis, no `BroodSize`, no predictor at all. The variance function does not know what moved the mean. It only knows the mean itself. One block, `mu`, and nothing else. There is no `sigma` block to print because there is no σ to estimate. That is not the engine being unhelpful; it is the engine refusing to invent a parameter the family has already spent.
 
 **Momo:** And if the decree is wrong?
 

@@ -746,7 +746,7 @@ fig_brood_shrinkage(broods[shown], u_own[shown], u_hat[shown])
 
 ```{julia}
 #| label: fig-diagnostic
-#| fig-cap: "Worm plot of the GLMM's randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. Most points fall outside the plotted band and the whole worm sits above the identity line — but that band assumes independent chicks, the very assumption this chapter exists to drop."
+#| fig-cap: "Worm plot of the GLMM's randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. Most points fall outside the plotted band and the body of the worm sits above the identity line while both tails dip back below it — but that band assumes independent chicks, the very assumption this chapter exists to drop."
 qres = residuals(glmm_fit; type = :quantile, rng = MersenneTwister(909))
 
 @printf("quantile residuals: mean %.4f, SD %.4f\n", mean(qres), std(qres))
@@ -778,7 +778,7 @@ n_outside = outside_band(qres)
 
 **Toto:** So the picture tells us nothing either.
 
-**Itchy:** The picture tells you the shape, which is what a worm plot is for, and the shape is not the pure scale error I was about to diagnose: the whole worm sits **above** the line through the middle, and that is the mean of `{julia} round(mean(qres), digits = 4)` printed two cells ago. A mean is not a spread. But before any of that, ask the question that is prior to both: **which distribution** were these residuals compared against? Class 6 made you ask exactly this about a residual and the answer was marginal-or-conditional. Same question, one level harder.
+**Itchy:** The picture tells you the shape, which is what a worm plot is for, and the shape is not the pure scale error I was about to diagnose: the body of the worm sits **above** the line through the middle, and that is the mean of `{julia} round(mean(qres), digits = 4)` printed two cells ago — though both tails swing back below it. A mean is not a spread. But before any of that, ask the question that is prior to both: **which distribution** were these residuals compared against? Class 6 made you ask exactly this about a residual and the answer was marginal-or-conditional. Same question, one level harder.
 
 ```{julia}
 #| label: qres-reference

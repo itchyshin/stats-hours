@@ -445,19 +445,22 @@ put the two models on the same picture.</p></div>
 <img src="wk3-glms_files/figure-html/fig-curve-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: The same jittered survival cloud, now with the Gaussian line dashed and the logistic curve solid over it. The curve never crosses either dotted bound and flattens at both ends, so an extra gram buys almost nothing near certain death or certain survival, and the most near the steepest point in between.
+Figure&nbsp;2: The same jittered survival cloud, now with the Gaussian line dashed and the logistic curve solid over it. The curve never crosses either dotted bound. Toward the heavy end it flattens sharply as survival becomes near-certain, so an extra gram buys almost nothing there; toward the light end, within this file’s range, it is still climbing well short of flat, and the most any gram buys is near the steepest point in between.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>The curve flattens out at both ends.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Both ends, Toto, and keep the second half of that sentence, because it
-is the half people drop. The curve cannot go above one or below zero, so
-at either extreme it runs out of room and an extra gram buys almost
-nothing. Between the two ends there is a steepest point. Where that
-point falls is a number, not a feeling, so compute it before you say
-anything about birds.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Look again before you hand me “both.” It flattens hard on the heavy end,
+where survival is already close to certain, and an extra gram buys
+almost nothing there. On the light end, in the range these chicks
+actually give you, it has not gotten there yet — it is still climbing.
+The curve cannot go above one or below zero, so it does run out of room
+eventually, but “eventually” is not the same as “in this picture.”
+Between the light end and that heavy flattening there is a steepest
+point. Where that point falls is a number, not a feeling, so compute it
+before you say anything about birds.</p></div>
 <div id="where-a-gram-matters" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gain_low  <span class="op">=</span> p_hat[<span class="fl">2</span>] <span class="op">-</span> p_hat[<span class="fl">1</span>]          <span class="co"># 2.0 g -&gt; 3.5 g</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>gain_high <span class="op">=</span> p_hat[<span class="fl">3</span>] <span class="op">-</span> p_hat[<span class="fl">2</span>]          <span class="co"># 3.5 g -&gt; 5.0 g</span></span>
@@ -599,7 +602,7 @@ description of it.</p></div>
 <img src="wk3-glms_files/figure-html/fig-variance-decree-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-variance-decree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter’s own logistic fit actually produced: nowhere near either end, so no chick in this file got the free ride of near-zero noise.
+Figure&nbsp;3: The variance Binomial() decrees, Var = p(1-p), plotted across every probability the family allows — not fitted from data, but arithmetic: a coin that lands heads with probability p has this variance and no other is available to it. It peaks at 0.25 when p = 1/2, the coin with the most to be unsure about, and is pinned to zero at both ends. The shaded strip marks the p_lo–p_hi window this chapter’s own logistic fit actually produced: the low end sits comfortably clear of zero, but the high end sits close to the p = 1 wall, where the decreed variance has already dropped to a small fraction of its peak — so it is really only the low end that is nowhere near an end, and no chick in this file got the free ride of literally zero noise.
 </figcaption>
 </figure>
 </div>
@@ -608,9 +611,12 @@ Figure&nbsp;3: The variance Binomial() decrees, Var = p(1-p), plotted across eve
 <div class="line"><span class="who itchy">Itchy</span><p>That curve is not fitted to anything. It is what <code>Binomial()</code>
 commits you to the moment you say the word, for every p from zero to
 one, on every dataset that will ever exist. The shaded strip is where
-this chapter’s own chicks actually live — 0.122 to 0.98 — and notice it
-sits well short of either wall, so nothing in this file was promised the
-near-zero noise the curve allows at its extremes. And notice what the
+this chapter’s own chicks actually live — 0.122 to 0.98 — and the two
+ends are not the same distance from a wall: the variance at the low end,
+0.107, is still well above zero, but the variance at the high end,
+0.019, has nearly reached it. So it is the low end, not both, that got
+nowhere near a wall; nothing in this file was promised literally zero
+noise, but the heaviest-surviving chicks come close. And notice what the
 picture cannot show you: no <code>Mass2</code> on either axis, no
 <code>BroodSize</code>, no predictor at all. The variance function does
 not know what moved the mean. It only knows the mean itself. One block,

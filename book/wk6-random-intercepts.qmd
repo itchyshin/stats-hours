@@ -120,7 +120,7 @@ mean_k = mean(per_bird.k)
 
 ```{julia}
 #| label: fig-by-bird
-#| fig-cap: "Wing against tarsus for every measurement in grey, with a handful of birds picked at even intervals through the ordering by mean wing length highlighted in colour, each bird's own recaptures joined in order. A bird's joined points sit close together and move together — the repeated-measures structure the whole chapter is about, visible before any model is fitted."
+#| fig-cap: "Wing against tarsus for every measurement in grey, with a handful of birds picked at even intervals through the ordering by mean wing length highlighted in colour, each bird's own recaptures joined in order. Most birds' joined points sit close together; for a few of them the recaptures are spread across several millimetres — the repeated-measures structure the whole chapter is about, visible before any model is fitted."
 # Birds at even intervals through the ordering by mean wing length, so the
 # choice of which to show is a rule and not a preference.
 bird_ids = sort(unique(sparrows.BirdID))
@@ -143,7 +143,7 @@ end
 fig
 ```
 
-**Eddie:** The joined-up points are tight. A bird stays roughly where it was.
+**Eddie:** Most of the joined-up points are tight. A bird stays roughly where it was.
 
 **Itchy:** A bird stays roughly where it was. Hold on to that sentence, because by the end of the hour we will have put a number on it and given the number a name.
 
