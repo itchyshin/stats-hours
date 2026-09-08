@@ -340,8 +340,8 @@ version = "4.2.0"
 
 [[deps.DRM]]
 deps = ["Distributions", "ForwardDiff", "LinearAlgebra", "Optim", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsAPI", "StatsModels", "Tables"]
-git-tree-sha1 = "f13905661dcde034b19f35b0819ad2007c7511ca"
-repo-rev = "4d9248f88db86070cba7ed2ed0b59d051ce622c6"
+git-tree-sha1 = "dc05dccc025add789d56c4f69a6fe5386b97b51e"
+repo-rev = "26f4c4ddca58bd672fce807a7564face3debdc93"
 repo-url = "https://github.com/itchyshin/DRM.jl"
 uuid = "6c755ef2-eed4-4cdd-aafe-b639090bd215"
 version = "0.7.1"

@@ -5,7 +5,7 @@ chapter: 5
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, residuals, diagnostics, model-comparison, simulation, DRM.jl]
 deck: "A residual plot tells you whether the model is embarrassed by the data you have. Simulating from the model tells you what the model believes about data you have not seen, and that is where the embarrassing beliefs live."
 status_tag: Draft

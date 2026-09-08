@@ -6,7 +6,7 @@ kicker: Preface
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, preface, scope, one-engine, reproducibility, DRM.jl]
 deck: "One engine for the whole climb, a fence around two subjects that belong in a different book, and a rule about numbers: nothing on a page is typed in — every one of them comes from code you can see, run on the spot."
 status_tag: Draft

@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <p>All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft.</p>
     </div>
     <p class="meta">
-      <b>Engines</b> DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
       <b>Provenance</b> Every block of Julia on this page was run, and its output printed, when the page was made — including the error. Nothing is pasted in from memory. The one block of R output was run once by hand, on 2026-09-06, on the same data file, and is labelled as such where it appears.<br>
       <b>Caveat</b> The data are real. These are the Lundy Island house sparrows of the author’s 2012 course, read directly from the archived data/2012/BodySize.csv with its repeated measurements intact (provenance in data/2012/README.md). Nothing here is simulated.
     </p>
@@ -926,22 +926,38 @@ row, the one that does not belong in an average even among the points
 already outside the band. Name it before we go on.</p></div>
 <div id="named-outlier" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> <span class="fu">argmin</span>(z)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>bad_bird <span class="op">=</span> sparrows.BirdID[worst]</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>own_wings <span class="op">=</span> sparrows.Wing[sparrows.BirdID <span class="op">.==</span> bad_bird]</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points beyond +-2: %d below, %d above (of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(z <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span>), <span class="fu">count</span>(z <span class="op">.&gt;</span> <span class="fl">2</span>), <span class="fu">length</span>(z))</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"furthest point: bird %s, standardised residual %.2f</span><span class="sc">\n</span><span class="st">"</span>, bad_bird, z[worst])</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its own wing measurements: %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">string</span>(own_wings))</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">trues</span>(n); keep[worst] <span class="op">=</span> <span class="cn">false</span></span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>refit_drop <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e, row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(refit_drop)))</span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R,       row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate, <span class="fu">repeatability</span>(refit_drop).estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># fig_diagnostic does not plot z itself: it sorts z into order statistics and</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"># subtracts the theoretical normal quantile each one is expected to sit at</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (obs .- theo), which is what a worm plot actually shows on its y-axis, and</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"># what the ±2SE band above is drawn around. Counting z past a fixed +-2, as</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># this cell used to, answers a different question than the one on the page.</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Mirror fig_diagnostic's own detrending exactly (same erfinv_approx, same</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="co"># order statistics) so the two report the same quantity.</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>ordp <span class="op">=</span> <span class="fu">sortperm</span>(z)</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>p_os <span class="op">=</span> ((<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(z)) <span class="op">.-</span> <span class="fl">0.5</span>) <span class="op">./</span> <span class="fu">length</span>(z)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>theo <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">.*</span> <span class="fu">erfinv_approx</span>.(<span class="fl">2</span> <span class="op">.*</span> p_os <span class="op">.-</span> <span class="fl">1</span>)</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> z[ordp] <span class="op">.-</span> theo</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="cn">φ</span> <span class="op">=</span> x <span class="op">-&gt;</span> <span class="fu">exp</span>(<span class="op">-</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">2</span>) <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span>π)</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>se <span class="op">=</span> <span class="fu">sqrt</span>.(p_os <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_os) <span class="op">./</span> <span class="fu">length</span>(z)) <span class="op">./</span> <span class="fu">φ</span>.(theo)</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>worst_sorted <span class="op">=</span> <span class="fu">argmax</span>(<span class="fu">abs</span>.(dev))</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> ordp[worst_sorted]</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>bad_bird <span class="op">=</span> sparrows.BirdID[worst]</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>own_wings <span class="op">=</span> sparrows.Wing[sparrows.BirdID <span class="op">.==</span> bad_bird]</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points beyond +-2SE band: %d below, %d above (of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(dev <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span> <span class="op">.*</span> se), <span class="fu">count</span>(dev <span class="op">.&gt;</span> <span class="fl">2</span> <span class="op">.*</span> se), <span class="fu">length</span>(z))</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"furthest point: bird %s, deviation %.2f</span><span class="sc">\n</span><span class="st">"</span>, bad_bird, dev[worst_sorted])</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its own wing measurements: %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">string</span>(own_wings))</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">trues</span>(n); keep[worst] <span class="op">=</span> <span class="cn">false</span></span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>refit_drop <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e, row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(refit_drop)))</span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R,       row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate, <span class="fu">repeatability</span>(refit_drop).estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>points beyond +-2: 8 below, 6 above (of 459)
-furthest point: bird TA14548, standardised residual -7.87
+<pre><code>points beyond +-2SE band: 45 below, 44 above (of 459)
+furthest point: bird TA14548, deviation -4.81
 its own wing measurements: [75.5, 75.0, 76.5, 67.0]
 sigma_e, row in vs out    : 1.0969 vs 1.0002
 R,       row in vs out    : 0.7189 vs 0.7531</code></pre>

@@ -5,7 +5,7 @@ chapter: 2
 type: book-chapter
 status: draft
 created: 2026-09-05
-engines: DRM.jl 0.7.1, development snapshot 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, linear-model, DRM.jl, drmTMB]
 deck: "The linear model, taught in one engine — and the morning a student notices that Julia and R disagree about a number."
 status_tag: Draft

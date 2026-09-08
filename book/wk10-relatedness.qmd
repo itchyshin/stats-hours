@@ -5,7 +5,7 @@ chapter: 10
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, animal-model, relatedness, heritability, pedigree, DRM.jl]
 deck: "A one-generation pedigree, a matrix of ones and halves and quarters, and a heritability that lost most of itself the moment somebody put the nest the chick grew up in into the model."
 status_tag: Draft

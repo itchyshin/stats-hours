@@ -5,7 +5,7 @@ chapter: 8
 type: book-chapter
 status: draft
 created: 2026-09-06
-engines: DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, REML, boundary, chi-bar-squared, defaults, DRM.jl, lme4]
 deck: "Two correct implementations of one mixed model print different variance components, and nobody in the room chose which one they were reading."
 status_tag: Draft

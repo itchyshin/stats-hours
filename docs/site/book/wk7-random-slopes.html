@@ -95,7 +95,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <p>All ten classes of version 1 run end to end (1–10), with Appendix A, the preface and the coda. Every number and figure on this page was computed when the site was built; the book itself is still being written.</p>
     </div>
     <p class="meta">
-      <b>Engines</b> DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
       <b>Provenance</b> Every block of Julia code on this page ran when the site was built, including the one that fails and the two that catch a failure and report it. Nothing is pasted from a session you cannot see. Every random draw comes from a generator set up in the block that uses it. The one R block was run once by hand, on the date shown (2026-09-07), against the file this chapter’s first block writes; the script is kept at data/ch7/ch7-r-box.R.<br>
       <b>Caveat</b> The data are real. These are the Lundy Island house sparrows of the author’s 2012 course, read from the archived data/2012/BodySize.csv with the repeated measurements intact (where the file comes from is recorded in data/2012/README.md). The only simulated quantities are drawn from models fitted to that file, from random-number generators set up in the code you can see.
     </p>
@@ -257,7 +257,10 @@ share is large enough to estimate from. Mass passes both. So today’s
 covariate is <strong>mass</strong>, and today’s question is: when a bird
 is heavier, is its wing measured longer, and <strong>by the same amount
 in every bird</strong>? Look at it before you model it.</p></div>
-<div id="cell-fig-spaghetti-data" class="cell" data-execution_count="4">
+<div id="fig-spaghetti-data" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>k_of <span class="op">=</span> <span class="fu">Dict</span>(r.BirdID <span class="op">=&gt;</span> r.k <span class="cf">for</span> r <span class="kw">in</span> <span class="fu">eachrow</span>(per_bird))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>repeat_ids <span class="op">=</span> [b for b <span class="kw">in</span> bird_ids if k_of[b] <span class="op">&gt;=</span> <span class="fl">3</span>]</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -282,9 +285,9 @@ in every bird</strong>? Look at it before you model it.</p></div>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co"># are only about 4/255 apart in greyscale luminance, so they land as the same</span></span>
 <span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co"># grey blob once colour is taken away (print, e-ink, a colour-vision</span></span>
 <span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co"># simplification). Line style and marker shape are a second and third</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># channel, cycled on a period of 3 rather than the colour's 4, so all twelve</span></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co"># birds shown here get a unique (colour, style, shape) triple instead of</span></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co"># four colours repeating three times each.</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># channel, cycled on a period of 3 rather than the colour's 4, so every bird</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co"># shown here (up to twelve) gets a unique (colour, style, shape) triple</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co"># instead of four colours repeating three times each.</span></span>
 <span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>styles  <span class="op">=</span> [<span class="op">:</span>solid, <span class="op">:</span>dash, <span class="op">:</span>dashdot]</span>
 <span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>markers <span class="op">=</span> [<span class="op">:</span>circle, <span class="op">:</span>rect, <span class="op">:</span>utriangle]</span>
 <span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
@@ -299,17 +302,18 @@ in every bird</strong>? Look at it before you model it.</p></div>
 <span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
 <span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-<div id="fig-spaghetti-data" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig">
-<div aria-describedby="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="wk7-random-slopes_files/figure-html/fig-spaghetti-data-output-1.svg" class="img-fluid">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird’s own captures joined in order of mass. A bird’s identity is its colour, its line style and its marker shape together: two of the house palette’s four colours sit close enough in brightness that colour alone does not survive greyscale or print, so style and shape carry the difference where colour cannot. The house palette has four colours and three line styles, so twelve birds — not six — gives each of them a colour/style/shape combination no other bird in the plot shares. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness.
-</figcaption>
+<div>
+<figure>
+<p><img src="wk7-random-slopes_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
 </figure>
 </div>
 </div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird’s own captures joined in order of mass. A bird’s identity is its colour, its line style and its marker shape together: two of the house palette’s four colours sit close enough in brightness that colour alone does not survive greyscale or print, so style and shape carry the difference where colour cannot. The house palette has four colours and three line styles, so any selection of up to twelve birds gives each one a colour/style/shape combination no other bird in the plot shares, and 8 are shown here. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness.
+</figcaption>
+</figure>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Some of them go up and some of them go down.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Some of them go up and some of them go down, and <em>that</em> is the
@@ -420,7 +424,7 @@ appears, and nothing else.</p></div>
 <div id="cell-fit-centred" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>rs_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wc <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wc<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>rs_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-centred" class="cell-output cell-output-display" data-execution_count="10">
+<div id="fit-centred" class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>Distributional regression fit (Gaussian)
   nobs = 459   logLik = -872.6137   converged = true
   Residual SD (response scale) = 1.0179   dof_residual = 453
@@ -684,7 +688,7 @@ and mark the table’s four origins on it.</p></div>
 <span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        align <span class="op">=</span> (<span class="op">:</span>center, <span class="op">:</span>bottom), offset <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">8</span>), fontsize <span class="op">=</span> <span class="fl">12</span>)</span>
 <span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
 <span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
+<div class="cell-output cell-output-display" data-execution_count="17">
 <div id="fig-origin-rho" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-origin-rho-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -737,7 +741,7 @@ engine says back. Class 8 takes the boundary apart properly, next week.</p></div
 <div class="cell-output cell-output-stderr">
 <pre><code>┌ Warning: lrtest: `full` adds variance-component block(s) [:recov] that `reduced` lacks, so this compares a variance component against 0 — a BOUNDARY null. The reported χ²(2) p-value is INVALID there (conservative: too large, so the test loses power); the correct reference is a chi-bar-square mixture. Use `lrt_boundary(full, reduced; q = &lt;#components&gt;)` (or a parametric bootstrap) for a boundary-correct p-value.</code></pre>
 </div>
-<div id="naive-lrt" class="cell-output cell-output-display" data-execution_count="19">
+<div id="naive-lrt" class="cell-output cell-output-display" data-execution_count="20">
 <pre><code>(statistic = 21.960253928567226, dof = 2, pvalue = 1.7036934307452335e-5)</code></pre>
 </div>
 </div>
@@ -889,7 +893,7 @@ you. Draw it.</p></div>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>fig.content[<span class="fl">1</span>].ylabel <span class="op">=</span> <span class="st">"slope of wing on mass (mm per g)"</span></span>
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>fig.content[<span class="fl">1</span>].title <span class="op">=</span> <span class="st">"Shrinkage, now for slopes"</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
+<div class="cell-output cell-output-display" data-execution_count="25">
 <div id="fig-slope-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-slope-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -938,7 +942,7 @@ the picture that names the chapter.</p></div>
 <span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_rs[<span class="fl">1</span>] <span class="op">.+</span> b_rs[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">3</span>)</span>
 <span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell-output cell-output-display" data-execution_count="27">
 <div id="fig-bird-lines" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-bird-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1070,7 +1074,7 @@ points outside the pointwise band : 25 of 459 (5.4%)
   of them, at POSITIVE quantiles  : 23
 most extreme standardised residual : -7.492 low, 2.830 high</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="32">
 <div id="fig-worm" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-worm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">

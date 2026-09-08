@@ -5,7 +5,7 @@ chapter: 3
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, glm, logistic, poisson, DRM.jl]
 deck: "A model that gives a chick a better than hundred per cent chance of surviving is not slightly wrong. It is the wrong shape, and the family is how you fix it."
 status_tag: Draft

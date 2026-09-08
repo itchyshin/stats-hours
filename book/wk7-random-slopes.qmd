@@ -5,7 +5,7 @@ chapter: 7
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, random-slopes, centring, boundary, shrinkage, DRM.jl]
 deck: "One extra term, two extra parameters, a correlation that changes its sign when you move the origin of a covariate without changing the model at all, and a slope variance that turns out to have been doing somebody else's job."
 status_tag: Draft
@@ -142,9 +142,9 @@ end
 
 **Itchy:** The rule is: **pick a covariate whose within-group variation is a thing that happens, not a thing you did.** Then check that its share is large enough to estimate from. Mass passes both. So today's covariate is **mass**, and today's question is: when a bird is heavier, is its wing measured longer, and **by the same amount in every bird**? Look at it before you model it.
 
+::: {#fig-spaghetti-data}
+
 ```{julia}
-#| label: fig-spaghetti-data
-#| fig-cap: "Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird's own captures joined in order of mass. A bird's identity is its colour, its line style and its marker shape together: two of the house palette's four colours sit close enough in brightness that colour alone does not survive greyscale or print, so style and shape carry the difference where colour cannot. The house palette has four colours and three line styles, so twelve birds — not six — gives each of them a colour/style/shape combination no other bird in the plot shares. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness."
 k_of = Dict(r.BirdID => r.k for r in eachrow(per_bird))
 repeat_ids = [b for b in bird_ids if k_of[b] >= 3]
 
@@ -169,9 +169,9 @@ palette = to_value(Makie.current_default_theme().palette.color)
 # are only about 4/255 apart in greyscale luminance, so they land as the same
 # grey blob once colour is taken away (print, e-ink, a colour-vision
 # simplification). Line style and marker shape are a second and third
-# channel, cycled on a period of 3 rather than the colour's 4, so all twelve
-# birds shown here get a unique (colour, style, shape) triple instead of
-# four colours repeating three times each.
+# channel, cycled on a period of 3 rather than the colour's 4, so every bird
+# shown here (up to twelve) gets a unique (colour, style, shape) triple
+# instead of four colours repeating three times each.
 styles  = [:solid, :dash, :dashdot]
 markers = [:circle, :rect, :utriangle]
 
@@ -186,6 +186,10 @@ for (i, b) in enumerate(shown)
 end
 fig
 ```
+
+Every twelfth bird, in the ordering by mean mass, among those measured at least three times — a rule, not a preference — with each bird's own captures joined in order of mass. A bird's identity is its colour, its line style and its marker shape together: two of the house palette's four colours sit close enough in brightness that colour alone does not survive greyscale or print, so style and shape carry the difference where colour cannot. The house palette has four colours and three line styles, so any selection of up to twelve birds gives each one a colour/style/shape combination no other bird in the plot shares, and `{julia} length(shown)` are shown here. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness.
+
+:::
 
 **Toto:** Some of them go up and some of them go down.
 

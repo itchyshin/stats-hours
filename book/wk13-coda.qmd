@@ -6,7 +6,7 @@ kicker: Coda
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, coda, location-scale, bivariate, meta-analysis, phylogeny, scope, DRM.jl]
 deck: "A coda, not a rung: no new constant is freed here. One figure below refits a model Class 2 already ran, to show what rung eleven means; the rest is prose, and the constants still waiting are one level up, two of them with chapter numbers already."
 status_tag: Draft

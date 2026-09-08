@@ -5,7 +5,7 @@ chapter: 6
 type: book-chapter
 status: draft
 created: 2026-09-06
-engines: DRM.jl 0.7.1 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, random-intercept, repeatability, ICC, DRM.jl]
 deck: "Four hundred and fifty-nine measurements, one hundred and seventy-one sparrows, and a standard error that was wrong by nearly a quarter until somebody noticed the same bird was in the file four times."
 status_tag: Draft
@@ -460,13 +460,29 @@ fig_diagnostic(cond_resid ./ std(cond_resid); title = "within-bird residuals")
 ```{julia}
 #| label: named-outlier
 z = cond_resid ./ std(cond_resid)
-worst = argmin(z)
+
+# fig_diagnostic does not plot z itself: it sorts z into order statistics and
+# subtracts the theoretical normal quantile each one is expected to sit at
+# (obs .- theo), which is what a worm plot actually shows on its y-axis, and
+# what the ±2SE band above is drawn around. Counting z past a fixed +-2, as
+# this cell used to, answers a different question than the one on the page.
+# Mirror fig_diagnostic's own detrending exactly (same erfinv_approx, same
+# order statistics) so the two report the same quantity.
+ordp = sortperm(z)
+p_os = ((1:length(z)) .- 0.5) ./ length(z)
+theo = sqrt(2) .* erfinv_approx.(2 .* p_os .- 1)
+dev = z[ordp] .- theo
+φ = x -> exp(-x^2 / 2) / sqrt(2π)
+se = sqrt.(p_os .* (1 .- p_os) ./ length(z)) ./ φ.(theo)
+
+worst_sorted = argmax(abs.(dev))
+worst = ordp[worst_sorted]
 bad_bird = sparrows.BirdID[worst]
 own_wings = sparrows.Wing[sparrows.BirdID .== bad_bird]
 
-@printf("points beyond +-2: %d below, %d above (of %d)\n",
-        count(z .< -2), count(z .> 2), length(z))
-@printf("furthest point: bird %s, standardised residual %.2f\n", bad_bird, z[worst])
+@printf("points beyond +-2SE band: %d below, %d above (of %d)\n",
+        count(dev .< -2 .* se), count(dev .> 2 .* se), length(z))
+@printf("furthest point: bird %s, deviation %.2f\n", bad_bird, dev[worst_sorted])
 @printf("its own wing measurements: %s\n", string(own_wings))
 
 keep = trues(n); keep[worst] = false

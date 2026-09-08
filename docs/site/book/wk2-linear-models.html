@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <p>Draft. Every number and figure on this page comes from code that was actually run when the site was built; the prose is still being written.</p>
     </div>
     <p class="meta">
-      <b>Engines</b> DRM.jl 0.7.1, development snapshot 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
+      <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
       <b>Provenance</b> Everything printed below came from running this chapter’s code from top to bottom when the site was built; nothing is typed from memory. The three errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in.<br>
       <b>Caveat</b> The data are real: 171 house sparrows measured on Lundy Island in the author’s 2012 course, read from data/2012/MBodySize.csv through a copy, data/ch2/sparrows.csv, with the sex column spelled out as female/male (where the file came from is recorded in data/2012/README.md).
     </p>
@@ -526,8 +526,8 @@ Figure&nbsp;2: Fitted mean wing length as a function of tarsus, ±σ band.
 <pre>MethodError: no method matching drm(::StatsModels.FormulaTerm{StatsModels.Term, StatsModels.Term}, ::Gaussian; data::DataFrame)
 
 Closest candidates are:
-  drm(<span class="ansi-bright-red-fg">::DrmFormula</span>, ::Gaussian; data, K, A, tree, coords, g_tol, algorithm, method, profile_ci, phylo_coupled, penalty, sparse, impute, missing)
   drm(<span class="ansi-bright-red-fg">::BivariateDrmFormula</span>, ::Gaussian; data, tree, K, A, coords, spatial_range, g_tol, q4_g_tol, q4_iterations, q4_n_newton, q4_vcov, method, V)
+  drm(<span class="ansi-bright-red-fg">::DrmFormula</span>, ::Gaussian; data, K, A, tree, coords, g_tol, algorithm, method, profile_ci, phylo_coupled, penalty, sparse, impute, missing)
 
 
 (stack trace omitted)</pre>

@@ -5,7 +5,7 @@ chapter: 4
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, overdispersion, exposure, beta-binomial, negative-binomial, location-scale, DRM.jl]
 deck: "Class 3 let the family decree the spread. Today the decree turns out to be false — but only after the column nobody looked at has been ruled out, and the repair is then the same one verb in three families: a second formula in the box."
 status_tag: Draft

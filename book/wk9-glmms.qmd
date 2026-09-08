@@ -5,7 +5,7 @@ chapter: 9
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1 at 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, GLMM, binomial, ICC, conditional-vs-marginal, DRM.jl]
 deck: "Class 3 promised a repair it could not perform, because the file it was given never recorded which nest a chick came from. Here is the file that did — and the standard error the same model prints on it turns out to be answering a different question, with an interval that is wrong for either."
 status_tag: Draft

@@ -5,7 +5,7 @@ chapter: 1
 type: book-chapter
 status: draft
 created: 2026-09-07
-engines: DRM.jl 0.7.1, development snapshot 4d9248f88 (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, dataframes, plots, errors, seeds, DRM.jl]
 deck: "Before any model there is a file, a data frame, a picture, and a wall of red text. The wall of red is the part that makes people give up, so it is the part we teach first."
 status_tag: Draft
