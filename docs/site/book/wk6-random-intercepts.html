@@ -401,7 +401,13 @@ choosing my evidence, with each bird’s own measurements joined up.</p></div>
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, sparrows.Tarsus[rows], sparrows.Wing[rows];</span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fu">mod1</span>(i, <span class="fl">4</span>)), alpha <span class="op">=</span> <span class="fl">0.55</span>, linewidth <span class="op">=</span> <span class="fl">1</span>)</span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co"># how far a bird moves between its own captures, against how far the cloud spans</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>spans <span class="op">=</span> [<span class="fu">maximum</span>(sparrows.Wing[sparrows.BirdID <span class="op">.==</span> b]) <span class="op">-</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>         <span class="fu">minimum</span>(sparrows.Wing[sparrows.BirdID <span class="op">.==</span> b]) for b <span class="kw">in</span> shown]</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>span_typical <span class="op">=</span> <span class="fu">round</span>(<span class="fu">median</span>(spans), digits <span class="op">=</span> <span class="fl">1</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>span_worst <span class="op">=</span> <span class="fu">round</span>(<span class="fu">maximum</span>(spans), digits <span class="op">=</span> <span class="fl">1</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>cloud_span <span class="op">=</span> <span class="fu">round</span>(<span class="fu">maximum</span>(sparrows.Wing) <span class="op">-</span> <span class="fu">minimum</span>(sparrows.Wing), digits <span class="op">=</span> <span class="fl">1</span>)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div id="fig-by-bird" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -409,14 +415,15 @@ choosing my evidence, with each bird’s own measurements joined up.</p></div>
 <img src="wk6-random-intercepts_files/figure-html/fig-by-bird-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-by-bird-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Wing against tarsus for every measurement in grey, with a handful of birds picked at even intervals through the ordering by mean wing length highlighted in colour, each bird’s own recaptures joined in order. Most birds’ joined points sit close together; for a few of them the recaptures are spread across several millimetres — the repeated-measures structure the whole chapter is about, visible before any model is fitted.
+Figure&nbsp;1: Wing against tarsus for every measurement in grey, with a handful of birds picked at even intervals through the ordering by mean wing length highlighted in colour, each bird’s own recaptures joined in order. A bird’s own recaptures wander by a millimetre or two while the whole cloud spans more than twenty — the repeated-measures structure the whole chapter is about, visible before any model is fitted.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<div class="line"><span class="who eddie">Eddie</span><p>Most of the joined-up points are tight. A bird stays roughly where it
-was.</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>The joined-up points stay in a small patch. The middle bird here moves
+1.3 mm between its own captures and the widest moves 4.0, against a
+cloud 21.0 mm tall. A bird stays roughly where it was.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>A bird stays roughly where it was. Hold on to that sentence, because by
 the end of the hour we will have put a number on it and given the number
 a name.</p></div>

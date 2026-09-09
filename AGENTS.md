@@ -35,6 +35,27 @@ invisible in the markup. Every source-level check passed.
 If a screenshot is genuinely unobtainable, measure the rendered DOM instead — and say you *measured*
 rather than *saw*. Do not let "I checked it" stand in for "I looked at it".
 
+**Looking is not enough either, and this cost the book more than the grid bug did.** A visual pass
+later approved pages whose figures were painting an opaque band over the data they existed to be
+compared against. It was checking layout, contrast and overflow — page furniture — and nobody was
+asking whether the figure communicated. Separately, a chapter spoke of eight points below a
+threshold beside a figure containing one, because a caption and the code computing its numbers had
+drifted apart. Neither is visible without calibrating the axis from the figure's own gridlines and
+recomputing the claim from the marker positions.
+
+So two standing review lenses exist, both read-only, both in `.claude/agents/`:
+
+- **`graphics-editor`** judges a figure as a graphic. Does the reader see the point without being
+  told, and is the drawing honest about the size of the effect? It enforces two rules: never paint
+  over the data, and never draw a difference the pixels cannot resolve.
+- **`coherence-checker`** holds the text to the artifact. Every claim about an output — a count, a
+  range, an extreme, an assertion that something is visible — is recomputed from the figure or the
+  printed result, and checked everywhere the same claim is repeated.
+
+Run the graphics editor when a figure is made, not after it ships. Run the coherence checker
+whenever text changes, a figure changes, or the engine pin moves: those are the three ways the two
+halves come apart.
+
 ## Before claiming a chapter is done
 
 Run its code. A chapter that has not been executed since its last edit is a draft, whatever the
