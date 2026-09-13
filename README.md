@@ -24,7 +24,7 @@ and labelled. The data are the real 2012 Lundy house sparrows (`data/2012/`).
 |---|---|
 | Written, executed and reviewed | **10** — classes 1–9 and Appendix A, with the preface and coda (`book/*.qmd`); Class 10 (relatedness and heritability) is executed and in review |
 | Version 1 | 10 chapters plus a coda |
-| Planned in full | 13 rungs; 11 and 12 are held for version 2 |
+| Planned in full | twelve rungs and a coda; 11 and 12 are held for version 2 |
 
 See **[docs/the-climb.md](docs/the-climb.md)** for the full outline.
 

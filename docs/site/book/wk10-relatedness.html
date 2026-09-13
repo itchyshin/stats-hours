@@ -130,16 +130,16 @@ today it will cost him.</p>
 Class 7 let the nudges have slopes. Class 9 let them live inside a coin
 flip. Every one of those chapters made the same quiet promise, and today
 we break it. Momo, you have the file open. Read me the promise.</p></div>
-<div class="line"><span class="who momo">Momo</span><p><code>u_j ~ N(0, σ_u²)</code>, independently for each <em>j</em>.</p></div>
+<div class="line"><span class="who momo">Momo</span><p><code>u_j ~ N(0, σ_b²)</code>, independently for each <em>j</em>.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Independently for each <em>j</em>. Every group drawn fresh, knowing
 nothing about any other group. That is a lie about sparrows, about
 species and about places, and today we replace it with a matrix.</p></div>
 <div id="cell-setup" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/diagnostics.jl includes tools/figures.jl, which includes</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/theme_itchy.jl itself, so one include does all three.</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/diagnostics.jl"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">LinearAlgebra</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/SparrowSurvival.csv"</span>, DataFrame; missingstring <span class="op">=</span> [<span class="st">"NA"</span>, <span class="st">""</span>])</span>
@@ -542,7 +542,7 @@ not know why.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p><em>a</em> is the vector of <strong>breeding values</strong>, one per
 chick: the part of a chick’s mass that its genes are responsible for,
 summed over every locus. In Class 6 the random effect was
-<code>N(0, σ_u² I)</code> and the <code>I</code> was invisible because
+<code>N(0, σ_b² I)</code> and the <code>I</code> was invisible because
 nobody writes it. Today it is an <code>A</code> and it is the whole
 content of the model. σ_A² is the <strong>additive genetic
 variance</strong>. Momo, before you see the code, what has actually
@@ -983,50 +983,33 @@ estimator says.</strong></p></div>
 the engine about two minutes on this file, and I want fifteen hundred of
 them. When every individual has one record there is a shortcut: rotate
 the data by the eigenvectors of <em>A</em>, and the model becomes a
-search over one number, the heritability. The cell below is that fit —
-and because it is the likelihood written out, it can also do the one
-thing the engine would not, which is REML. The linear algebra in it —
-<code>eigen</code>, the transpose <code>'</code>, and <code>\</code> for
-solving a system of equations — is not something this book teaches; read
-the two printed lines and skip the rest.</p></div>
+search over one number, the heritability. Because it is the likelihood
+written out, it can also do the one thing the engine would not, which is
+REML — that machinery, <code>profile_ll</code> and <code>fit_h2</code>,
+lives in <code>tools/diagnostics.jl</code>, documented there, because
+the linear algebra in it is not something this book teaches; the engine
+has no REML for a structured random effect at all (<a href="appendix-b-engine.html">Where the engine stops</a>), which is the
+whole reason we are pricing the gap by hand. Here is the call and the
+two numbers it prints.</p></div>
 <div id="sim-machinery" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># With A = U diag(lambda) U', the covariance of U'y is diagonal: h2 * lambda_i + (1 - h2),</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># times the total variance. Fixed effects and total variance have closed forms at each h2.</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>E <span class="op">=</span> <span class="fu">eigen</span>(<span class="fu">Symmetric</span>(A))</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>lambda, U <span class="op">=</span> E.values, E.vectors</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>Xdes <span class="op">=</span> <span class="fu">hcat</span>(<span class="fu">ones</span>(n), <span class="fu">Float64</span>.(chicks.Sex <span class="op">.==</span> <span class="st">"M"</span>),</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>            [<span class="fu">Float64</span>(chicks.Year[i] <span class="op">==</span> y) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n, y <span class="kw">in</span> <span class="fu">sort</span>(<span class="fu">unique</span>(chicks.Year))[<span class="fl">2</span><span class="op">:</span><span class="kw">end</span>]])</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>Xrot <span class="op">=</span> U<span class="op">'</span> <span class="op">*</span> Xdes</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>p_fixed <span class="op">=</span> <span class="fu">size</span>(Xrot, <span class="fl">2</span>)</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> <span class="fl">0.0</span><span class="op">:</span><span class="fl">0.001</span><span class="op">:</span><span class="fl">0.995</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Log-likelihood at heritability h. `reml = true` divides by n - p instead of n and adds one</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="co"># term for the cost of having estimated the fixed effects: that is the whole of REML.</span></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">profile_ll</span>(yrot, h; reml <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    w  <span class="op">=</span> h <span class="op">.*</span> lambda <span class="op">.+</span> (<span class="fl">1</span> <span class="op">-</span> h)</span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    XW <span class="op">=</span> Xrot <span class="op">./</span> w</span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    M  <span class="op">=</span> Xrot<span class="op">'</span> <span class="op">*</span> XW</span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    b  <span class="op">=</span> M <span class="op">\</span> (XW<span class="op">'</span> <span class="op">*</span> yrot)</span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    r  <span class="op">=</span> yrot <span class="op">-</span> Xrot <span class="op">*</span> b</span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    m  <span class="op">=</span> reml ? n <span class="op">-</span> p_fixed <span class="op">:</span> n</span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>    s2 <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">abs2</span>.(r) <span class="op">./</span> w) <span class="op">/</span> m</span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>    ll <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (m <span class="op">*</span> <span class="fu">log</span>(s2) <span class="op">+</span> <span class="fu">sum</span>(log, w) <span class="op">+</span> m <span class="op">+</span> m <span class="op">*</span> <span class="fu">log</span>(<span class="fl">2</span>π))</span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> reml ? ll <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">logdet</span>(M) <span class="op">:</span> ll</span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate: the best grid value. 95% profile interval: every grid value within chi2(1)/2 of it.</span></span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">fit_h2</span>(yrot; reml <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>    lls <span class="op">=</span> [<span class="fu">profile_ll</span>(yrot, h; reml <span class="op">=</span> reml) for h <span class="kw">in</span> grid]</span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>    inside <span class="op">=</span> lls <span class="op">.&gt;=</span> <span class="fu">maximum</span>(lls) <span class="op">-</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Chisq</span>(<span class="fl">1</span>), <span class="fl">0.95</span>) <span class="op">/</span> <span class="fl">2</span></span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (h2 <span class="op">=</span> grid[<span class="fu">argmax</span>(lls)], lo <span class="op">=</span> grid[<span class="fu">findfirst</span>(inside)], hi <span class="op">=</span> grid[<span class="fu">findlast</span>(inside)])</span>
-<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>yrot <span class="op">=</span> U<span class="op">'</span> <span class="op">*</span> <span class="fu">Float64</span>.(chicks.Mass2)</span>
-<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>ml, rml <span class="op">=</span> <span class="fu">fit_h2</span>(yrot), <span class="fu">fit_h2</span>(yrot; reml <span class="op">=</span> <span class="cn">true</span>)</span>
-<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 by ML   : the engine %.4f, this cell %.3f   (95%% profile interval %.3f to %.3f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>        h2_naive.estimate, ml.h2, ml.lo, ml.hi)</span>
-<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 by REML : %.3f   (%+.1f%% of the ML value)</span><span class="sc">\n</span><span class="st">"</span>, rml.h2, <span class="fl">100</span> <span class="op">*</span> (rml.h2 <span class="op">/</span> ml.h2 <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># times the total variance. `profile_ll` and `fit_h2` — the closed-form fixed-effect and</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"># variance fit at one h2, and the grid search over h2 that calls it — live in</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/diagnostics.jl, documented there; `recover` below reuses lambda and Xrot many times.</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>E <span class="op">=</span> <span class="fu">eigen</span>(<span class="fu">Symmetric</span>(A))</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>lambda, U <span class="op">=</span> E.values, E.vectors</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>Xdes <span class="op">=</span> <span class="fu">hcat</span>(<span class="fu">ones</span>(n), <span class="fu">Float64</span>.(chicks.Sex <span class="op">.==</span> <span class="st">"M"</span>),</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>            [<span class="fu">Float64</span>(chicks.Year[i] <span class="op">==</span> y) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n, y <span class="kw">in</span> <span class="fu">sort</span>(<span class="fu">unique</span>(chicks.Year))[<span class="fl">2</span><span class="op">:</span><span class="kw">end</span>]])</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>Xrot <span class="op">=</span> U<span class="op">'</span> <span class="op">*</span> Xdes</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> <span class="fl">0.0</span><span class="op">:</span><span class="fl">0.001</span><span class="op">:</span><span class="fl">0.995</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>yrot <span class="op">=</span> U<span class="op">'</span> <span class="op">*</span> <span class="fu">Float64</span>.(chicks.Mass2)</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>ml  <span class="op">=</span> <span class="fu">fit_h2</span>(yrot, lambda, Xrot, grid)</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>rml <span class="op">=</span> <span class="fu">fit_h2</span>(yrot, lambda, Xrot, grid; reml <span class="op">=</span> <span class="cn">true</span>)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 by ML   : the engine %.4f, this cell %.3f   (95%% profile interval %.3f to %.3f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>        h2_naive.estimate, ml.h2, ml.lo, ml.hi)</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 by REML : %.3f   (%+.1f%% of the ML value)</span><span class="sc">\n</span><span class="st">"</span>, rml.h2, <span class="fl">100</span> <span class="op">*</span> (rml.h2 <span class="op">/</span> ml.h2 <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>h2 by ML   : the engine 0.1890, this cell 0.189   (95% profile interval 0.113 to 0.290)
 h2 by REML : 0.194   (+2.6% of the ML value)</code></pre>
@@ -1055,7 +1038,7 @@ to publish — to data whose truth I chose.</strong></p></div>
 <span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>        a <span class="op">=</span> sigma_a <span class="op">.*</span> (L <span class="op">*</span> <span class="fu">randn</span>(rng, n))                 <span class="co"># breeding values</span></span>
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>        b <span class="op">=</span> sigma_b <span class="op">.*</span> <span class="fu">randn</span>(rng, <span class="fu">length</span>(brood_levels))    <span class="co"># brood effects</span></span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        y <span class="op">=</span> Xdes <span class="op">*</span> beta <span class="op">.+</span> a <span class="op">.+</span> b[brood_index] <span class="op">.+</span> sigma_r <span class="op">.*</span> <span class="fu">randn</span>(rng, n)</span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> <span class="fu">fit_h2</span>(U<span class="op">'</span> <span class="op">*</span> y)</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> <span class="fu">fit_h2</span>(U<span class="op">'</span> <span class="op">*</span> y, lambda, Xrot, grid)</span>
 <span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(est, f.h2); <span class="fu">push!</span>(lo, f.lo); <span class="fu">push!</span>(hi, f.hi)</span>
 <span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
 <span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (est <span class="op">=</span> est, lo <span class="op">=</span> lo, hi <span class="op">=</span> hi)</span>
@@ -1278,10 +1261,13 @@ the first time you fit one it should be on your own tree.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Both are today’s problem — non-independence from a shared history, or
 from shared effect sizes — and both need a book rather than an
 afternoon. They are not in this one, deliberately.</p></div>
-<blockquote>
-<p class="scene">↔︎ TRANSLATE: R will build the matrix for you, and Julia will not</p>
-<p>In DRM.jl the matrix is a keyword on <code>drm</code>, <code>animal(1 | id)</code> with <code>A = A</code>, and building it is your job — which is why this chapter spent a page doing it in the open. In <code>drmTMB</code> it goes inside the marker, <code>animal(1 | id, A = A)</code>, or the package walks a three-column pedigree of <code>id</code>, <code>dam</code>, <code>sire</code> into <code>A</code> itself: <code>animal(1 | id, pedigree = ped)</code>. A matrix a package built for you is one you should still check, three entries by name, exactly as above.</p>
-</blockquote>
+<div class="line"><span class="who momo">Momo</span><p>And nobody builds that matrix by hand in practice.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>In practice a package usually builds it for you — the R twin of this
+engine will walk a three-column pedigree of <code>id</code>,
+<code>dam</code> and <code>sire</code> into <code>A</code> itself —
+which is why this chapter spent a page doing it in the open, because a
+matrix a package built for you is one you should still check, three
+entries by name, exactly as above.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>So today’s summary is: tell the model who is related to whom.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Tell the model who is related to whom, and then be extremely careful
 about what <em>else</em> is true of the people you just told it about.
@@ -1290,7 +1276,7 @@ The matrix is a hypothesis. Test it like one.</p></div>
 <h2 id="summary" class="anchored">Summary</h2>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
-<li><strong>The last constant, freed.</strong> Classes 6, 7 and 9 let groups differ but drew every group’s effect independently, <code>u ~ N(0, σ_u² I)</code>. A structured random effect replaces the <code>I</code> with a <strong>known</strong> matrix: <code>a ~ N(0, σ_A² A)</code>. You supply the matrix; the model estimates one scalar, how much that structure is worth.</li>
+<li><strong>The last constant, freed.</strong> Classes 6, 7 and 9 let groups differ but drew every group’s effect independently, <code>u ~ N(0, σ_b² I)</code>. A structured random effect replaces the <code>I</code> with a <strong>known</strong> matrix: <code>a ~ N(0, σ_A² A)</code>. You supply the matrix; the model estimates one scalar, how much that structure is worth.</li>
 <li><strong>The additive relationship matrix.</strong> <em>A</em>ᵢⱼ = ½(<em>A</em>ᵢ,ₛᵢᵣₑ₍ⱼ₎ + <em>A</em>ᵢ,dam₍ⱼ₎), <em>A</em>ᵢᵢ = 1 + <em>F</em>ᵢ. With unrelated non-inbred founders and one generation this collapses to ¼ per shared parent: full sibs ½, half sibs ¼. Build it in a cell and check named entries against the file — a matrix can be the right <em>shape</em> and still be indexed wrongly.</li>
 <li><strong>The animal model.</strong> <code>y = Xβ + a + ε</code>, <code>a ~ N(0, σ_A² A)</code>. <strong>h² = V_A / V_P</strong> is a ratio of variance components, exactly like Class 6’s repeatability, and V_P is <strong>conditional on the fixed effects</strong>: whatever your covariates explain is outside it. Negligible on this file, decisive on one where the covariates matter.</li>
 <li><strong>The confound that eats heritabilities.</strong> A relatedness matrix says relatives share genes, not that they shared a nest, a mother’s condition, a territory or a year. Anything else that makes relatives alike, and is not in the model, is absorbed by σ_A and reported as heritability (Kruuk &amp; Hadfield 2007). Fitting the brood here cut h² by about 72%, and 65% of the brood variance came out of the <strong>residual</strong>, where the difference between same-brood and different-brood full sibs had been hiding.</li>
@@ -1313,7 +1299,7 @@ The matrix is a hypothesis. Test it like one.</p></div>
 <li><strong><code>Matrix{Float64}(I, n, n)</code>, <code>vcat</code>, <code>fill(1, 3)</code>.</strong> An identity matrix, vectors joined end to end, and a vector of one repeated value.</li>
 <li><strong><code>let m = Dict(...) ... end</code>.</strong> A block with a temporary name that does not leak out.</li>
 <li><strong><code>if k == 1 ... else ... end</code>.</strong> The full form of <code>if</code>, for when the branches are statements rather than values.</li>
-<li><strong><code>cholesky(Symmetric(A)).L</code>.</strong> How you <em>draw</em> a correlated random effect: <code>σ_A * L * randn(rng, n)</code> has covariance σ_A² A. Beyond it, the matrix algebra of the profile cell — <code>eigen</code>, <code>\</code>, <code>hcat</code> — is not taught here.</li>
+<li><strong><code>cholesky(Symmetric(A)).L</code>.</strong> How you <em>draw</em> a correlated random effect: <code>σ_A * L * randn(rng, n)</code> has covariance σ_A² A. Beyond it, the linear algebra behind the REML fit — <code>eigen</code>, <code>\</code>, <code>hcat</code> — is not taught here; <code>profile_ll</code> and <code>fit_h2</code> do it in <code>tools/diagnostics.jl</code>.</li>
 </ul>
 <h3 id="calls-you-used" class="anchored">Calls you used</h3>
 <ul>
@@ -1372,7 +1358,7 @@ catalogue of papers.</p>
   <a class="chapter-nav-link prev" href="wk9-glmms.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 9 · Both at once</span></a><a class="chapter-nav-link next" href="appendix-a-simulation.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Appendix A · Simulation as a way of thinking</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 10 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-12<br>
+  Stats Hours with Itchy · Class 10 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-12<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

@@ -1,6 +1,6 @@
 # docs/
 
-- **[the-climb.md](the-climb.md)** — the thirteen rungs, what each one frees, and what is out of scope.
+- **[the-climb.md](the-climb.md)** — the twelve rungs and a coda, what each one frees, and what is out of scope.
 - **[writing-conventions.md](writing-conventions.md)** — the chapter template, the cast, and the two rules that matter: never invent output, and make every comparison box earn its place.
 - **[state-of-play.md](state-of-play.md)** — what is decided, what blocks the book, and what comes next.
 - **index.html** — a hand-written redirect to `site/`, the rendered book (GitHub Pages serves `docs/`).

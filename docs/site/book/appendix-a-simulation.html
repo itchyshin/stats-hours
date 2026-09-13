@@ -107,13 +107,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="wrap">
 <blockquote>
-<p><strong>A note on what this appendix is.</strong> It is not a rung. It does not free a constant the way each class does. It gathers a thread that runs through every class from Class 2 on, where the “Julia stuff” ends with one cell that draws new data from the fitted model and refits it. Here the thread gets a room of its own: what a seed actually promises, what it means to simulate what a model claims, what “coverage” means as a property you can check by counting, and the parametric bootstrap as an interval built the same way.</p>
+<p><strong>A note on what this appendix is.</strong> It is not a rung. It does not free a constant the way each class does. It gathers a thread that runs through every class from Class 2 on, where the Julia summary ends with one cell that draws new data from the fitted model and refits it. Here the thread gets a room of its own: what a seed actually promises, what it means to simulate what a model claims, what “coverage” means as a property you can check by counting, and the parametric bootstrap as an interval built the same way. You can read it straight after Class 2; everything in Julia it uses beyond that class is explained where it first appears.</p>
 </blockquote>
 <hr>
 <h2 id="objectives" class="anchored">Objectives</h2>
 <p>By the end of this appendix you should be able to:</p>
 <ol type="1">
-<li>Say what a random seed actually promises, and what happens the moment you change one digit of it.</li>
+<li>Say what a random seed actually promises, what happens the moment you change one digit of it, and why the book hands every draw its generator by name.</li>
 <li>Draw new data from a fitted model, refit, and watch a coefficient wander, without mistaking the wander for noise you introduced by hand.</li>
 <li>Define coverage as a property of a procedure, not of one interval, and attach a Monte Carlo standard error to any coverage fraction you report.</li>
 <li>Build a parametric bootstrap interval from a set of refits, and say in one sentence when it and the ordinary estimate-plus-or-minus-two-standard-errors interval part company.</li>
@@ -134,19 +134,23 @@ rest of this appendix is about keeping, or breaking on purpose.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Why one you can repeat?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Watch.</p></div>
 <h3 id="a-seed-is-a-promise" class="anchored">A seed is a promise</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>Here is the recipe. The first line, <code>Random.seed!(316)</code>, is
-the one to keep your eye on. Watch what comes back.</p></div>
-<div id="cell-sparrow-generator-a" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">316</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fl">116</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sex    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>tarsus <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>wing   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>flock_a <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus, digits <span class="op">=</span> <span class="fl">2</span>),</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(flock_a, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="sparrow-generator-a" class="cell-output cell-output-display" data-execution_count="3">
+<div class="line"><span class="who itchy">Itchy</span><p>Here is the recipe, written as a function so I can call it three times
+without typing it three times. The line to keep your eye on is the one
+that calls it.</p></div>
+<div id="cell-sparrow-generator" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">make_flock</span>(n; rng)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    sex    <span class="op">=</span> <span class="fu">rand</span>(rng, [<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    tarsus <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(rng, n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    wing   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(rng, n)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>              Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus, digits <span class="op">=</span> <span class="fl">2</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>              Wing   <span class="op">=</span> <span class="fu">round</span>.(wing,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fl">116</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>flock_a <span class="op">=</span> <span class="fu">make_flock</span>(n; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">316</span>))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">first</span>(flock_a, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator" class="cell-output cell-output-display" data-execution_count="3">
 <div><div style="float: left;"><span>3×4 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
 <thead>
@@ -170,46 +174,52 @@ the one to keep your eye on. Watch what comes back.</p></div>
 <td class="rowLabel" style="text-align: right; font-weight: bold;">1</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">male</td>
-<td style="text-align: right;">18.51</td>
-<td style="text-align: right;">80.6</td>
+<td style="text-align: right;">19.33</td>
+<td style="text-align: right;">78.5</td>
 </tr>
 <tr class="dataRow even">
 <td class="rowLabel" style="text-align: right; font-weight: bold;">2</td>
 <td style="text-align: right;">2</td>
-<td style="text-align: left;">male</td>
-<td style="text-align: right;">18.49</td>
-<td style="text-align: right;">79.7</td>
+<td style="text-align: left;">female</td>
+<td style="text-align: right;">18.11</td>
+<td style="text-align: right;">72.1</td>
 </tr>
 <tr class="dataRow odd">
 <td class="rowLabel" style="text-align: right; font-weight: bold;">3</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">female</td>
-<td style="text-align: right;">18.12</td>
-<td style="text-align: right;">81.5</td>
+<td style="text-align: left;">male</td>
+<td style="text-align: right;">19.37</td>
+<td style="text-align: right;">81.9</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two things in the cell before the birds.
+<code>function make_flock(n; rng) ... end</code> is Class 1’s one-line
+<code>flip(n; rng)</code> grown a body: name, arguments, several lines,
+<code>end</code>, and the last expression is what comes back, here a
+table. The keyword after the semicolon has no default, so
+<code>make_flock</code> cannot be called without naming its generator;
+that is the house rule, enforced by the language rather than by me.
+Inside, <code>randn(rng, n)</code> is <code>n</code> draws from a bell
+curve with mean zero and spread one, and
+<code>rand(rng, ["female", "male"], n)</code> is <code>n</code> coin
+flips that land on words.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Those are the made-up birds.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Those are the made-up birds, and here is the point of them. Without
-looking at the first run, I am going to run the identical code again.</p></div>
-<div id="cell-sparrow-generator-b" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">316</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sex2    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>tarsus2 <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex2 <span class="op">.==</span> <span class="st">"male"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>wing2   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus2 <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex2 <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>flock_b <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex2,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus2, digits <span class="op">=</span> <span class="fl">2</span>),</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing2,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_b.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="sparrow-generator-b" class="cell-output cell-output-display" data-execution_count="4">
+looking at the first run, I am going to build the flock again from a
+fresh generator with the same seed.</p></div>
+<div id="cell-sparrow-generator-again" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>flock_b <span class="op">=</span> <span class="fu">make_flock</span>(n; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">316</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_b.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator-again" class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>true</code></pre>
 </div>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>true. Every one of 116 birds, identical to the decimal place. The first
-bird’s wing was 80.6 mm both times. That is the whole promise a seed
+bird’s wing was 78.5 mm both times. That is the whole promise a seed
 makes: not “random”, but “reproducible on purpose”. Anyone with this
 file, this Julia version and this line gets my exact flock back,
 forever.</p></div>
@@ -218,21 +228,15 @@ forever.</p></div>
 they shuffled it. The shuffle is real. The photograph means we can all
 argue about the same deck. Now watch me break the promise on purpose, by
 changing one digit.</p></div>
-<div id="cell-sparrow-generator-c" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">317</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sex3    <span class="op">=</span> <span class="fu">rand</span>([<span class="st">"female"</span>, <span class="st">"male"</span>], n)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>tarsus3 <span class="op">=</span> <span class="fl">18.5</span> <span class="op">.+</span> <span class="fl">0.62</span> <span class="op">.*</span> <span class="fu">randn</span>(n) <span class="op">.+</span> <span class="fl">0.25</span> <span class="op">.*</span> (sex3 <span class="op">.==</span> <span class="st">"male"</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>wing3   <span class="op">=</span> <span class="fl">78.0</span> <span class="op">.+</span> <span class="fl">1.70</span> <span class="op">.*</span> (tarsus3 <span class="op">.-</span> <span class="fl">18.5</span>) <span class="op">.+</span> <span class="fl">1.45</span> <span class="op">.*</span> (sex3 <span class="op">.==</span> <span class="st">"male"</span>) <span class="op">.+</span> <span class="fl">2.4</span> <span class="op">.*</span> <span class="fu">randn</span>(n)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>flock_c <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>n, Sex <span class="op">=</span> sex3,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                     Tarsus <span class="op">=</span> <span class="fu">round</span>.(tarsus3, digits <span class="op">=</span> <span class="fl">2</span>),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                     Wing   <span class="op">=</span> <span class="fu">round</span>.(wing3,   digits <span class="op">=</span> <span class="fl">1</span>))</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_c.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="sparrow-generator-c" class="cell-output cell-output-display" data-execution_count="7">
+<div id="cell-sparrow-generator-other-seed" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>flock_c <span class="op">=</span> <span class="fu">make_flock</span>(n; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">317</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>flock_a.Wing <span class="op">==</span> flock_c.Wing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sparrow-generator-other-seed" class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>false</code></pre>
 </div>
 </div>
 <div class="line"><span class="who eddie">Eddie</span><p><code>316</code> to <code>317</code>. One digit.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>One digit, and false. The first bird went from 80.6 mm to 77.5 mm, and
+<div class="line"><span class="who itchy">Itchy</span><p>One digit, and false. The first bird went from 78.5 mm to 77.4 mm, and
 every bird after it is a different bird too, not a slightly adjusted
 version of the old one. There is no such thing as “close” here. A seed
 either reproduces a flock exactly, or it hands you a flock that shares
@@ -240,23 +244,52 @@ nothing with the last one except the recipe that built it. That is the
 whole of what a seed is, and it is the fact this entire appendix depends
 on: I am about to draw two hundred flocks on purpose, and I need every
 one of you to be able to get the same two hundred back.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Every script I have ever been sent has <code>Random.seed!(316)</code> at
+the top and no <code>rng</code> anywhere. Why does this book refuse it?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Because of where the seed lives. Class 1 called it a hidden switch; this
+is the one place in the book you will see the switch thrown, so you know
+what the rule protects you from. Look at it; do not copy it.</p></div>
+<div id="cell-the-hidden-switch" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The wrong tool, shown once. Random.seed! resets a generator the whole</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># session shares; every later draw that names no rng comes from it.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">Random</span>.<span class="fu">seed!</span>(<span class="fl">316</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>global_first  <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">2</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>global_second <span class="op">=</span> <span class="fu">rand</span>(<span class="fl">2</span>)                     <span class="co"># depends on the line above having run</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>own_first  <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">MersenneTwister</span>(<span class="fl">316</span>), <span class="fl">2</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>own_second <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">MersenneTwister</span>(<span class="fl">316</span>), <span class="fl">2</span>)  <span class="co"># depends on nothing</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>(global_first <span class="op">==</span> global_second, own_first <span class="op">==</span> own_second)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="the-hidden-switch" class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>(false, true)</code></pre>
+</div>
+</div>
+<div class="line"><span class="who itchy">Itchy</span><p>Same seed, four draws, and only one pair agrees.
+<code>Random.seed!</code> set the shared generator once; the first
+<code>rand(2)</code> used it up a little, so the second got the next
+numbers along. What a line gives you depends on every unseeded draw that
+ran before it, in this cell, in the cell above, in a package you did not
+know draws at all. The two lines that name their own
+<code>MersenneTwister(316)</code> agree because each carries its seed
+with it: paste either into a fresh session, or into the middle of Class
+8, and it gives the same two numbers. A draw whose seed is in the line
+is a promise you can read; a draw whose seed is somewhere in the history
+is not.</p></div>
 <hr>
 <h2 id="simulate-what-the-model-claims" class="anchored">Simulate what the model claims</h2>
 <div class="line"><span class="who itchy">Itchy</span><p>Enough of the made-up birds. Load the real ones.</p></div>
-<div id="cell-load-real-data" class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(sparrows)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="load-real-data" class="cell-output cell-output-display" data-execution_count="10">
+<div id="cell-load-real-data" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(sparrows)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="load-real-data" class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>171</code></pre>
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>This is <code>fit1</code> from Class 2.</p></div>
-<div id="cell-fit-appA" class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fit_appA <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>true_slope <span class="op">=</span> <span class="fu">coef</span>(fit_appA, <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftable</span>(fit_appA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-appa" class="cell-output cell-output-display cell-output-markdown" data-execution_count="11">
+<div id="cell-fit-appA" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fit_appA <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>true_slope <span class="op">=</span> <span class="fu">coef</span>(fit_appA, <span class="op">:</span>mu)[<span class="fl">2</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftable</span>(fit_appA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-appa" class="cell-output cell-output-display cell-output-markdown" data-execution_count="12">
 <table class="caption-top">
 <colgroup>
 <col style="width: 24%">
@@ -316,44 +349,51 @@ defend it. If the model is right about how these birds were generated,
 and I draw brand-new birds from that same claim, refitting should give
 me back something close to 1.203, wobbling by an amount the model itself
 can tell me about.</p></div>
-<div id="cell-refit-200" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">100100</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit_appA; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_once</span>(y)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> y)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    ci <span class="op">=</span> <span class="fu">confint</span>(f)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    (slope <span class="op">=</span> <span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>], lower <span class="op">=</span> ci[<span class="fl">2</span>].lower, upper <span class="op">=</span> ci[<span class="fl">2</span>].upper)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>refits <span class="op">=</span> <span class="fu">with_logger</span>(<span class="fu">NullLogger</span>()) <span class="cf">do</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    [<span class="fu">refit_once</span>(sims[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [r.slope for r <span class="kw">in</span> refits]</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>los    <span class="op">=</span> [r.lower for r <span class="kw">in</span> refits]</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>his    <span class="op">=</span> [r.upper for r <span class="kw">in</span> refits]</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(slopes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="refit-200" class="cell-output cell-output-display" data-execution_count="14">
+<div id="cell-refit-200" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">100100</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit_appA; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_once</span>(y)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> y)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> d)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    ci <span class="op">=</span> <span class="fu">confint</span>(f)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    (slope <span class="op">=</span> <span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>], lower <span class="op">=</span> ci[<span class="fl">2</span>].lower, upper <span class="op">=</span> ci[<span class="fl">2</span>].upper)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>refits <span class="op">=</span> [<span class="fu">refit_once</span>(sims[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> [r.slope for r <span class="kw">in</span> refits]</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>los    <span class="op">=</span> [r.lower for r <span class="kw">in</span> refits]</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>his    <span class="op">=</span> [r.upper for r <span class="kw">in</span> refits]</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(slopes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="refit-200" class="cell-output cell-output-display" data-execution_count="15">
 <pre><code>200</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Two hundred fits from two hundred flocks that do not exist.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Two hundred flocks the model itself says could have existed, which is a
-different thing from not existing. Mean of the refitted slopes: 1.188.
+different thing from not existing. Read the cell before the numbers,
+because you will adapt it. <code>sims</code> is a matrix with one
+invented flock per column; <code>sims[:, k]</code> is its <em>k</em>-th
+column, a colon in a slot meaning <em>all of that dimension</em>, and
+<code>size(sims, 2)</code> is how many columns it has.
+<code>refit_once</code> returns three named numbers in one bracket, a
+<strong>NamedTuple</strong>, so <code>r.slope</code> reaches the slope
+the way <code>sparrows.Wing</code> reaches a column; the comprehension
+refits every column in turn, and the three after it pull one field each
+out of the two hundred results. Mean of the refitted slopes: 1.188.
 Spread of the refitted slopes: 0.196. That spread is not a mistake and
 not noise I introduced. It is what “uncertainty in a slope” actually
 looks like when you stop trusting one number and watch two hundred.</p></div>
-<div id="cell-fig-slope-wander" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig1 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig1[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"refitted tarsus slope"</span>, ylabel <span class="op">=</span> <span class="st">"count"</span>,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the slope, redrawn 200 times"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax1, slopes; bins <span class="op">=</span> <span class="fl">25</span>)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax1, [true_slope]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"fitted slope"</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax1; position <span class="op">=</span> <span class="op">:</span>rt)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>fig1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
+<div id="cell-fig-slope-wander" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig1 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">480</span>, <span class="fl">360</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig1[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"refitted tarsus slope"</span>, ylabel <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"the slope, redrawn 200 times"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax1, slopes; bins <span class="op">=</span> <span class="fl">25</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax1, [true_slope]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"fitted slope"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax1; position <span class="op">=</span> <span class="op">:</span>rt)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>fig1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
 <div id="fig-slope-wander" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-slope-wander-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -375,12 +415,12 @@ one on its own.</p></div>
 <h3 id="the-trap-once" class="anchored">The trap, once</h3>
 <div class="line"><span class="who toto">Toto</span><p><em>(comparing numbers)</em> The raw spread of one simulated column does
 not match σ.</p></div>
-<div id="cell-subtraction-trap" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>raw_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>])</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>dev_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA))</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>dev_all  <span class="op">=</span> [<span class="fu">std</span>(sims[<span class="op">:</span>, k] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA)) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>dev_mean <span class="op">=</span> <span class="fu">mean</span>(dev_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="subtraction-trap" class="cell-output cell-output-display" data-execution_count="18">
+<div id="cell-subtraction-trap" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>raw_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>])</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>dev_spread <span class="op">=</span> <span class="fu">std</span>(sims[<span class="op">:</span>, <span class="fl">1</span>] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>dev_all  <span class="op">=</span> [<span class="fu">std</span>(sims[<span class="op">:</span>, k] <span class="op">.-</span> <span class="fu">fitted</span>(fit_appA)) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(sims, <span class="fl">2</span>)]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>dev_mean <span class="op">=</span> <span class="fu">mean</span>(dev_all)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="subtraction-trap" class="cell-output cell-output-display" data-execution_count="19">
 <pre><code>1.8793004431400513</code></pre>
 </div>
 </div>
@@ -421,47 +461,56 @@ plus or minus about two standard errors; statisticians call it a Wald
 interval, that is the name you will meet in other people’s methods
 sections, and we will meet a rival to it in a minute. “Nominal” in the
 printout is the rate the interval claims for itself.</p></div>
-<div id="coverage-check" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>covered <span class="op">=</span> [(lo <span class="op">&lt;=</span> true_slope <span class="op">&lt;=</span> hi) for (lo, hi) <span class="kw">in</span> <span class="fu">zip</span>(los, his)]</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>nrep <span class="op">=</span> <span class="fu">length</span>(covered)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>coverage_rate <span class="op">=</span> <span class="fu">mean</span>(covered)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>mcse_cov <span class="op">=</span> <span class="fu">sqrt</span>(coverage_rate <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> coverage_rate) <span class="op">/</span> nrep)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"replicates                         : %d</span><span class="sc">\n</span><span class="st">"</span>, nrep)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval covers slope : %.4f  +/- %.4f  (nominal: 0.9500)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        coverage_rate, mcse_cov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="coverage-check" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>covered <span class="op">=</span> [(lo <span class="op">&lt;=</span> true_slope <span class="op">&lt;=</span> hi) for (lo, hi) <span class="kw">in</span> <span class="fu">zip</span>(los, his)]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>nrep <span class="op">=</span> <span class="fu">length</span>(covered)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>coverage_rate <span class="op">=</span> <span class="fu">mean</span>(covered)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>mcse_cov <span class="op">=</span> <span class="fu">sqrt</span>(coverage_rate <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> coverage_rate) <span class="op">/</span> nrep)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"replicates                         : %d</span><span class="sc">\n</span><span class="st">"</span>, nrep)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval covers slope : %.4f  +/- %.4f  (nominal: 0.9500)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>        coverage_rate, mcse_cov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>replicates                         : 200
 plain (Wald) interval covers slope : 0.9350  +/- 0.0174  (nominal: 0.9500)</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>0.935. That is not <code>0.95</code>.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It is not exactly <code>0.95</code>, and it should not be. That
-plus-or-minus is the Monte Carlo standard error: the wobble in the
-fraction that comes only from having used two hundred flocks rather than
-infinitely many. 0.935 with a Monte Carlo standard error of 0.0174 is
-what “consistent with 95 percent” looks like at two hundred replicates.
-Report a coverage fraction without its own standard error and you have
-handed someone a number with no way to tell noise from a real problem.
-That is a rule for the rest of this course, not only for today.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is not exactly <code>0.95</code>, and it should not be. First the
+cell: <code>zip(los, his)</code> walks the two vectors side by side, so
+each turn of the comprehension gets one interval’s <code>(lo, hi)</code>
+pair, and <code>lo &lt;= true_slope &lt;= hi</code> is a single
+true-or-false, “did this one catch it”; <code>mean</code> of two hundred
+trues and falses is the fraction of trues, which is the formula on the
+board. That plus-or-minus is the Monte Carlo standard error: the wobble
+in the fraction that comes only from having used two hundred flocks
+rather than infinitely many. 0.935 with a Monte Carlo standard error of
+0.0174 is what “consistent with 95 percent” looks like at two hundred
+replicates. Report a coverage fraction without its own standard error
+and you have handed someone a number with no way to tell noise from a
+real problem. That is a rule for the rest of this course, not only for
+today.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Show me the two hundred. Not the average.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Ranked by where each one landed, with the true slope drawn as one line
-through all of them.</p></div>
-<div id="cell-fig-coverage-caterpillar" class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>mids <span class="op">=</span> (los <span class="op">.+</span> his) <span class="op">./</span> <span class="fl">2</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ordc <span class="op">=</span> <span class="fu">sortperm</span>(mids)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>los_s, his_s, cov_s <span class="op">=</span> los[ordc], his[ordc], covered[ordc]</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>nrep</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>fig3 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">640</span>, <span class="fl">380</span>))</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>ax3 <span class="op">=</span> <span class="fu">Axis</span>(fig3[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"200 refits, ranked by estimated slope"</span>, ylabel <span class="op">=</span> <span class="st">"tarsus slope"</span>,</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"coverage, seen rather than counted"</span>,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    xticksvisible <span class="op">=</span> <span class="cn">false</span>, xticklabelsvisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax3, [true_slope]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">1.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"true slope"</span>)</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax3, idx[cov_s], los_s[cov_s], his_s[cov_s]; linewidth <span class="op">=</span> <span class="fl">1.3</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>), label <span class="op">=</span> <span class="st">"covered"</span>)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax3, idx[.!cov_s], los_s[.!cov_s], his_s[.!cov_s]; linewidth <span class="op">=</span> <span class="fl">1.3</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>), label <span class="op">=</span> <span class="st">"missed"</span>)</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig3[<span class="fl">1</span>, <span class="fl">2</span>], ax3; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>fig3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
+through all of them. <code>sortperm(mids)</code> gives the
+<em>order</em> that would sort the midpoints, so indexing the other
+vectors by it ranks them the same way, and <code>.!cov_s</code> flips
+every true to false, picking out the misses.</p></div>
+<div id="cell-fig-coverage-caterpillar" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mids <span class="op">=</span> (los <span class="op">.+</span> his) <span class="op">./</span> <span class="fl">2</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ordc <span class="op">=</span> <span class="fu">sortperm</span>(mids)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>los_s, his_s, cov_s <span class="op">=</span> los[ordc], his[ordc], covered[ordc]</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span>nrep</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>fig3 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">640</span>, <span class="fl">380</span>))</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>ax3 <span class="op">=</span> <span class="fu">Axis</span>(fig3[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"200 refits, ranked by estimated slope"</span>, ylabel <span class="op">=</span> <span class="st">"tarsus slope"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"coverage, seen rather than counted"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    xticksvisible <span class="op">=</span> <span class="cn">false</span>, xticklabelsvisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax3, [true_slope]; color <span class="op">=</span> <span class="op">:</span>black, linewidth <span class="op">=</span> <span class="fl">1.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"true slope"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax3, idx[cov_s], los_s[cov_s], his_s[cov_s]; linewidth <span class="op">=</span> <span class="fl">1.3</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>), label <span class="op">=</span> <span class="st">"covered"</span>)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax3, idx[.!cov_s], los_s[.!cov_s], his_s[.!cov_s]; linewidth <span class="op">=</span> <span class="fl">1.3</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>), label <span class="op">=</span> <span class="st">"missed"</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig3[<span class="fl">1</span>, <span class="fl">2</span>], ax3; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>fig3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
 <div id="fig-coverage-caterpillar" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-coverage-caterpillar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -489,18 +538,21 @@ from the standard errors this time; from where the estimates themselves
 landed: the value that two and a half percent of the refitted slopes
 fall below, and the value that two and a half percent fall above. That
 is a bootstrap interval, and “parametric” because the new flocks came
-from the fitted model rather than from reshuffling the real rows.</p></div>
+from the fitted model rather than from reshuffling the real rows.
+<code>quantile</code> hands back both cut points at once, and the comma
+on the left catches them, as <code>lo, hi = extrema(x)</code> did in
+Class 1.</p></div>
 <blockquote>
 <p class="scene">bootstrap interval = [ Q₀.₀₂₅(slope₁, …, slope_R), Q₀.₉₇₅(slope₁, …,
 slope_R) ]</p>
 </blockquote>
-<div id="bootstrap-ci" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>boot_lo, boot_hi <span class="op">=</span> <span class="fu">quantile</span>(slopes, [<span class="fl">0.025</span>, <span class="fl">0.975</span>])</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>wald <span class="op">=</span> <span class="fu">confint</span>(fit_appA)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>wald_lo, wald_hi <span class="op">=</span> wald[<span class="fl">2</span>].lower, wald[<span class="fl">2</span>].upper</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, wald_lo, wald_hi)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bootstrap interval    : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, boot_lo, boot_hi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="bootstrap-ci" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>boot_lo, boot_hi <span class="op">=</span> <span class="fu">quantile</span>(slopes, [<span class="fl">0.025</span>, <span class="fl">0.975</span>])</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>wald <span class="op">=</span> <span class="fu">confint</span>(fit_appA)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>wald_lo, wald_hi <span class="op">=</span> wald[<span class="fl">2</span>].lower, wald[<span class="fl">2</span>].upper</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"plain (Wald) interval : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, wald_lo, wald_hi)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bootstrap interval    : [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, boot_lo, boot_hi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>plain (Wald) interval : [0.8282, 1.5780]
 bootstrap interval    : [0.8329, 1.5728]</code></pre>
@@ -511,18 +563,18 @@ bootstrap interval    : [0.8329, 1.5728]</code></pre>
 drawing them is wide, so a bar chart of the two intervals side by side
 would show agreement it cannot actually resolve. Here is the gap itself,
 not the bars.</p></div>
-<div id="cell-fig-wald-vs-boot" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fig2 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">360</span>))</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig2[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"lower bound"</span>, <span class="st">"upper bound"</span>]),</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"bootstrap − Wald (tarsus slope)"</span>, title <span class="op">=</span> <span class="st">"how far the two intervals disagree"</span>)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax2, [<span class="fl">0.0</span>]; color <span class="op">=</span> <span class="op">:</span>black, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"no disagreement"</span>)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax2, [<span class="fl">1</span>, <span class="fl">2</span>], [<span class="fu">min</span>(<span class="fl">0</span>, gap_lo), <span class="fu">min</span>(<span class="fl">0</span>, gap_hi)], [<span class="fu">max</span>(<span class="fl">0</span>, gap_lo), <span class="fu">max</span>(<span class="fl">0</span>, gap_hi)];</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    whiskerwidth <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>, <span class="fl">2</span>], [gap_lo, gap_hi]; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax2; position <span class="op">=</span> <span class="op">:</span>rt)</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>fig2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
+<div id="cell-fig-wald-vs-boot" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fig2 <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">360</span>))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig2[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"lower bound"</span>, <span class="st">"upper bound"</span>]),</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"bootstrap − Wald (tarsus slope)"</span>, title <span class="op">=</span> <span class="st">"how far the two intervals disagree"</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax2, [<span class="fl">0.0</span>]; color <span class="op">=</span> <span class="op">:</span>black, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"no disagreement"</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax2, [<span class="fl">1</span>, <span class="fl">2</span>], [<span class="fu">min</span>(<span class="fl">0</span>, gap_lo), <span class="fu">min</span>(<span class="fl">0</span>, gap_hi)], [<span class="fu">max</span>(<span class="fl">0</span>, gap_lo), <span class="fu">max</span>(<span class="fl">0</span>, gap_hi)];</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    whiskerwidth <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>, <span class="fl">2</span>], [gap_lo, gap_hi]; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fu">axislegend</span>(ax2; position <span class="op">=</span> <span class="op">:</span>rt)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>fig2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
 <div id="fig-wald-vs-boot" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-wald-vs-boot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -570,22 +622,34 @@ the same claim, but it is the one I actually believe.</p></div>
 <h2 id="summary" class="anchored">Summary</h2>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
-<li><strong>A seed is a promise, not an apology.</strong> <code>Random.seed!(k)</code> fixes the sequence the computer’s random-number recipe produces (it is a recipe, which is why it can be repeated); the same seed on the same code reproduces the same data exactly, anywhere, forever. Change one digit of the seed and every downstream number changes, with nothing “close” about the result.</li>
+<li><strong>A seed is a promise, not an apology.</strong> <code>MersenneTwister(k)</code> is a random-number recipe started at <code>k</code>, which is why it can be repeated: the same seed on the same code reproduces the same data exactly, anywhere, forever. Change one digit of the seed and every downstream number changes, with nothing “close” about the result.</li>
+<li><strong>Keep the seed in the line.</strong> A draw that names its generator, <code>rand(rng, ...)</code> or <code>simulate(fit; rng = ...)</code>, means the same thing wherever it sits. <code>Random.seed!</code> sets a generator the whole session shares, so what a later draw returns depends on every unseeded draw before it. This page threw that switch once, to show it; the book’s code never does.</li>
 <li><strong>Simulate what the model claims.</strong> Treat the fitted model as a generator of new data, draw from it, and refit. This checks the model’s internal consistency, not whether it is the correct model for the world; a coefficient’s spread across refits is what “uncertainty in that coefficient” concretely looks like.</li>
 <li><strong>The fitted-subtraction trap.</strong> A simulated response still carries the model’s fitted mean structure. Its raw spread reflects that mean structure, not σ alone; subtract the fitted values first before comparing spreads, or a correct model will look broken.</li>
 <li><strong>Coverage.</strong> A property of a <em>procedure</em>, checked by repetition: across many draws from a known truth, what fraction of the resulting intervals actually contain that truth. Never report a coverage fraction without its own Monte Carlo standard error, <code>sqrt(p(1 − p)/R)</code>.</li>
 <li><strong>The parametric bootstrap.</strong> An interval built from where a set of refits actually land (empirical quantiles of the estimate), rather than from a standard error and a normal reference. It agrees closely with a Wald interval when the estimator is far from a boundary and roughly symmetric, and diverges from it when the estimator is not, which is exactly the situation Class 8’s variance component is in.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
+<p>Each is explained where it first appears above; a reader who has done Classes 1 and 2 has met nothing else on the page. The class in brackets teaches the same construct in its own hour.</p>
 <ul>
-<li><code>Random.seed!(k)</code>: fixes the global random-number generator’s state. Call it once, immediately before the code whose randomness you want reproducible. The book’s own code, in every class, does not touch the global generator at all — they build an explicit <code>MersenneTwister(k)</code> and pass it as <code>rng</code> to <code>rand</code> and <code>simulate</code>, so a cell’s reproducibility does not depend on what ran before it.</li>
-<li><code>rand(collection, n)</code>: <code>n</code> draws with replacement from a collection, here <code>["female", "male"]</code>.</li>
-<li><code>simulate(fit; nsim = k)</code> (the keyword is spelled as in R): <code>k</code> fresh response draws from a fitted model, <code>nobs × k</code>, conditional on the fitted mean and dispersion structure.</li>
+<li><strong><code>function make_flock(n; rng) ... end</code>.</strong> The long form of Class 1’s one-line definition; the last expression is what it returns. The keyword with no default is the house rule in code (Class 3).</li>
+<li><strong><code>randn(rng, n)</code> and <code>rand(rng, ["female", "male"], n)</code>.</strong> Draws from a standard bell curve, and draws with replacement from a list; the generator is always the first argument.</li>
+<li><strong><code>Random.seed!(k)</code>, shown once and not used.</strong> Resets the generator the session shares; every later draw with no <code>rng</code> comes from it, so a line’s answer depends on its history.</li>
+<li><strong><code>sims[:, k]</code> and <code>size(sims, 2)</code>.</strong> One column of a matrix, the colon meaning <em>all rows</em>, and the number of columns (Class 3).</li>
+<li><strong><code>(slope = ..., lower = ..., upper = ...)</code> and <code>r.slope</code>.</strong> A NamedTuple returned from a function, read by field name (Class 5).</li>
+<li><strong><code>[f(lo, hi) for (lo, hi) in zip(a, b)]</code>.</strong> A comprehension over two vectors walked side by side (Class 3).</li>
+<li><strong><code>mean(covered)</code> on trues and falses.</strong> The fraction that are true: two hundred yes-or-no answers become a coverage rate in one line.</li>
+<li><strong><code>sortperm(v)</code> and <code>mask[.!mask]</code>.</strong> The order that would sort <code>v</code>, used to rank other vectors the same way; and a mask with every entry flipped (Class 6, Class 8).</li>
+<li><strong><code>boot_lo, boot_hi = quantile(v, [0.025, 0.975])</code>.</strong> Two quantiles at once, caught by a comma on the left, as <code>extrema</code> was in Class 1.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>simulate(fit; nsim = k, rng = rng_sim)</code>: <code>k</code> fresh response draws from a fitted model, <code>nobs × k</code>, conditional on the fitted mean and dispersion structure; the same call Class 2 introduced.</li>
 <li><code>fitted(fit)</code>, <code>sigma(fit)</code>: the fitted mean vector and the residual scale, needed to check a simulated column against the model it came from.</li>
-<li><code>confint(fit)</code>: per-parameter <code>(lower, upper)</code> named tuples; index by parameter position within the relevant sub-model.</li>
-<li><code>with_logger(NullLogger()) do ... end</code>: run a block, here two hundred refits, without the repeated convergence chatter each one would otherwise print.</li>
+<li><code>confint(fit)</code>: per-parameter <code>(lower, upper)</code> named tuples; index by parameter position within the relevant sub-model. <code>confint(fit; level = 0.8)</code> changes the level the interval claims.</li>
 <li><code>mean</code>, <code>std</code>, <code>quantile(v, [p1, p2])</code>: from <code>Statistics</code>, the building blocks of both the coverage count and the bootstrap interval.</li>
 <li><code>@printf</code>: from <code>Printf</code>, for reporting a rate or an interval with a stated number of decimal places rather than whatever Julia’s default show happens to choose.</li>
+<li><code>rangebars!(ax, xs, lows, highs)</code>: one vertical bar per interval, the CairoMakie verb behind the caterpillar and the gap plot.</li>
 </ul>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
@@ -598,13 +662,14 @@ the same claim, but it is the one I actually believe.</p></div>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has read this appendix and nothing past it.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has read Class 2 and nothing past it; Class 1’s worked answer is the model.</p>
 <ol type="1">
-<li><p><strong>Break the promise carefully.</strong> Run the appendix’s sparrow generator with <code>Random.seed!(316)</code> and again with <code>Random.seed!(3160)</code>. Report whether the two flocks match. Then explain in one sentence why “0” appended to a seed is just as different a seed as any other digit, even though it looks like a small change.</p></li>
-<li><p><strong>Simulate your own model.</strong> Fit <code>Wing ~ Tarsus + Sex</code> from Class 2 (<code>fit2</code>), simulate 200 new flocks from it, and refit each. Report the mean and spread of the refitted <code>Sex</code> coefficient. Is the spread bigger or smaller than the tarsus slope’s spread in this appendix, and can you say why using the standard errors Class 2 already printed?</p></li>
-<li><p><strong>Coverage at a different level.</strong> Using the same 200 refits from this appendix, compute the coverage of the 80 percent interval instead of the 95 percent one (you will need <code>confint</code> at a different level, or to build the interval from the standard error and a different critical value by hand). Report the coverage with its Monte Carlo standard error and say whether it is closer to nominal or further from it than the 95 percent case, and whether that surprises you.</p></li>
-<li><p><strong>Bootstrap versus Wald, on purpose.</strong> Using <code>fit2</code> from Class 2, simulate and refit 200 times, then compare the Wald and bootstrap intervals for the <code>Sex</code> coefficient, the way this appendix did for the tarsus slope. Report both intervals. Are they closer together or further apart than the tarsus-slope pair, and does that match the “far from a boundary, roughly symmetric” rule this appendix gave for when the two should agree?</p></li>
-<li><p><strong>A seed of your own choosing.</strong> Pick a seed using any rule you like (a birthday, a phone number, the current year), simulate 200 flocks from <code>fit_appA</code>, and report the coverage of the 95 percent interval you get. Then repeat with a different seed. Do the two coverage fractions agree to within their Monte Carlo standard errors? Write one sentence about what would have to be true for them not to.</p></li>
+<li><p><strong>Break the promise carefully.</strong> Run the appendix’s <code>make_flock(116; rng = MersenneTwister(316))</code> and again with <code>MersenneTwister(3160)</code>. Report whether the two flocks match, and the first bird’s wing under each seed. Then explain in one sentence why a “0” appended to a seed is just as different a seed as any other digit, even though it looks like a small change. <em>Check:</em> the flocks match is false; the first wing is 78.5 mm at 316 and 80.0 mm at 3160.</p></li>
+<li><p><strong>The trap, on a column of your choosing.</strong> The appendix fell into the fitted-subtraction trap on column 1 of <code>sims</code>. Do the same on column 200: report its raw spread and its spread after subtracting <code>fitted(fit_appA)</code>, and say which of the two is the one to compare with σ. <em>Check:</em> raw 2.188, after subtraction 2.098, against σ = 1.881.</p></li>
+<li><p><strong>Which way did the misses go?</strong> From <code>los</code> and <code>his</code>, count the intervals that sat entirely above the true slope and the intervals that sat entirely below it, with <code>count</code> and a comparison (Class 1’s <code>count(&gt;(x), v)</code> is one way). The two counts must add up to <code>n_miss</code>. One sentence: what would it tell you if nearly all the misses were on one side? <em>Check:</em> 7 above and 6 below, summing to 13.</p></li>
+<li><p><strong>Coverage at a different level.</strong> Refit the same 200 columns, asking <code>confint(f; level = 0.8)</code> for the interval this time, and compute the coverage of the 80 percent interval with its Monte Carlo standard error. Say whether it is closer to nominal or further from it than the 95 percent case, in units of its own standard error, and whether that surprises you. <em>Check:</em> 0.76 ± 0.0302 against a nominal 0.8000.</p></li>
+<li><p><strong>Bootstrap versus Wald, on purpose.</strong> Fit <code>Wing ~ Tarsus + Sex</code> to <code>data/ch2/sparrows.csv</code>, Class 2’s <code>fit2</code>, simulate 200 flocks with <code>MersenneTwister(2)</code>, and refit each, keeping the <code>Sex</code> coefficient, the third entry of <code>coef(f, :mu)</code>. Compare its bootstrap interval with the Wald interval from <code>confint</code>, as the appendix did for the tarsus slope, and report the gap at each bound. Is the pair closer or further apart than the tarsus-slope pair, and does that match the “far from a boundary, roughly symmetric” rule? <em>Check:</em> bootstrap 2.138 to 2.873; gaps 0.0636 and -0.0545.</p></li>
+<li><p><strong>A seed of your own choosing.</strong> Pick a seed by any rule you like (a birthday, a phone number, the current year), simulate 200 flocks from <code>fit_appA</code> with it, and report the 95 percent interval’s coverage with its Monte Carlo standard error. Then repeat with <code>MersenneTwister(1)</code>. Do the two fractions agree to within their standard errors? One sentence on what would have to be true for them not to. <em>Check:</em> seed 1 gives 0.945 ± 0.0161; the appendix’s own seed gave 0.935 ± 0.0174, and the two differ by 0.42 combined standard errors.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
@@ -614,7 +679,7 @@ the same claim, but it is the one I actually believe.</p></div>
   <a class="chapter-nav-link prev" href="wk10-relatedness.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 10 · Not even the groups are strangers</span></a><a class="chapter-nav-link next" href="appendix-b-engine.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Appendix B · Where the engine stops</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Appendix A of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
+  Stats Hours with Itchy · Appendix A of twelve rungs, ten in version 1, plus a coda · draft; all code run 2026-09-13<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

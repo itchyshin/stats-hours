@@ -12,7 +12,7 @@ status_tag: Draft
 status_note: "All ten classes of version 1 are drafted and their code runs end to end (1–10), with Appendix A, the preface and the coda. Every number and figure on this page was produced when the site was built; the book itself is not written."
 provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time."
 caveat: "The data are real: the 2012 Lundy Island female-breeding and sparrow-morphology records, read directly from data/2012/FemaleSuccess.csv and data/2012/MBodySize.csv (where the files came from is recorded in data/2012/README.md). Nothing here is simulated except the one block of invented refits at the end, which says so and carries its seed."
-footer_note: "Stats Hours with Itchy · Class 4 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 4 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-07"
 ---
 
 # Class 4: when the family lies about the spread
@@ -42,8 +42,9 @@ By the end of this class you should be able to:
 
 ```{julia}
 #| label: setup
-# tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.
-include("../tools/figures.jl")
+# tools/diagnostics.jl includes tools/figures.jl, which includes
+# tools/theme_itchy.jl itself, so one include does all three.
+include("../tools/diagnostics.jl")
 using DRM, DataFrames, CSV, Statistics, Random, Printf, CairoMakie
 import Distributions          # qualified: DRM exports its own Poisson, Binomial, …
 set_theme!(theme_itchy(:light))
@@ -541,15 +542,12 @@ sd_range = extrema(sigma(fit_ls))
 @printf("location-scale model, the range  : %.4f to %.4f mm\n", sd_range[1], sd_range[2])
 ```
 
-**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts. One line in the next cell, the one that computes `se_g1`, is plumbing: it finds the standard error of the σ slope by its name rather than by its position in the table, and you may skip it.
+**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts. `coef_se`, from `tools/diagnostics.jl`, hands back the standard error of one named coefficient — the width of its own confidence interval, converted back — so the next cell reads it the same way it reads the estimate.
 
 ```{julia}
 #| label: sparrow-verdicts
 g = ci_row(fit_ls, :sigma, "Sex: male")   # log of the male/female sigma ratio
-# By name, not position: same route as ci_row (match the sigma block's own name
-# vector), so this keeps working if a parameter is ever added after sigma.
-se_g1 = stderror(fit_ls)[only(idx for ((p, r), (_, nms)) in zip(fit_ls.blocks, fit_ls.coefnames)
-                                   if p === :sigma for (idx, nm) in zip(r, nms) if nm == "Sex: male")]
+se_g1 = coef_se(fit_ls, :sigma, "Sex: male")
 z_sex = g.estimate / se_g1
 p_sex = 2 * Distributions.ccdf(Distributions.Normal(), abs(z_sex))
 d_aic_sp = aic(fit_ls) - aic(fit_const)
@@ -657,7 +655,7 @@ fig
 - `drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)` and `NegBinomial2()`: the overdispersed versions, with the second formula in the box. `coef(fit, :sigma)` is log σ, and φ or θ is `exp(-2 * coef(fit, :sigma)[1])`.
 - `drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)`: a location-scale fit; `exp.(coef(fit, :sigma))` for millimetres.
 - `sigma(fit)`, `dof_residual(fit)`, `stderror(fit)`: response-scale σ per observation, residual degrees of freedom for a Pearson statistic, and standard errors in coefficient order.
-- `confint(fit; parm = :sigma)`: one row per coefficient of that block, each with `.estimate`, `.lower`, `.upper` on the link scale; `ci_row` above picks a row by name.
+- `confint(fit; parm = :sigma)`: one row per coefficient of that block, each with `.estimate`, `.lower`, `.upper` on the link scale; `ci_row` above picks a row by name. `coef_se(fit, block, name)`, from `tools/diagnostics.jl`, reads that coefficient's standard error off the same interval's width.
 - `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: as before. Which `rng` you pass moves the SD's second decimal, so do not read its digits.
 - `markersize = 3 .* sqrt.(n)` in a binned plot: area, not radius, is what the eye reads.
 - **The simulation thread.** Ask the negative-binomial fit to invent two hundred new sets of females, refit each, and watch which parameter is well pinned down and which is not.

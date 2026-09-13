@@ -13,7 +13,7 @@ status_tag: Draft
 status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page fits one model, in one code cell, to draw its one figure — the same location-scale model Class 4 fitted, refitted here on the same archived sparrows — and otherwise runs no code and prints no other numbers. The prose is still being revised."
 provenance: "This page fits one model, once, in one Julia cell: the location-scale model Class 4 already fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted here on the same 171 archived Lundy Island sparrows so the rung-eleven figure and the numbers beside it come from this page's own run. It makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
 caveat: "The two rungs described here as version two are an outline, not written chapters; the plan for the whole climb is linked from the landing page. The two engine limitations mentioned below are known and have been reported to the engine's authors; they may have been fixed by the time you read this, so check the engine's own page for their current state."
-footer_note: "Stats Hours with Itchy · Coda · the coda to a planned 13 rungs, ten in version 1 · draft, 2026-09-07"
+footer_note: "Stats Hours with Itchy · Coda · the coda to twelve rungs, ten in version 1 · draft, 2026-09-07"
 ---
 
 # Where you go next
@@ -197,9 +197,17 @@ than the engines are, and why a chapter sometimes steps around a feature that te
 An introduction earns the word by leaving things out. Here is the list, so that nobody has to
 discover it the hard way.
 
-- **It taught one engine, not an ecosystem.** You can fit these models; you cannot yet read a
-  colleague's `lme4` script fluently, and the day a referee asks why you did not use `glmer` — the function in
-  `lme4` that fits these models — you will want more than this book gave you. The comparison boxes were a bridge, not a course.
+- **It taught one engine, not an ecosystem.** This is the cost, stated plainly, and you are now
+  the right person to hear it. You finish knowing this engine. `lme4`, the R package most people
+  use for mixed models, is what your co-authors use and what a referee will ask about; `GLM.jl`
+  and `MixedModels.jl`, the usual Julia packages for these models, are what a Julia colleague
+  reaches for first. In this book another package appeared in three boxes — Class 2's divisor,
+  Class 8's estimator that nobody chose, Class 9's quadrature — and never as the taught path. That is a real
+  loss and it was weighed before it was accepted: the reason was that if the software had changed
+  at the same moment the model did, you could never have said which of the two moved the number.
+  So you can fit these models; you cannot yet read a colleague's `lme4` script fluently, and the day
+  a referee asks why you did not use `glmer` — the function in `lme4` that fits Class 9's models —
+  you will want more than this book gave you. Three boxes were a bridge, not a course.
 - **It is frequentist throughout.** There is no prior anywhere in it — no statement of belief entered
   before the data, which is the ingredient that makes an analysis Bayesian. A great deal of modern
   practice in exactly these models is Bayesian, and nothing here argues against that; the book
@@ -244,7 +252,20 @@ the work, and then go and check.
 
 **Toto:** I mostly learned to read the error messages.
 
-**Itchy:** *(to the room)* That is the correct answer and I want it minuted.
+**Itchy:** That was Class 1. There were nine more. What can you *do*, Toto?
+
+**Toto:** *(after a biscuit)* Fit a model to my water fleas. Eggs on carapace length, with a random
+intercept for clone, because two fleas from one clone are not strangers. Poisson first, and if the
+scatter is wider than a Poisson allows, let θ pay for it rather than the standard errors. I can write
+the three claims down before I type the formula. I can read the `mu` block against the cloud I drew
+first, and say which estimator printed the variance under it. I can simulate two hundred flea files
+from the fit and see whether the interval keeps its promise before I believe it. And I know which
+constant each of those freed, because you made us say it every week. The sentence I can write is "an
+extra millimetre of carapace buys this many more eggs within a clone, and here is the interval" —
+and I cannot tell you the number, because I have not run it.
+
+**Itchy:** *(to the room)* That is the correct answer and I want it minuted. All of it, and the last
+clause twice.
 
 **Eddie:** What do we do with the two chapters that are not written?
 

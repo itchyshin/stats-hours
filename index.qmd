@@ -12,7 +12,7 @@ book: [`drmTMB`](https://github.com/itchyshin/drmTMB) in R and
 R: An Introduction with Sparrows* (drafted 2009–2010, never published), keeping its office-hours cast, its
 running organisms, and its habit of leaving the mistakes in.
 
-![The climb — thirteen rungs, one engine, each rung freeing one thing the rung before it held fixed.](book/img/the-climb.svg){.climb}
+![The climb — twelve rungs and a coda, one engine, each rung freeing one thing the rung before it held fixed.](book/img/the-climb.svg){.climb}
 
 ## Read the chapters
 

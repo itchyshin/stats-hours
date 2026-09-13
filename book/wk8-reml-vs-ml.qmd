@@ -12,7 +12,7 @@ status_tag: Draft
 status_note: "All ten classes of version 1 run from start to finish, with Appendix A, the preface and the coda. Every number and figure on this page comes out of code that was run to make the page. The writing is still a draft."
 provenance: "Every block of Julia on this page was run, and its output printed, when the page was made. No output is pasted in from memory. The one block of R output was run once by hand, on 2026-09-06, on the tadpole file this chapter writes, and is labelled as such where it appears."
 caveat: "No real pond file exists yet, so the data are simulated from a stated seed inside the first cell and written to data/ch8/. Swap in real tadpoles and every number changes; the sentences around them do not."
-footer_note: "Stats Hours with Itchy · Class 8 of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06"
+footer_note: "Stats Hours with Itchy · Class 8 of twelve rungs, ten in version 1, plus a coda · draft; all code run 2026-09-06"
 ---
 
 # Class 8: same model, two answers
@@ -68,11 +68,11 @@ By the end of this class you should be able to:
 
 **Itchy:** Same notation as Class 6, so nothing new to learn before we start.
 
-> **μ_ij = β0 + β1 x_ij + u_j,  u_j ~ N(0, σ_u²),  y_ij ~ N(μ_ij, σ²)**
+> **μ_ij = β0 + β1 x_ij + u_j,  u_j ~ N(0, σ_b²),  y_ij ~ N(μ_ij, σ²)**
 
-**Itchy:** Tadpole *i* in pond *j*. β0 the intercept, β1 the slope on days since hatching, u_j the pond nudge, σ_u the spread of those nudges, σ the spread within a pond. And repeatability, the thing you actually wanted:
+**Itchy:** Tadpole *i* in pond *j*. β0 the intercept, β1 the slope on days since hatching, u_j the pond nudge, σ_b the spread of those nudges, σ the spread within a pond. And repeatability, the thing you actually wanted:
 
-> **R = σ_u² / (σ_u² + σ²). Not a coefficient of μ, not a p-value: a ratio of two things we are about to argue about, over a sum of the same two.**
+> **R = σ_b² / (σ_b² + σ²). Not a coefficient of μ, not a p-value: a ratio of two things we are about to argue about, over a sum of the same two.**
 
 **Itchy:** Load them. And read the caveat at the top of the page: these tadpoles are simulated, because the real pond file does not exist yet, so read the function that makes them before you trust them. The line in triple quotes above it is a **docstring**, documentation attached to the function, and it may run to several lines, as a later one does. `J = 12` and its neighbours after the semicolon are keywords **with defaults**: `simulate_ponds(808)` gets twelve ponds, and a later call can say otherwise. `for j in 1:J, _ in 1:rand(rng, per)` is two loops on one line, the inner one running a random number of times per pond, and `push!` grows three vectors a tadpole at a time. `"P" * lpad(j, ...)` glues strings with `*`, padding the number so the pond names sort.
 
@@ -83,9 +83,9 @@ using DRM, DataFrames, CSV, Random, Statistics, LinearAlgebra, Printf, Logging, 
 set_theme!(theme_itchy(:light))
 
 """Simulate J ponds of `per` tadpoles each: body length on days since hatching."""
-function simulate_ponds(seed; J = 12, sigma_u = 1.2, sigma = 1.0, per = 8:12)
+function simulate_ponds(seed; J = 12, sigma_b = 1.2, sigma = 1.0, per = 8:12)
     rng = MersenneTwister(seed)
-    u = sigma_u .* randn(rng, J)
+    u = sigma_b .* randn(rng, J)
     pond = String[]; days = Float64[]; body = Float64[]
     for j in 1:J, _ in 1:rand(rng, per)
         d = round(5 + 25 * rand(rng), digits = 2)
@@ -163,7 +163,7 @@ R(su, s) = su^2 / (su^2 + s^2)
 @printf("%-10s %10s %10s %10s\n", "", "ML", "REML", "REML/ML")
 @printf("%-10s %10.4f %10.4f %10.4f\n", "beta0",   b_ml[1], b_re[1], b_re[1] / b_ml[1])
 @printf("%-10s %10.4f %10.4f %10.4f\n", "beta1",   b_ml[2], b_re[2], b_re[2] / b_ml[2])
-@printf("%-10s %10.4f %10.4f %10.4f\n", "sigma_u", su_ml,   su_re,   su_re / su_ml)
+@printf("%-10s %10.4f %10.4f %10.4f\n", "sigma_b", su_ml,   su_re,   su_re / su_ml)
 @printf("%-10s %10.4f %10.4f %10.4f\n", "sigma",   s_ml,    s_re,    s_re  / s_ml)
 @printf("%-10s %10.4f %10.4f %10.4f\n", "R",
         R(su_ml, s_ml), R(su_re, s_re), R(su_re, s_re) / R(su_ml, s_ml))
@@ -202,7 +202,7 @@ p = 2   # intercept and slope
 @printf("n = %d, J = %d, p = %d\n\n", n, J, p)
 @printf("%-24s %12s %12s\n", "", "observed", "its divisor")
 @printf("%-24s %12.6f %12.6f\n", "sigma^2   REML / ML", (s_re / s_ml)^2, n / (n - p))
-@printf("%-24s %12.6f %12.6f\n", "sigma_u^2 REML / ML", (su_re / su_ml)^2, J / (J - 1))
+@printf("%-24s %12.6f %12.6f\n", "sigma_b^2 REML / ML", (su_re / su_ml)^2, J / (J - 1))
 ```
 
 **Momo:** Neither line lands on its divisor — the residual sits below *n* over *n − p*, and the pond line above *J* over *J − 1*.
@@ -229,7 +229,7 @@ function ratios(df)
 end
 
 @printf("%-28s %6s %5s %11s %11s %11s\n",
-        "", "n", "J", "sigma_u^2", "sigma^2", "J/(J-1)")
+        "", "n", "J", "sigma_b^2", "sigma^2", "J/(J-1)")
 for per in (8:12, 80:120, 800:1200)
     nn, JJ, su2, s2 = ratios(simulate_ponds(808; J = 12, per = per))
     @printf("%-28s %6d %5d %11.5f %11.5f %11.5f\n",
@@ -254,7 +254,7 @@ end
 
 ```{julia}
 #| label: fig-varcomp
-#| fig-cap: "Sigma_u and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_u point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely."
+#| fig-cap: "Sigma_b and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_b point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely."
 # confint() gives the pond and residual rows on the log scale; exp() puts
 # the endpoints back in millimetres.
 function sd_intervals(fit)
@@ -266,7 +266,7 @@ end
 ciu_ml, cis_ml = sd_intervals(fit_ml)
 ciu_re, cis_re = sd_intervals(fit_reml)
 
-fig_varcomp(["sigma_u", "sigma"],
+fig_varcomp(["sigma_b", "sigma"],
             [su_ml, s_ml], [ciu_ml, cis_ml],
             [su_re, s_re], [ciu_re, cis_re];
             ylabel = "standard deviation (mm)")
@@ -290,7 +290,7 @@ function reml_above_ml(nrep; start = 2001)
     return up
 end
 
-@printf("REML sigma_u above ML on %d of 40 fresh datasets\n", reml_above_ml(40))
+@printf("REML sigma_b above ML on %d of 40 fresh datasets\n", reml_above_ml(40))
 ```
 
 **Toto:** All of them.
@@ -347,7 +347,7 @@ fig_shrinkage(groups, raw, blups)
 
 ```{julia}
 #| label: boundary-data
-"""Simulate J small ponds with NO pond effect: sigma_u is truly zero."""
+"""Simulate J small ponds with NO pond effect: sigma_b is truly zero."""
 function simulate_flat_ponds(seed; J = 5)
     rng = MersenneTwister(seed)
     pond = String[]; days = Float64[]; body = Float64[]
@@ -369,13 +369,13 @@ println("ponds: ", length(unique(puddles.pond)))
 fit_b_full = drm(bf(@formula(length ~ days + (1|pond))), Gaussian(); data = puddles)
 fit_b_red  = drm(bf(@formula(length ~ days)),            Gaussian(); data = puddles)
 
-println("\nsigma_u = ", re_sd(fit_b_full)[:pond])
+println("\nsigma_b = ", re_sd(fit_b_full)[:pond])
 println(fit_b_full)
 ```
 
 **Toto:** It is zero. I broke it.
 
-**Itchy:** You did not break it. Two things are printed there that look like failure and are not. The warning says the likelihood has no proper peak here, only an edge: Hessian is the name for the curvature at the peak, and there is none, so the standard errors for that one number are not to be trusted. And "NOT converged" in the fit's first line is the optimiser saying it stopped at a wall rather than on a hilltop. Now look at the `resd` line the fit printed. Both that line and the `sigma:` line above it are printed **on the log scale**, so `resd` is log σ_u, and the optimiser has walked it off to minus something enormous, which is how a computer says zero. The estimate is at the edge of the space it is allowed to live in, because a standard deviation cannot be negative.
+**Itchy:** You did not break it. Two things are printed there that look like failure and are not. The warning says the likelihood has no proper peak here, only an edge: Hessian is the name for the curvature at the peak, and there is none, so the standard errors for that one number are not to be trusted. And "NOT converged" in the fit's first line is the optimiser saying it stopped at a wall rather than on a hilltop. Now look at the `resd` line the fit printed. Both that line and the `sigma:` line above it are printed **on the log scale**, so `resd` is log σ_b, and the optimiser has walked it off to minus something enormous, which is how a computer says zero. The estimate is at the edge of the space it is allowed to live in, because a standard deviation cannot be negative.
 
 **Momo:** But the true value is zero, so it got the right answer.
 
@@ -398,7 +398,7 @@ fig_shrinkage(b_groups, b_raw, b_blups; boundary = true)
 
 **Toto:** The raw means are all over the place and every diamond is on the line.
 
-**Jaro:** Which is the estimator saying, correctly, that it can see no evidence the ponds differ, so it predicts every pond to be average. Shrinkage all the way to zero is what σ_u = 0 *means*. The scatter in the raw means is what five small ponds of identical tadpoles look like.
+**Jaro:** Which is the estimator saying, correctly, that it can see no evidence the ponds differ, so it predicts every pond to be average. Shrinkage all the way to zero is what σ_b = 0 *means*. The scatter in the raw means is what five small ponds of identical tadpoles look like.
 
 **Itchy:** Now test it, the obvious way, and read what the engine says back.
 
@@ -426,7 +426,7 @@ flat = lrt_boundary(fit_b_full, fit_b_red; q = 1)
 
 **Toto:** Then when does it buy something?
 
-**Jaro:** When the statistic is positive. Same generator, same five-pond design, same true σ_u of zero. A different draw.
+**Jaro:** When the statistic is positive. Same generator, same five-pond design, same true σ_b of zero. A different draw.
 
 ```{julia}
 #| label: chibar-positive
@@ -436,7 +436,7 @@ CSV.write("../data/ch8/sunny.csv", sunny)
 fit_s_full = drm(bf(@formula(length ~ days + (1|pond))), Gaussian(); data = sunny)
 fit_s_red  = drm(bf(@formula(length ~ days)),            Gaussian(); data = sunny)
 
-println("sigma_u = ", re_sd(fit_s_full)[:pond])
+println("sigma_b = ", re_sd(fit_s_full)[:pond])
 lrt_boundary(fit_s_full, fit_s_red; q = 1)
 ```
 
@@ -446,15 +446,15 @@ lrt_boundary(fit_s_full, fit_s_red; q = 1)
 
 **Jaro:** Which is why the next thing we do is count, rather than argue from one draw.
 
-**Itchy:** Do not take that on my authority or on the package's. Look at the likelihood itself. For each trial value of σ_u, let everything else in the model do its best and write down how well the model fits; that curve is called the profile of the likelihood, and where it peaks is the estimate. The arithmetic behind the picture is twenty lines of matrix algebra you do not need to read; the picture is what you need.
+**Itchy:** Do not take that on my authority or on the package's. Look at the likelihood itself. For each trial value of σ_b, let everything else in the model do its best and write down how well the model fits; that curve is called the profile of the likelihood, and where it peaks is the estimate. The arithmetic behind the picture is twenty lines of matrix algebra you do not need to read; the picture is what you need.
 
 ```{julia}
 #| label: fig-profile
 #| echo: false
-#| fig-cap: "Profile log-likelihood, minus its own maximum, against sigma_u, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one."
+#| fig-cap: "Profile log-likelihood, minus its own maximum, against sigma_b, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one."
 # Closed-form profile log-likelihood for a Gaussian random intercept: fix the
-# ratio tau = sigma_u / sigma, solve for beta by GLS and for sigma in closed
-# form, and read sigma_u off as tau * sigmahat(tau). No optimiser involved.
+# ratio tau = sigma_b / sigma, solve for beta by GLS and for sigma in closed
+# form, and read sigma_b off as tau * sigmahat(tau). No optimiser involved.
 # Off the page on purpose: the reader is asked to read the figure, not this.
 function profile_tau(df, taus)
     y = df.length
@@ -484,10 +484,10 @@ peak_pud, peak_tad = su_pud[argmax(ll_pud)], su_tad[argmax(ll_tad)]
 
 fig = Figure(size = (620, 380))
 ax = Axis(fig[1, 1];
-    xlabel = "sigma_u (mm)", ylabel = "profile log-likelihood minus its maximum",
+    xlabel = "sigma_b (mm)", ylabel = "profile log-likelihood minus its maximum",
     title = "Where the maximum sits")
-lines!(ax, su_pud, ll_pud .- maximum(ll_pud), label = "puddles (true sigma_u = 0)")
-lines!(ax, su_tad, ll_tad .- maximum(ll_tad), label = "tadpoles (true sigma_u = 1.2)")
+lines!(ax, su_pud, ll_pud .- maximum(ll_pud), label = "puddles (true sigma_b = 0)")
+lines!(ax, su_tad, ll_tad .- maximum(ll_tad), label = "tadpoles (true sigma_b = 1.2)")
 vlines!(ax, [0.0]; linestyle = :dash, color = (:grey, 0.6), label = "the boundary")
 ylims!(ax, -8, 0.5)
 xlims!(ax, -0.05, 2.5)
@@ -495,7 +495,7 @@ Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
-**Itchy:** Two curves, one picture. The tadpole curve has a maximum in the middle of the space, with room on both sides, and it peaks at `{julia} round(peak_tad, digits = 3)` mm, where the side-by-side table put σ_u under ML (`{julia} round(su_ml, digits = 3)`). The puddle curve is still climbing when it hits the wall, so the maximum **is** the wall: its peak sits at `{julia} round(peak_pud, digits = 3)`, and the engine's estimate, to three decimals, is `{julia} round(re_sd(fit_b_full)[:pond], digits = 3)`.
+**Itchy:** Two curves, one picture. The tadpole curve has a maximum in the middle of the space, with room on both sides, and it peaks at `{julia} round(peak_tad, digits = 3)` mm, where the side-by-side table put σ_b under ML (`{julia} round(su_ml, digits = 3)`). The puddle curve is still climbing when it hits the wall, so the maximum **is** the wall: its peak sits at `{julia} round(peak_pud, digits = 3)`, and the engine's estimate, to three decimals, is `{julia} round(re_sd(fit_b_full)[:pond], digits = 3)`.
 
 **Toto:** And a chi-squared test assumes you are in the middle.
 
@@ -529,7 +529,7 @@ dev_red = ysim_red .- fitted(fit_b_red)
 
 ```{julia}
 #| label: boundary-study
-"""Parametric bootstrap of the likelihood-ratio statistic under the true null sigma_u = 0.
+"""Parametric bootstrap of the likelihood-ratio statistic under the true null sigma_b = 0.
 
 The design is held FIXED (same ponds, same group sizes); only the response is
 redrawn, from the reduced fit. Most of these fits land on the boundary and emit
@@ -565,7 +565,7 @@ rate_naive = mean(min.(2 .* chibar, 1.0) .< alpha)
 rate_chibar = mean(chibar .< alpha)
 
 @printf("replicates                             : %d\n", nrep)
-@printf("fraction with sigma_u at zero          : %.4f  +/- %.4f  (asymptotic claim: 0.5000)\n",
+@printf("fraction with sigma_b at zero          : %.4f  +/- %.4f  (asymptotic claim: 0.5000)\n",
         pile, mcse(pile))
 @printf("naive chi-squared rejections at %.2f   : %.4f  +/- %.4f  (nominal: %.4f)\n",
         alpha, rate_naive, mcse(rate_naive), alpha)
@@ -797,15 +797,15 @@ ex_p_random = lrtest(ex_reml_none, ex_reml_full).pvalue
 
 Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 8.
 
-1. **Do it on real groups.** `data/ch9/chicks-broods.csv` is one row per sparrow chick with its mass at two days, `Mass2`, its hatching date, `JulianDate`, and its nest, `BroodNo`; drop the rows whose date is missing with `dropmissing`, as Class 6 did. Fit `Mass2 ~ JulianDate + (1 | BroodNo)` twice, once with the default and once with `method = :REML`. Report the two σ_u values, the two σ values and the two fixed-effect vectors. Then write one sentence naming which numbers moved and by how much, and one saying whether the difference would have changed anything you would write in a paper — and say why, using the word "groups". *Check:* `{julia} ex_J` broods; the REML-to-ML variance ratio for σ_u is `{julia} round(ex_su_ratio, digits = 4)` against a J/(J − 1) of `{julia} round(ex_J / (ex_J - 1), digits = 4)`.
+1. **Do it on real groups.** `data/ch9/chicks-broods.csv` is one row per sparrow chick with its mass at two days, `Mass2`, its hatching date, `JulianDate`, and its nest, `BroodNo`; drop the rows whose date is missing with `dropmissing`, as Class 6 did. Fit `Mass2 ~ JulianDate + (1 | BroodNo)` twice, once with the default and once with `method = :REML`. Report the two σ_b values, the two σ values and the two fixed-effect vectors. Then write one sentence naming which numbers moved and by how much, and one saying whether the difference would have changed anything you would write in a paper — and say why, using the word "groups". *Check:* `{julia} ex_J` broods; the REML-to-ML variance ratio for σ_b is `{julia} round(ex_su_ratio, digits = 4)` against a J/(J − 1) of `{julia} round(ex_J / (ex_J - 1), digits = 4)`.
 
-2. **Predict, then check.** Run `simulate_ponds(808; J = 24)` and `simulate_ponds(808; J = 6)` and pass each to the chapter's `ratios`. **Before you run either**, write down what you expect the σ_u REML-to-ML variance ratio to be in each case, using J/(J − 1). Report both ratios against your two predictions. *Check:* `{julia} round(ex_r24[3], digits = 3)` at 24 ponds and `{julia} round(ex_r6[3], digits = 3)` at 6.
+2. **Predict, then check.** Run `simulate_ponds(808; J = 24)` and `simulate_ponds(808; J = 6)` and pass each to the chapter's `ratios`. **Before you run either**, write down what you expect the σ_b REML-to-ML variance ratio to be in each case, using J/(J − 1). Report both ratios against your two predictions. *Check:* `{julia} round(ex_r24[3], digits = 3)` at 24 ponds and `{julia} round(ex_r6[3], digits = 3)` at 6.
 
 3. **Make the effect enormous.** Now run it with `J = 4`. Report the same ratio and compare it to J/(J − 1). Then answer: at what number of groups would you personally stop trusting either estimate, and what would you do instead? *Check:* `{julia} round(ex_r4[3], digits = 2)` at 4 ponds, against a J/(J − 1) of `{julia} round(4 / 3, digits = 2)`.
 
 4. **Repeatability, both ways.** Using the fits from question 1, compute R from `re_sd` and `sigma` by hand for each estimator, then check yourself against `repeatability(fit)`. Report the two values of R. Write one sentence on which one you would publish and how you would label it. *Check:* `{julia} round(ex_R_ml, digits = 4)` by ML and `{julia} round(ex_R_re, digits = 4)` by REML.
 
-5. **The pile-up, on the other flat file.** `data/ch8/sunny.csv` is the chapter's second set of five ponds simulated with no pond effect. Fit the reduced model `length ~ days` to it and call the chapter's `boundary_study` on that fit with the file as the design and 2000 replicates, seeded with `MersenneTwister(808)`, so the design is held fixed and only the response is redrawn. Report the fraction of fits with σ_u estimated at zero, **with its Monte Carlo standard error**, and compare it to 0.5. *Check:* `{julia} round(ex_pile, digits = 3)` with a Monte Carlo standard error of `{julia} round(ex_mcse(ex_pile), digits = 3)`.
+5. **The pile-up, on the other flat file.** `data/ch8/sunny.csv` is the chapter's second set of five ponds simulated with no pond effect. Fit the reduced model `length ~ days` to it and call the chapter's `boundary_study` on that fit with the file as the design and 2000 replicates, seeded with `MersenneTwister(808)`, so the design is held fixed and only the response is redrawn. Report the fraction of fits with σ_b estimated at zero, **with its Monte Carlo standard error**, and compare it to 0.5. *Check:* `{julia} round(ex_pile, digits = 3)` with a Monte Carlo standard error of `{julia} round(ex_mcse(ex_pile), digits = 3)`.
 
 6. **Buy back the power.** Using the statistics from question 5, report the rejection rate at 0.05 under the naive χ² reference and under `chibar_pvalue`, each with its Monte Carlo standard error, and say which of the two sits closer to nominal. Then answer in one sentence: how many extra ponds would the naive test need to reach a rate you would accept, and how would you find out rather than guess? *Check:* naive `{julia} round(ex_rate_naive, digits = 3)`, corrected `{julia} round(ex_rate_chibar, digits = 3)`, both with a Monte Carlo standard error near `{julia} round(ex_mcse(ex_rate_chibar), digits = 3)`.
 

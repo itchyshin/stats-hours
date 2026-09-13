@@ -126,6 +126,44 @@ function erfinv_approx(x::Real)
     sign(x) * sqrt(sqrt(t1^2 - ln1mx2 / a) - t1)
 end
 
+# ── 3b. worm-plot arithmetic, exposed so the picture can be counted ────────
+
+"""
+    worm_parts(r)
+
+The same arithmetic `fig_diagnostic` draws with, returned rather than
+plotted: sort `r`, compare each to the normal quantile it should sit at, and
+report the deviation. Returns a NamedTuple `(; theo, dev, se)` — the
+theoretical quantiles, the sorted residuals' deviation from them, and the
+pointwise standard error of that deviation under normality (the ±2SE
+envelope `fig_diagnostic` bands).
+"""
+function worm_parts(r)
+    n = length(r)
+    obs = sort(r)
+    p = ((1:n) .- 0.5) ./ n
+    theo = sqrt(2) .* erfinv_approx.(2 .* p .- 1)      # normal quantiles
+    dens = x -> exp(-x^2 / 2) / sqrt(2π)
+    se = sqrt.(p .* (1 .- p) ./ n) ./ dens.(theo)      # SE of the ith order statistic
+    (; theo, dev = obs .- theo, se)
+end
+
+"""
+    n_outside(r)
+
+Count of `worm_parts(r)`'s deviations falling outside the pointwise ±2SE
+envelope `fig_diagnostic` draws.
+"""
+n_outside(r) = (w = worm_parts(r); count(abs.(w.dev) .> 2 .* w.se))
+
+"""
+    n_below(r)
+
+Count of `worm_parts(r)`'s deviations falling *below* the pointwise −2SE
+envelope. (The count above the envelope is `n_outside(r) - n_below(r)`.)
+"""
+n_below(r) = (w = worm_parts(r); count(w.dev .< -2 .* w.se))
+
 # ── 4b. shrinkage caterpillar: raw group means vs BLUPs ─────────────────────
 
 """

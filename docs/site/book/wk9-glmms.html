@@ -133,19 +133,20 @@ the room what I told you in Class 3 and could not deliver.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>That the chicks in one nest are not independent, that my standard error
 was too small, and that the file could not be fixed because it never
 said which nest.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And here is the file that says. Load it the way Class 6 taught you.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And here is the file that says. Load it the way you already know how.</p></div>
 <div id="cell-setup" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's recipe, applied without thinking about it. Watch what it does.</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/SparrowSurvival.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"rows, columns: "</span>, <span class="fu">size</span>(raw))</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(raw, <span class="op">:</span>eltype, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/diagnostics.jl includes tools/figures.jl, which includes tools/theme_itchy.jl,</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># so one include does all three.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/diagnostics.jl"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's recipe, applied without thinking about it. Watch what it does.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/SparrowSurvival.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"rows, columns: "</span>, <span class="fu">size</span>(raw))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(raw, <span class="op">:</span>eltype, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows, columns: (1950, 12)</code></pre>
 </div>
@@ -319,7 +320,7 @@ Class 3's file, for comparison: 1576 rows, 5 columns, no brood identifier</code>
 <div class="line"><span class="who itchy">Itchy</span><p>1600 chicks in 484 broods, once we keep the rows that have a survival, a
 mass and a nest. Class 3 had 1576 rows and no way of knowing which of
 them shared a mother. Count the nests properly before you model them,
-exactly as Class 6 counted birds.</p></div>
+exactly as you counted birds.</p></div>
 <div id="per-brood" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>per_brood <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(chicks, <span class="op">:</span>BroodNo), nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ks <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(per_brood.k))</span>
@@ -379,9 +380,9 @@ element, and the expected count is Class 4’s generator handed to
 <code>sum</code>.)</p></div>
 <div class="line"><span class="who momo">Momo</span><p>In Class 6 you made us predict what the grouping would do to the
 standard error before fitting anything.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And you are going to do it again, with Class 6’s rule, on this file.
-Class 6’s rule is about the <strong>predictor</strong>, so ask where the
-predictor varies.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And you are going to do it again, with Class 6’s rule, on this file. The
+rule is about the <strong>predictor</strong>, so ask where the predictor
+varies.</p></div>
 <div id="predict-the-se" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A Gaussian random-intercept model on mass itself splits mass's own variance into a</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># between-brood part and a within-brood part. That split is what Class 6's rule needs.</span></span>
@@ -403,15 +404,14 @@ mass is 42.9% between broods and 57.1% within them</code></pre>
 <div class="line"><span class="who momo">Momo</span><p>Mostly within. In Class 6 tarsus was almost entirely <em>between</em>
 birds, and the standard error was too small. Mass is the other way
 round, so by that rule the standard error should not go up much.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>That is Class 6’s rule applied correctly, and that is its honest
-prediction. Write it on the board. In twenty minutes the standard error
-will have gone up sharply, and finding out what the rule does not cover
-on a nonlinear link is worth more to you than a rule that was never
-wrong.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is the rule applied correctly, and that is its honest prediction.
+Write it on the board. In twenty minutes the standard error will have
+gone up sharply, and finding out what the rule does not cover on a
+nonlinear link is worth more to you than a rule that was never wrong.</p></div>
 <h3 id="the-model-class-3-could-fit" class="anchored">The model Class 3 could fit</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>First, Class 3’s model, on Class 9’s file. Same family, same formula, no
-grouping. I want the comparison to be like for like, so both fits get
-the same 1600 chicks.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>First, the model Class 3 could fit, on today’s file. Same family, same
+formula, no grouping. I want the comparison to be like for like, so both
+fits get the same 1600 chicks.</p></div>
 <div id="cell-fit-glm" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>glm_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2)), <span class="fu">Binomial</span>(); data <span class="op">=</span> chicks)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>glm_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -426,13 +426,13 @@ Mean model (μ):
   Mass2         0.6798     0.0504   13.4938    1.7e-41</code></pre>
 </div>
 </div>
-<div class="line"><span class="who toto">Toto</span><p>One block, <code>mu</code>, and no σ table. That is Class 3 exactly.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>That is Class 3 exactly, and everything Class 3 told you about it is
-still true. The link is still the logit, the variance is still decreed
-to be p(1 − p), and for a nought-or-one response that decree is
-arithmetic rather than a promise. Nothing about the <em>shape</em> is
-wrong here. What is wrong is the sentence Class 3 warned you about and
-could not repair.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>One block, <code>mu</code>, and no σ table. That is the GLM exactly.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is Class 3 exactly, and everything it told you about it is still
+true. The link is still the logit, the variance is still decreed to be
+p(1 − p), and for a nought-or-one response that decree is arithmetic
+rather than a promise. Nothing about the <em>shape</em> is wrong here.
+What is wrong is the sentence that class warned you about and could not
+repair.</p></div>
 <h3 id="both-at-once" class="anchored">Both at once</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>One term. The same term as Class 6, in a call with a different family.</p></div>
 <blockquote>
@@ -477,7 +477,7 @@ table is still gone.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Both of those are the point. The random-effect block is Class 6’s second
 variance component; the absent σ is Class 3’s decree. This is the first
 fit in the book that carries both, and the heading on the new block is
-the same warning it carried in Class 6. Read it, Momo.</p></div>
+the same warning it carried before. Read it, Momo.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>“NOT the σ_b = 0 boundary.”</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Same engine, same refusal, same reason, and Class 8 gave it its hour.
 Now put the two fits side by side and watch which numbers move.</p></div>
@@ -696,9 +696,9 @@ and see what that model recovers. The coin flip is one line:
 chick’s probability, so it is true with probability <code>p</code>, and
 <code>Int.(...)</code> turns the trues and falses into ones and zeros
 for the formula. <code>logistic</code> is a one-line function of our own
-for the squashing curve, and the loop collects with <code>push!</code>
-as Class 5 did. Further down, <code>20_000</code> is twenty thousand
-with an underscore for the eye.</p></div>
+for the squashing curve, and the loop collects with <code>push!</code>,
+as before. Further down, <code>20_000</code> is twenty thousand with an
+underscore for the eye.</p></div>
 <div id="marginal-by-simulation" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logistic</span>(z) <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> (<span class="fl">1</span> <span class="op">+</span> <span class="fu">exp</span>(<span class="op">-</span>z))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -967,13 +967,82 @@ word fits. That is question six.</p></div>
 <h3 id="what-a-random-effect-is-when-you-cannot-see-it" class="anchored">What a random effect is, when you cannot see it</h3>
 <div class="line"><span class="who eddie">Eddie</span><p>In Class 6 you answered “what is a random intercept” with the shrinkage
 picture. Do it again here.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Not today: the engine does not yet return the per-brood effects for a
-binomial fit, so there is no caterpillar to draw (<a href="appendix-b-engine.html">Where the engine stops</a>). But the
-picture would be Class 6’s picture, every diamond closer to zero than
-its circle, and the thing Class 6 could not show you needs no picture.
-It needs the number I told you to hold. On 270 of these 484 broods every
-chick died or every chick lived. Toto, what does a fixed effect for one
-of those broods look like?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The engine will not draw it for me: <code>ranef</code> comes back empty
+on a binomial fit, silently (<a href="appendix-b-engine.html">Where the
+engine stops</a> records it), so the per-brood effects come from
+<code>binomial_group_modes</code> in <code>tools/diagnostics.jl</code>.
+What it computes is one sentence. A brood’s effect is the value of u
+that makes that brood’s own chicks most likely <strong>and</strong> pays
+the penalty for sitting far from zero: the data pulling one way, the
+population pulling back. Switch the penalty off and you get what the
+brood says on its own evidence, borrowing nothing. Those are the
+diamonds and the circles of Class 6’s picture, on the log-odds scale,
+and I want both.</p></div>
+<div id="brood-effects" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>pulled <span class="op">=</span> <span class="fu">binomial_group_modes</span>(chicks.Survival, eta_fixed, chicks.BroodNo, sigma_b)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>own    <span class="op">=</span> <span class="fu">binomial_group_modes</span>(chicks.Survival, eta_fixed, chicks.BroodNo, sigma_b;</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                              penalised <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>mixed    <span class="op">=</span> <span class="fu">isfinite</span>.(own.u)        <span class="co"># broods with a finite estimate on their own evidence</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>n_no_own <span class="op">=</span> <span class="fu">count</span>(isinf, own.u)     <span class="co"># broods with none: the maximiser is at infinity</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"largest |gradient| at the answer, over %d broods  : %.1e</span><span class="sc">\n</span><span class="st">"</span>, J, <span class="fu">maximum</span>(abs, pulled.grad))</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"broods with a finite estimate on their own evidence: %d of %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">count</span>(mixed), J)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"broods with no finite estimate of their own        : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_no_own, J)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"all %d finite once the population pulls back       : %s</span><span class="sc">\n</span><span class="st">"</span>, J, <span class="fu">all</span>(isfinite, pulled.u))</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co"># How hard the population pulls a unanimous nest depends on how many chicks it had.</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>k_of   <span class="op">=</span> [<span class="fu">count</span>(<span class="op">==</span>(g), chicks.BroodNo) for g <span class="kw">in</span> pulled.levels]</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>k_big  <span class="op">=</span> <span class="fu">maximum</span>(k_of[.!mixed])    <span class="co"># the largest nest that went one way entirely</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>pull_1 <span class="op">=</span> <span class="fu">median</span>(<span class="fu">abs</span>.(pulled.u[.!mixed <span class="op">.&amp;</span> (k_of <span class="op">.==</span> <span class="fl">1</span>)]))</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>pull_k <span class="op">=</span> <span class="fu">median</span>(<span class="fu">abs</span>.(pulled.u[.!mixed <span class="op">.&amp;</span> (k_of <span class="op">.==</span> k_big)]))</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">unanimous nest of %d chick : median |effect kept| %.2f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fl">1</span>, pull_1)</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unanimous nest of %d chicks: median |effect kept| %.2f</span><span class="sc">\n</span><span class="st">"</span>, k_big, pull_k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>largest |gradient| at the answer, over 484 broods  : 4.4e-16
+broods with a finite estimate on their own evidence: 214 of 484
+broods with no finite estimate of their own        : 270 of 484
+all 484 finite once the population pulls back       : true
+
+unanimous nest of 1 chick : median |effect kept| 0.85
+unanimous nest of 5 chicks: median |effect kept| 1.55</code></pre>
+</div>
+</div>
+<div id="cell-fig-shrinkage" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Broods at even steps through the ordering, so the choice is a rule and not a hand.</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>idx   <span class="op">=</span> <span class="fu">findall</span>(mixed)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>order <span class="op">=</span> idx[<span class="fu">sortperm</span>(own.u[idx])]</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>shown <span class="op">=</span> order[<span class="fu">round</span>.(<span class="dt">Int</span>, <span class="fu">range</span>(<span class="fl">1</span>, <span class="fu">length</span>(order), length <span class="op">=</span> <span class="fl">16</span>))]</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>kept  <span class="op">=</span> pulled.u[shown] <span class="op">./</span> own.u[shown]</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fraction of its own signal a brood keeps, among those drawn: %.2f to %.2f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(kept), <span class="fu">maximum</span>(kept))</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_shrinkage</span>(pulled.levels[shown], own.u[shown], pulled.u[shown])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fraction of its own signal a brood keeps, among those drawn: 0.65 to 0.76</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<div id="fig-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="wk9-glmms_files/figure-html/fig-shrinkage-output-2.svg" class="img-fluid">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Sixteen of the mixed broods — at least one chick lived and at least one died, so a finite own-evidence estimate exists to draw — at even steps through their ordering, on the log-odds scale. The helper is Class 6’s, so its legend uses Class 6’s words: here a circle (“raw mean”) is the brood’s effect on its own evidence, with the penalty switched off, and a diamond (“BLUP”) is the value the fit keeps once the population pulls back. Every diamond sits closer to zero than its circle.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="line"><span class="who eddie">Eddie</span><p>Every diamond is closer to zero than its circle, same as Class 6.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Same picture, and the fraction each brood keeps runs from 0.65 to 0.76
+among the broods drawn. But the picture is the smaller half of the
+answer, because it could only be drawn for broods that had a circle.
+Read the cell above it. On 270 of these 484 broods <strong>the circle
+does not exist</strong> — and that is the number I told you to hold: the
+270 unanimous broods you counted from the raw file before a model was
+fitted, every chick dead or every chick alive. Toto, what does a fixed
+effect for one of those broods look like?</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Very negative, or very positive.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Not very. <strong>Infinite.</strong> A nest whose chicks all died has a
 likelihood that keeps climbing as that nest’s own effect goes to minus
@@ -983,35 +1052,37 @@ this file. Now, what did the mixed model give those broods?</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Something finite, because they are in the fit.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Something finite, and something <em>different</em> for each of them,
 because the population pulls every brood back towards zero and pulls a
-unanimous nest of one harder than a unanimous nest of five. That is not
-a technicality; it is the strongest argument for random effects anybody
-will ever show you. Class 6 said a random intercept is the decision to
-treat groups as draws from one population. Today that decision is the
-difference between an estimate and no estimate at all.</p></div>
+unanimous nest of one harder than a unanimous nest of 5: the last two
+lines of the cell put the lone chick’s nest at 0.85 on the log-odds
+scale and the full nest at 1.55. That is not a technicality; it is the
+strongest argument for random effects anybody will ever show you. Class
+6 said a random intercept is the decision to treat groups as draws from
+one population. Today that decision is the difference between an
+estimate and no estimate at all.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And is it right, or merely finite?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>It is right in the sense that it is the value the model considers most
 likely for that nest, given everything the model believes. Whether the
 <em>model</em> is right is the next section.</p></div>
 <h3 id="is-the-model-any-good" class="anchored">Is the model any good?</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>Quantile residuals, as in Class 3, with a seed, as in Class 3. And then
-a trap that Class 3 did not have.</p></div>
-<div id="cell-fig-diagnostic" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>qres <span class="op">=</span> <span class="fu">residuals</span>(glmm_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residuals: mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(qres), <span class="fu">std</span>(qres))</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres; title <span class="op">=</span> <span class="st">"GLMM, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Quantile residuals, with a seed, as in Class 3. And then a trap that
+class did not have.</p></div>
+<div id="cell-fig-diagnostic" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>qres <span class="op">=</span> <span class="fu">residuals</span>(glmm_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residuals: mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(qres), <span class="fu">std</span>(qres))</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres; title <span class="op">=</span> <span class="st">"GLMM, randomised quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>quantile residuals: mean 0.0916, SD 1.0538</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell-output cell-output-display" data-execution_count="32">
 <div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk9-glmms_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the identity line while both tails dip back below it, and the spread printed above the plot is above one.
+Figure&nbsp;4: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the identity line while both tails dip back below it, and the spread printed above the plot is above one.
 </figcaption>
 </figure>
 </div>
@@ -1025,31 +1096,31 @@ surviving. So before you read the spread as a verdict, ask which
 probability each chick was judged against. Class 6 made you ask exactly
 this about a residual, and the answer was marginal-or-conditional. Same
 question, one level harder.</p></div>
-<div id="qres-reference" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A randomised quantile residual for a 0/1 response is Phi^-1 of</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   u = 1 - p + p*U   if y = 1,      u = (1 - p)*U   if y = 0,   U ~ Uniform(0,1).</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The only free choice is WHICH p. Reproduce the engine first, so the recipe is verified.</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Phi_inv</span>(u) <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), u)</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">qresid</span>(y, p, rng)</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>    U <span class="op">=</span> <span class="fu">rand</span>(rng, <span class="fu">length</span>(p))</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    pit <span class="op">=</span> [yi <span class="op">==</span> <span class="fl">1</span> ? (<span class="fl">1</span> <span class="op">-</span> pi_) <span class="op">+</span> pi_ <span class="op">*</span> ui <span class="op">:</span> (<span class="fl">1</span> <span class="op">-</span> pi_) <span class="op">*</span> ui</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>           for (yi, pi_, ui) <span class="kw">in</span> <span class="fu">zip</span>(y, p, U)]</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Phi_inv</span>.(<span class="fu">clamp</span>.(pit, <span class="fl">1e-12</span>, <span class="fl">1</span> <span class="op">-</span> <span class="fl">1e-12</span>))</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>p_cond_row <span class="op">=</span> <span class="fu">fitted</span>(glmm_fit)                                    <span class="co"># u = 0: a typical brood</span></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>p_marg_row <span class="op">=</span> [<span class="fu">mean</span>(<span class="fu">logistic</span>.(<span class="cn">e</span> <span class="op">.+</span> u_draw)) for <span class="cn">e</span> <span class="kw">in</span> eta_fixed]   <span class="co"># averaged over broods</span></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>r_cond <span class="op">=</span> <span class="fu">qresid</span>(chicks.Survival, p_cond_row, <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>r_marg <span class="op">=</span> <span class="fu">qresid</span>(chicks.Survival, p_marg_row, <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"engine                      : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres))</span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand, p from fitted()    : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_cond))</span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand, p averaged over u  : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_marg))</span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">mean fitted probability, u = 0 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(p_cond_row))</span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean probability over broods   : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(p_marg_row))</span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"chicks that actually survived  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(chicks.Survival))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="qres-reference" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A randomised quantile residual for a 0/1 response is Phi^-1 of</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   u = 1 - p + p*U   if y = 1,      u = (1 - p)*U   if y = 0,   U ~ Uniform(0,1).</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The only free choice is WHICH p. Reproduce the engine first, so the recipe is verified.</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Phi_inv</span>(u) <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), u)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">qresid</span>(y, p, rng)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>    U <span class="op">=</span> <span class="fu">rand</span>(rng, <span class="fu">length</span>(p))</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>    pit <span class="op">=</span> [yi <span class="op">==</span> <span class="fl">1</span> ? (<span class="fl">1</span> <span class="op">-</span> pi_) <span class="op">+</span> pi_ <span class="op">*</span> ui <span class="op">:</span> (<span class="fl">1</span> <span class="op">-</span> pi_) <span class="op">*</span> ui</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>           for (yi, pi_, ui) <span class="kw">in</span> <span class="fu">zip</span>(y, p, U)]</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Phi_inv</span>.(<span class="fu">clamp</span>.(pit, <span class="fl">1e-12</span>, <span class="fl">1</span> <span class="op">-</span> <span class="fl">1e-12</span>))</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>p_cond_row <span class="op">=</span> <span class="fu">fitted</span>(glmm_fit)                                    <span class="co"># u = 0: a typical brood</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>p_marg_row <span class="op">=</span> [<span class="fu">mean</span>(<span class="fu">logistic</span>.(<span class="cn">e</span> <span class="op">.+</span> u_draw)) for <span class="cn">e</span> <span class="kw">in</span> eta_fixed]   <span class="co"># averaged over broods</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>r_cond <span class="op">=</span> <span class="fu">qresid</span>(chicks.Survival, p_cond_row, <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>r_marg <span class="op">=</span> <span class="fu">qresid</span>(chicks.Survival, p_marg_row, <span class="fu">MersenneTwister</span>(<span class="fl">909</span>))</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"engine                      : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres))</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand, p from fitted()    : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_cond))</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand, p averaged over u  : SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_marg))</span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">mean fitted probability, u = 0 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(p_cond_row))</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean probability over broods   : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(p_marg_row))</span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"chicks that actually survived  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(chicks.Survival))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>engine                      : SD 1.0538
 by hand, p from fitted()    : SD 1.0538
@@ -1060,16 +1131,16 @@ mean probability over broods   : 0.4236
 chicks that actually survived  : 0.4350</code></pre>
 </div>
 </div>
-<div id="cell-fig-diagnostic-marginal" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_marg; title <span class="op">=</span> <span class="st">"same chicks, marginal reference"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div id="cell-fig-diagnostic-marginal" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_marg; title <span class="op">=</span> <span class="st">"same chicks, marginal reference"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
 <div id="fig-diagnostic-marginal" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-diagnostic-marginal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk9-glmms_files/figure-html/fig-diagnostic-marginal-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-marginal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: The same chicks’ quantile residuals, recomputed against probabilities averaged over the fit’s own distribution of broods instead of a single average brood. The body of the worm now lies close to the identity line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot’s excess was the reference probability, not the model.
+Figure&nbsp;5: The same chicks’ quantile residuals, recomputed against probabilities averaged over the fit’s own distribution of broods instead of a single average brood. The body of the worm now lies close to the identity line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot’s excess was the reference probability, not the model.
 </figcaption>
 </figure>
 </div>
@@ -1094,13 +1165,13 @@ chick from an average brood.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>What you may write is what this shows: against the reference the model
 itself implies, the per-chick residuals land about where a correct model
 would put them. Two cautions, both cheap. That spread is one draw of a
-randomisation, so report the seed, as Class 5 taught you. And this check
-looks at each chick’s residual <strong>on its own</strong>, and the
-thing we spent the hour on is that chicks in a nest are not on their
-own; a per-observation check cannot see a correlation it has already
-averaged out. How to simulate what a model predicts for its own
-diagnostic, and how many draws that honestly takes, is <a href="appendix-a-simulation.html">Appendix A</a>’s subject, not this
-hour’s.</p></div>
+randomisation, so report the seed. And this check looks at each chick’s
+residual <strong>on its own</strong>, and the thing we spent the hour on
+is that chicks in a nest are not on their own; a per-observation check
+cannot see a correlation it has already averaged out. How to simulate a
+diagnostic’s own null — fit the model to worlds it invented, and count
+what the check says there — is <a href="wk5-diagnostics.html">Class
+5</a>’s, with <code>null_counters</code>; it is not repeated this hour.</p></div>
 <h3 id="one-box-and-it-is-earned" class="anchored">One box, and it is earned</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Last thing, and it is the reason Momo will get an email from a
 collaborator. Somebody will fit this in R, and they will get a different
@@ -1121,37 +1192,37 @@ is not the only rule in the room.</p></div>
 <p>Read the four blocks below against the Julia output above. Laplace and one-point quadrature give the same brood SD, well away from the other two. Our number and <code>nAGQ = 25</code> are <strong>two different approximations that agree</strong>, not one integral computed twice. And read <code>nAGQ = 9</code> against <code>nAGQ = 25</code>: the log-likelihood at nine is slightly <strong>higher</strong>, and twenty-five is the converged one. Quadrature error is not signed, so “higher log-likelihood means closer to the integral” is not a rule; the evidence that you have arrived is that two different rules agree and that pushing one of them further stops moving it. Name the approximation with the number.</p>
 <p>The R block below was run once by hand, on the date shown: all four blocks come from one <code>Rscript</code> run on 2026-09-07 against the same archived file this chapter reads, and none of it re-runs when the page is built. The script is kept at <code>data/ch9/ch9-r-box.R</code>.</p>
 </blockquote>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; this block does not re-run when the page is built.</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># All four blocks produced together by a single run of:</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Rscript data/ch9/ch9-r-box.R</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, drmTMB 0.7.0, lme4 2.0.1, reading data/2012/SparrowSurvival.csv and</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   dropping rows missing Survival, Mass2 or BroodNo (1600 rows, 484 broods)</span></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> <span class="fu">drmTMB</span> (Laplace) <span class="sc">---</span></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                 estimate std_error</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>(Intercept) <span class="sc">-</span><span class="fl">3.9153478</span> <span class="fl">0.3263290</span></span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>Mass2        <span class="fl">0.9341965</span> <span class="fl">0.0797836</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>                    estimate std_error</span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>sd<span class="sc">:</span>mu<span class="sc">:</span>(<span class="dv">1</span> <span class="sc">|</span> BroodNo)  <span class="fl">1.70008</span> <span class="fl">0.1509664</span></span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>logLik<span class="sc">:</span> <span class="sc">-</span><span class="fl">912.4</span></span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">1</span> (Laplace, the default) <span class="sc">---</span></span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9152</span>     <span class="fl">0.3262</span> <span class="sc">-</span><span class="fl">12.0028</span></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9342</span>     <span class="fl">0.0798</span>  <span class="fl">11.7127</span></span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.700013</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">912.3729611</span>   AIC <span class="ot">=</span> <span class="fl">1830.745922</span></span>
-<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">9</span> (adaptive GHQ) <span class="sc">---</span></span>
-<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
-<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9493</span>     <span class="fl">0.3328</span> <span class="sc">-</span><span class="fl">11.8670</span></span>
-<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9401</span>     <span class="fl">0.0813</span>  <span class="fl">11.5671</span></span>
-<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.861659</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">903.2083452</span>   AIC <span class="ot">=</span> <span class="fl">1812.41669</span></span>
-<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">25</span> (adaptive GHQ) <span class="sc">---</span></span>
-<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
-<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9485</span>     <span class="fl">0.3326</span> <span class="sc">-</span><span class="fl">11.8704</span></span>
-<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9399</span>     <span class="fl">0.0812</span>  <span class="fl">11.5691</span></span>
-<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.860915</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">903.2165109</span>   AIC <span class="ot">=</span> <span class="fl">1812.433022</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run once by hand on 2026-09-07; this block does not re-run when the page is built.</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># All four blocks produced together by a single run of:</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Rscript data/ch9/ch9-r-box.R</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, drmTMB 0.7.0, lme4 2.0.1, reading data/2012/SparrowSurvival.csv and</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   dropping rows missing Survival, Mass2 or BroodNo (1600 rows, 484 broods)</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> <span class="fu">drmTMB</span> (Laplace) <span class="sc">---</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>                 estimate std_error</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>(Intercept) <span class="sc">-</span><span class="fl">3.9153478</span> <span class="fl">0.3263290</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>Mass2        <span class="fl">0.9341965</span> <span class="fl">0.0797836</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>                    estimate std_error</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>sd<span class="sc">:</span>mu<span class="sc">:</span>(<span class="dv">1</span> <span class="sc">|</span> BroodNo)  <span class="fl">1.70008</span> <span class="fl">0.1509664</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>logLik<span class="sc">:</span> <span class="sc">-</span><span class="fl">912.4</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">1</span> (Laplace, the default) <span class="sc">---</span></span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9152</span>     <span class="fl">0.3262</span> <span class="sc">-</span><span class="fl">12.0028</span></span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9342</span>     <span class="fl">0.0798</span>  <span class="fl">11.7127</span></span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.700013</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">912.3729611</span>   AIC <span class="ot">=</span> <span class="fl">1830.745922</span></span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">9</span> (adaptive GHQ) <span class="sc">---</span></span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
+<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9493</span>     <span class="fl">0.3328</span> <span class="sc">-</span><span class="fl">11.8670</span></span>
+<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9401</span>     <span class="fl">0.0813</span>  <span class="fl">11.5671</span></span>
+<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.861659</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">903.2083452</span>   AIC <span class="ot">=</span> <span class="fl">1812.41669</span></span>
+<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a><span class="sc">---</span> lme4<span class="sc">::</span>glmer, nAGQ <span class="ot">=</span> <span class="dv">25</span> (adaptive GHQ) <span class="sc">---</span></span>
+<span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a>            Estimate Std. Error  z value</span>
+<span id="cb41-29"><a href="#cb41-29" aria-hidden="true" tabindex="-1"></a>(Intercept)  <span class="sc">-</span><span class="fl">3.9485</span>     <span class="fl">0.3326</span> <span class="sc">-</span><span class="fl">11.8704</span></span>
+<span id="cb41-30"><a href="#cb41-30" aria-hidden="true" tabindex="-1"></a>Mass2         <span class="fl">0.9399</span>     <span class="fl">0.0812</span>  <span class="fl">11.5691</span></span>
+<span id="cb41-31"><a href="#cb41-31" aria-hidden="true" tabindex="-1"></a>  brood SD <span class="ot">=</span> <span class="fl">1.860915</span>   logLik <span class="ot">=</span> <span class="sc">-</span><span class="fl">903.2165109</span>   AIC <span class="ot">=</span> <span class="fl">1812.433022</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="line"><span class="who momo">Momo</span><p>The last block is our fit.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The last block <strong>agrees with</strong> our fit, to four decimals on
 the brood standard deviation and on both slopes, and to two on the AIC.
@@ -1183,16 +1254,16 @@ on a scale you cannot see.</p></div>
 <h2 id="summary" class="anchored">Summary</h2>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
-<li><strong>A GLMM frees two constants at once.</strong> The family decrees the link and the variance function (Class 3); the grouping term frees the correlation between rows (Class 6). Neither repair changes what the other does, and the call is one line.</li>
-<li><strong>The standard error was the thing most wrong, and it was wrong in two separable ways.</strong> On this file the brood term multiplied the slope’s standard error by 1.61. Part of that is the coefficient changing size, because the mixed slope is conditional and the naive one marginal; part is siblings treated as strangers, and that part — the naive standard error against its own target, by simulation — is a shortfall of 12.2%. Class 6’s rule covers the second part and not the first.</li>
+<li><strong>A GLMM frees two constants at once.</strong> The family decrees the link and the variance function; the grouping term frees the correlation between rows. Neither repair changes what the other does, and the call is one line.</li>
+<li><strong>The standard error was the thing most wrong, and it was wrong in two separable ways.</strong> On this file the brood term multiplied the slope’s standard error by 1.61. Part of that is the coefficient changing size, because the mixed slope is conditional and the naive one marginal; part is siblings treated as strangers, and that part — the naive standard error against its own target, by simulation — is a shortfall of 12.2%. The where-does-the-predictor-vary rule covers the second part and not the first.</li>
 <li><strong>σ_b lives on the link scale.</strong> For a logit link the brood standard deviation is in log-odds, and there is no σ to divide it by, because the family spent it. To get a ratio you must supply a denominator, and the usual one is <strong>latent</strong>: the standard logistic distribution’s variance, π²/3. Report the resulting ICC as <strong>latent-scale</strong>, always (Nakagawa &amp; Schielzeth 2010). Switch to a probit link and the denominator becomes 1 and the number changes with no change to any bird. Data-scale alternatives exist and are not the same quantity (Nakagawa, Johnson &amp; Schielzeth 2017).</li>
 <li><strong>Conditional and marginal odds ratios are different quantities, and both are correct.</strong> The GLMM coefficient is <strong>conditional</strong>: it compares two chicks in the same brood. Averaging the fitted curve over the distribution of broods gives a <strong>marginal</strong> curve that is flatter, and a marginal odds ratio closer to one. This is non-collapsibility, and it is not bias. It holds for logit, probit and complementary log-log, not for the log link, which is collapsible for the rate ratio. On this file the marginal slope keeps 65% of the conditional one; the naive fit was estimating a different, defensible quantity, with an interval that was wrong for either.</li>
 <li><strong>A likelihood-ratio test for a variance component stands on a boundary.</strong> The engine says so in a warning and names the corrected entry point. Here the correction changes nothing anybody would act on; Class 8 is where it changes everything. The interesting number in this section was never the p-value.</li>
 <li><strong>Levels, not significance, decide whether a grouping can be random.</strong> Bolker et al.&nbsp;(2009) put the working floor near five or six levels and say to use a fixed effect below it; <code>Year</code> has 4, so it went into the mean model.</li>
 <li><strong>Check nesting from the data, and be willing to answer “neither”.</strong> No brood in this file spans two years, so brood is nested inside year rather than crossed with it. <code>Mum</code> is not so tidy: 184 of the 484 broods carry more than one mother, and a mother holds up to 17 broods, which makes the two <strong>partially crossed</strong>. Counting in the file is what settles this; the formula never will.</li>
-<li><strong>Shrinkage is not a refinement on a binary response; it is often the only estimate there is.</strong> 270 of the 484 broods in this file are unanimous — every chick died, or every chick lived — and for those a fixed effect per brood has no finite estimate. The mixed model returns a finite, different number for each of them, pulled less the more chicks the nest had. That is the population supplying what the nest could not.</li>
+<li><strong>Shrinkage is not a refinement on a binary response; it is often the only estimate there is.</strong> 270 of the 484 broods in this file are unanimous — every chick died, or every chick lived — and for those a fixed effect per brood has no finite estimate. The mixed model returns a finite, different number for each of them, pulled less the more chicks the nest had: a median of 0.85 on the log-odds scale for a unanimous nest of one, 1.55 for a unanimous nest of 5. That is the population supplying what the nest could not, and the shrinkage figure is the same picture on the broods that had an estimate of their own.</li>
 <li><strong>Ask which distribution a residual is judged against.</strong> Randomised quantile residuals are standard normal under a correct model only if each observation is compared with its own correct probability. <code>fitted</code> on a GLMM sets every group effect to zero, and on a nonlinear link that is <em>not</em> the average over groups: judged against the u = 0 probabilities the spread was 1.054, and against the probability averaged over broods it was 1.014. A per-observation check cannot see the correlation the model was fitted to handle.</li>
-<li><strong>The likelihood has an integral in it, and packages approximate it differently.</strong> <code>glmer</code> and <code>drmTMB</code> default to <strong>Laplace</strong> (brood SD 1.700, from the box); ours is a fixed thirty-two-node Gauss–Hermite grid (1.8609); <code>glmer</code> at <code>nAGQ &gt; 1</code> re-centres that grid at each group’s own mode (1.860915 from the box). Name the approximation next to the number, as Class 8 taught you to name the estimator.</li>
+<li><strong>The likelihood has an integral in it, and packages approximate it differently.</strong> <code>glmer</code> and <code>drmTMB</code> default to <strong>Laplace</strong> (brood SD 1.700, from the box); ours is a fixed thirty-two-node Gauss–Hermite grid (1.8609); <code>glmer</code> at <code>nAGQ &gt; 1</code> re-centres that grid at each group’s own mode (1.860915 from the box). Name the approximation next to the number, as you name the estimator.</li>
 </ul>
 <h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
@@ -1201,28 +1272,30 @@ on a scale you cannot see.</p></div>
 <li><strong><code>logistic(z) = 1 / (1 + exp(-z))</code>.</strong> A one-line function of your own for a curve the chapter uses repeatedly; <code>logistic.(v)</code> applies it to a vector.</li>
 <li><strong><code>20_000</code>.</strong> An underscore inside a number is ignored; it is there for the reader.</li>
 <li><strong><code>[... for (yi, pi_, ui) in zip(y, p, U)]</code>.</strong> <code>zip</code> over three vectors at once, each triple unpacked into three names, with a one-line <code>if</code> inside.</li>
+<li><strong><code>isfinite.(v)</code>, <code>count(isinf, v)</code>.</strong> A mask of the finite entries, and a count of the infinite ones; <code>Inf</code> is a value a vector can hold, and here it is the honest answer for a brood with no finite estimate.</li>
 <li><strong><code>clamp.(v, lo, hi)</code>.</strong> Pulls every element inside a range, here to keep a quantile finite.</li>
 <li><strong><code>string.(df.Year)</code>.</strong> Converts a numeric column to text. A grouping or factor stored as a number must be converted, or the formula treats it as a covariate.</li>
-<li><strong><code>:Year =&gt; (x -&gt; length(unique(x))) =&gt; :nyear</code>.</strong> Class 7’s anonymous function inside <code>combine</code>, here counting distinct values per group.</li>
+<li><strong><code>:Year =&gt; (x -&gt; length(unique(x))) =&gt; :nyear</code>.</strong> An anonymous function inside <code>combine</code>, here counting distinct values per group.</li>
 </ul>
 <h3 id="calls-you-used" class="anchored">Calls you used</h3>
 <ul>
 <li><code>CSV.read(path, DataFrame; missingstring = ["NA", ""])</code>: <code>missingstring</code> <strong>replaces</strong> the list of missing markers rather than adding to it, and the empty string is on the default list. A file using both conventions needs both spelled out.</li>
-<li><code>drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)</code>: the whole of a GLMM. The family is Class 3’s and the grouping term is Class 6’s.</li>
+<li><code>drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)</code>: the whole of a GLMM: a family and a grouping term in one call.</li>
 <li><code>re_sd(fit)[:g]</code>, <code>vc(fit)</code>: the group SD, here on the <strong>log-odds</strong> scale, and the variance. There is no <code>sigma(fit)</code> on a binomial fit; the family has spent it.</li>
 <li><code>lrtest(reduced, full)</code> and <code>lrt_boundary(full, reduced; q = 1)</code>: the naive test, which warns when the added block is a variance component, and the chi-bar-squared one it points at.</li>
+<li><code>binomial_group_modes(y, eta, group, sigma_b; penalised = true)</code> from <code>tools/diagnostics.jl</code>: the per-group effects the engine’s <code>ranef</code> does not yet return on a binomial fit, as <code>(; levels, u, grad)</code>; with <code>penalised = false</code>, what each group says on its own, <code>±Inf</code> where that has no finite answer.</li>
 <li><code>fitted(fit)</code> on a mixed fit: the prediction with every group effect <strong>set to zero</strong>, which on a nonlinear link is not the average over groups. Average the curve yourself if you want marginal.</li>
-<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: as in Class 3, seeded; check which probability it judges each observation against before reading the spread.</li>
+<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: seeded; check which probability it judges each observation against before reading the spread.</li>
 <li><strong>Seeding.</strong> Every random draw on this page comes from an explicit <code>MersenneTwister</code> handed to the function that needs it. Never the global generator, and never <code>Random.seed!</code>.</li>
 <li><strong>The simulation thread.</strong> One cell, and it is the trap Class 6 met, on a new family.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(glmm_fit; nsim <span class="op">=</span> <span class="fl">1</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>one_rep <span class="op">=</span> <span class="fu">DataFrame</span>(Survival <span class="op">=</span> <span class="fu">Int</span>.(ysim[<span class="op">:</span>, <span class="fl">1</span>]), Mass2 <span class="op">=</span> chicks.Mass2,</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>                    BroodNo <span class="op">=</span> chicks.BroodNo)</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>zero_refit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2 <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BroodNo))), <span class="fu">Binomial</span>(); data <span class="op">=</span> one_rep);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-refit" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(glmm_fit; nsim <span class="op">=</span> <span class="fl">1</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>one_rep <span class="op">=</span> <span class="fu">DataFrame</span>(Survival <span class="op">=</span> <span class="fu">Int</span>.(ysim[<span class="op">:</span>, <span class="fl">1</span>]), Mass2 <span class="op">=</span> chicks.Mass2,</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>                    BroodNo <span class="op">=</span> chicks.BroodNo)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>zero_refit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Survival <span class="op">~</span> Mass2 <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BroodNo))), <span class="fu">Binomial</span>(); data <span class="op">=</span> one_rep);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
 │ The fit is at a variance/dispersion boundary, so standard errors for the
@@ -1235,17 +1308,17 @@ on a scale you cannot see.</p></div>
 │   rcond = 6.24321165338485e-20</code></pre>
 </div>
 </div>
-<div id="simulate-read" class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"responses simulate() produced   : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sort</span>(<span class="fu">unique</span>(ysim)))</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"brood SD refitted from that draw: %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">re_sd</span>(zero_refit)[<span class="op">:</span>BroodNo])</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"brood SD in the fit it came from: %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-read" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"responses simulate() produced   : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sort</span>(<span class="fu">unique</span>(ysim)))</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"brood SD refitted from that draw: %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">re_sd</span>(zero_refit)[<span class="op">:</span>BroodNo])</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"brood SD in the fit it came from: %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>responses simulate() produced   : [0.0, 1.0]
 brood SD refitted from that draw: 0.0000
 brood SD in the fit it came from: 1.8609</code></pre>
 </div>
 </div>
-<p><code>simulate</code> gives back nought-and-one responses, because it draws from the family the fit was given; and the refit puts the brood standard deviation on the boundary at zero, because — as Class 6 found — <code>simulate</code> draws with every group effect set to zero. To ask whether the brood variance is recoverable, draw the brood effects yourself, as the marginal simulation above did; how to turn that into a recovery or coverage study, and how many refits one honestly needs, is <a href="appendix-a-simulation.html">Appendix A</a>.</p>
+<p><code>simulate</code> gives back nought-and-one responses, because it draws from the family the fit was given; and the refit puts the brood standard deviation on the boundary at zero, because — as Class 6 found — <code>simulate</code> draws with every group effect set to zero. To ask whether the brood variance is recoverable, draw the brood effects yourself, as the marginal simulation above did, and refit the mixed model to each draw. <a href="appendix-a-simulation.html">Appendix A</a> shows the shape of such a study — refit, collect, count — on a slope with no random effects; a recovery study of a variance component is not in this book.</p>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
 <p class="aside">Graded by depth. Checked on 2026-09-07 against OpenAlex, an open
@@ -1280,7 +1353,7 @@ catalogue of research papers.</p>
   <a class="chapter-nav-link prev" href="wk8-reml-vs-ml.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 8 · Same model, two answers</span></a><a class="chapter-nav-link next" href="wk10-relatedness.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 10 · Not even the groups are strangers</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 9 of a planned 13, ten in v1, plus a coda · draft, built 2026-09-07<br>
+  Stats Hours with Itchy · Class 9 of twelve rungs, ten in v1, plus a coda · draft, built 2026-09-07<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

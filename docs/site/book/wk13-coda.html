@@ -175,7 +175,7 @@ Figure&nbsp;1: Rung eleven, drawn from a real fit rather than described: the loc
 <h2 id="what-this-book-did-not-do" class="anchored">What this book did not do</h2>
 <p>An introduction earns the word by leaving things out. Here is the list, so that nobody has to discover it the hard way.</p>
 <ul>
-<li><strong>It taught one engine, not an ecosystem.</strong> You can fit these models; you cannot yet read a colleague’s <code>lme4</code> script fluently, and the day a referee asks why you did not use <code>glmer</code> — the function in <code>lme4</code> that fits these models — you will want more than this book gave you. The comparison boxes were a bridge, not a course.</li>
+<li><strong>It taught one engine, not an ecosystem.</strong> This is the cost, stated plainly, and you are now the right person to hear it. You finish knowing this engine. <code>lme4</code>, the R package most people use for mixed models, is what your co-authors use and what a referee will ask about; <code>GLM.jl</code> and <code>MixedModels.jl</code>, the usual Julia packages for these models, are what a Julia colleague reaches for first. In this book another package appeared in three boxes — Class 2’s divisor, Class 8’s estimator that nobody chose, Class 9’s quadrature — and never as the taught path. That is a real loss and it was weighed before it was accepted: the reason was that if the software had changed at the same moment the model did, you could never have said which of the two moved the number. So you can fit these models; you cannot yet read a colleague’s <code>lme4</code> script fluently, and the day a referee asks why you did not use <code>glmer</code> — the function in <code>lme4</code> that fits Class 9’s models — you will want more than this book gave you. Three boxes were a bridge, not a course.</li>
 <li><strong>It is frequentist throughout.</strong> There is no prior anywhere in it — no statement of belief entered before the data, which is the ingredient that makes an analysis Bayesian. A great deal of modern practice in exactly these models is Bayesian, and nothing here argues against that; the book simply does not go there.</li>
 <li><strong>It taught models, not designs.</strong> How to fit the thing you measured, not how to decide what to measure, how to randomise it, or when a coefficient is allowed to be called an effect. Those are different books and they are more important than this one.</li>
 <li><strong>It stayed linear in the predictors.</strong> A link function — the bend that maps a straight-line predictor onto the scale of the data — bends the curve at the end; nothing here bends it in the middle. Smoothers and splines — curves the data are allowed to bend into — and genuinely non-linear mean functions are absent.</li>
@@ -196,7 +196,22 @@ between you in Class 1 and you now is not that you know more models. It
 is that when somebody hands you a result you can ask which assumption is
 doing the work, and then go and check.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>I mostly learned to read the error messages.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p><em>(to the room)</em> That is the correct answer and I want it minuted.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That was Class 1. There were nine more. What can you <em>do</em>, Toto?</p></div>
+<div class="line"><span class="who toto">Toto</span><p><em>(after a biscuit)</em> Fit a model to my water fleas. Eggs on
+carapace length, with a random intercept for clone, because two fleas
+from one clone are not strangers. Poisson first, and if the scatter is
+wider than a Poisson allows, let θ pay for it rather than the standard
+errors. I can write the three claims down before I type the formula. I
+can read the <code>mu</code> block against the cloud I drew first, and
+say which estimator printed the variance under it. I can simulate two
+hundred flea files from the fit and see whether the interval keeps its
+promise before I believe it. And I know which constant each of those
+freed, because you made us say it every week. The sentence I can write
+is “an extra millimetre of carapace buys this many more eggs within a
+clone, and here is the interval” — and I cannot tell you the number,
+because I have not run it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><em>(to the room)</em> That is the correct answer and I want it minuted.
+All of it, and the last clause twice.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>What do we do with the two chapters that are not written?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Wait for them, or beat me to them. Everything in this book is open — the
 text, the data, the code that made every number on every page. The point
@@ -224,7 +239,7 @@ research papers.</p>
   <a class="chapter-nav-link prev" href="appendix-b-engine.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Appendix B · Where the engine stops</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Coda · the coda to a planned 13 rungs, ten in version 1 · draft, 2026-09-07<br>
+  Stats Hours with Itchy · Coda · the coda to twelve rungs, ten in version 1 · draft, 2026-09-07<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

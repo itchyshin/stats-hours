@@ -153,60 +153,66 @@ ul.task-list li input[type="checkbox"] {
 <td>DRM.jl #763</td>
 </tr>
 <tr class="even">
+<td>The correlation in a random-slope block</td>
+<td><code>vc(fit)</code> gives the point estimate of ρ and nothing about its precision; no standard error or interval is reported, where the R twin prints a standard error beside it.</td>
+<td>Treat ρ as Class 7 does — a quantity whose sign depends on where the covariate’s zero sits — and do not report it to a precision the engine cannot give.</td>
+<td>—</td>
+</tr>
+<tr class="odd">
 <td><code>Binomial()</code> random slopes</td>
 <td>Accepts a random intercept <code>(1 | g)</code> but refuses a correlated random slope <code>(1 + x | g)</code>, where seven other families and the R twin accept one.</td>
 <td>None yet.</td>
 <td>DRM.jl #753</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>confint(fit)</code> on a scale block</td>
 <td>The <code>:resd</code> and <code>:sigma</code> rows come back on the log scale.</td>
 <td>Exponentiate the endpoints for an interval on the standard deviation.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>ranef(fit)</code> on a non-Gaussian fit</td>
 <td>Returns an empty <code>Dict</code>; the failure is silent unless you index it, which raises a <code>KeyError</code>.</td>
 <td>Compute the per-group effects yourself: a one-dimensional penalised maximisation, about six lines, checked against <code>ranef</code> on a Gaussian fit of the same groups.</td>
 <td>DRM.jl #759</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>A second grouping on the binomial route</td>
 <td>Can converge and return <code>Inf</code> standard errors for every level, with no warning.</td>
 <td>Fit a Gaussian control on the same groups: if its standard errors are finite and its log-likelihood rose, the fault is the engine’s binomial route, not your design.</td>
 <td>DRM.jl #761</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Quantile residuals on a GLMM</td>
 <td><code>fitted(fit)</code> sets every random effect to zero, so a residual is judged against the model’s prediction at that point, not the population average — a different number on a nonlinear link.</td>
 <td>Average the fitted curve over groups yourself before judging residuals against it.</td>
 <td>DRM.jl #760</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Quadrature on the binomial <code>(1|g)</code> route</td>
 <td>A fixed 32-node, non-adaptive Gauss–Hermite grid centred at zero; <code>marginal = :AGHQ</code> is rejected.</td>
 <td>Cross-check against <code>lme4::glmer</code> at a high <code>nAGQ</code>, and name the approximation in your methods sentence.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>REML on a structured random effect</td>
 <td><code>method = :REML</code> is rejected for a model such as <code>animal(1 | id)</code>; the error names where REML is available instead.</td>
 <td>Fit by ML (the default) and, if the bias matters, measure it with a simulation from the ML fit.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Two structured groupings in one model</td>
 <td>Both must be written <code>relmat(1 | g)</code> with an explicit relatedness matrix; a plain <code>(1 | g)</code> will not combine with <code>animal()</code>.</td>
 <td>Pass <code>relmat(1 | g)</code> with an identity matrix for the ordinary grouping.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>heritability</code>/<code>repeatability</code> intervals</td>
 <td>The <code>ci</code> field is centred on <code>corrected</code>, not on <code>estimate</code>.</td>
 <td>Print <code>estimate</code>, <code>bias</code> and <code>corrected</code> together, and report <code>corrected</code>.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Convergence warnings at a boundary</td>
 <td>Can print a line naming a file inside the engine’s own source.</td>
 <td>That line is for the engine’s authors, not you; read the rest of the warning.</td>
@@ -223,7 +229,7 @@ ul.task-list li input[type="checkbox"] {
   <a class="chapter-nav-link prev" href="appendix-a-simulation.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Appendix A · Simulation as a way of thinking</span></a><a class="chapter-nav-link next" href="wk13-coda.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Coda · Where you go next</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Appendix B of a planned 13, ten in version 1, plus a coda · draft, written 2026-09-12<br>
+  Stats Hours with Itchy · Appendix B of twelve rungs, ten in version 1, plus a coda · draft, written 2026-09-12<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

@@ -10,9 +10,9 @@ tags: [book, julia, linear-model, DRM.jl, drmTMB]
 deck: "The linear model, taught in one engine — and the morning a student notices that Julia and R disagree about a number."
 status_tag: Draft
 status_note: "Draft. Every number and figure on this page comes from code that was actually run when the site was built; the prose is still being written."
-provenance: "Everything printed below came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The two errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in."
+provenance: "Everything printed below came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The two errors are real errors, left in on purpose. The R output in the disagreement box was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in."
 caveat: "The data are real: 171 house sparrows measured on Lundy Island in the author's 2012 course, read from data/2012/MBodySize.csv through a copy, data/ch2/sparrows.csv, with the sex column spelled out as female/male (where the file came from is recorded in data/2012/README.md)."
-footer_note: "Stats Hours with Itchy · Class 2 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-12"
+footer_note: "Stats Hours with Itchy · Class 2 of twelve rungs (ten in version 1, plus a coda) · draft · code last run 2026-09-12"
 ---
 
 # Class 2: one line through a cloud of sparrows
@@ -140,34 +140,6 @@ fit1 = drm(bf(@formula(Wing ~ Tarsus)), Gaussian(); data = sparrows);
 fit1
 ```
 
-<details class="drmtmb">
-<summary>Same fit in drmTMB, the same engine in R</summary>
-
-The `mu:` rows are the μ table above; `sigma:(Intercept)` is the `(Intercept)` row of the
-σ table, on the log scale; the `sigma (constant)` line at the bottom is **Residual SD (response
-scale)** from the header.
-
-```r
-# Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;
-# not re-run with the page. The same 171 Lundy Island sparrows, read from
-# data/ch2/sparrows.csv.
-> sp <- read.csv("data/ch2/sparrows.csv")
-> summary(drmTMB(bf(Wing ~ Tarsus), data = sp))
-<summary.drmTMB>
-estimator: ML
-                    estimate  std_error
-mu:(Intercept)    55.4568660 3.56377203
-mu:Tarsus          1.2031120 0.19129417
-sigma:(Intercept)  0.6317395 0.05407379
-Distributional, random-effect, scale, and correlation parameters:
-                 component  dpar       term estimate std_error    scale
-sigma distributional-scale sigma (constant) 1.880879 0.1017063 response
-logLik: -350.7
-convergence: 0
-```
-
-</details>
-
 **Toto:** There are two tables. I only asked for one.
 
 **Itchy:** You asked for one and you were given the model. Sit down, this is the moment the engine looks strangest to somebody arriving from R, so let me pay for it properly instead of hurrying past.
@@ -282,34 +254,6 @@ drm(bf(@formula(Wing ~ Tarsis)), Gaussian(); data = sparrows)
 ```{julia}
 fit2 = drm(bf(@formula(Wing ~ Tarsus + Sex)), Gaussian(); data = sparrows)
 ```
-
-<details class="drmtmb">
-<summary>Same fit in drmTMB, the same engine in R</summary>
-
-Rows correspond as before: `mu:` to the μ table, `sigma:(Intercept)` to the σ table's intercept
-on the log scale, `sigma (constant)` to the header's residual SD.
-
-```r
-# Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;
-# not re-run with the page. The same 171 Lundy Island sparrows, read from
-# data/ch2/sparrows.csv.
-> sp <- read.csv("data/ch2/sparrows.csv")
-> summary(drmTMB(bf(Wing ~ Tarsus + Sex), data = sp))
-<summary.drmTMB>
-estimator: ML
-                   estimate  std_error
-mu:(Intercept)    57.821818 2.68551932
-mu:Tarsus          1.011631 0.14469114
-mu:Sexmale         2.501172 0.21776962
-sigma:(Intercept)  0.345846 0.05407379
-Distributional, random-effect, scale, and correlation parameters:
-                 component  dpar       term estimate std_error    scale
-sigma distributional-scale sigma (constant) 1.413185 0.07641626 response
-logLik: -301.8
-convergence: 0
-```
-
-</details>
 
 ```{julia}
 #| echo: false

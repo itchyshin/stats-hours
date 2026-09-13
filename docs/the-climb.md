@@ -1,6 +1,6 @@
 # The climb
 
-Thirteen rungs. **Version 1 is chapters 1–10 plus the coda**; 11 and 12 are held for a second
+Twelve rungs and a coda. **Version 1 is chapters 1–10 plus the coda**; 11 and 12 are held for a second
 version. Each rung frees one thing the rung before it held fixed — that progression is the book,
 not the topic list.
 

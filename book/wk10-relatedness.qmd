@@ -12,7 +12,7 @@ status_tag: Draft
 status_note: "Every number and figure on this page was produced when the site was built."
 provenance: "Every Julia cell in this chapter was run when the site was built and its output printed."
 caveat: "The data are real: 1950 Lundy Island house-sparrow chick records with their sire and dam, of which the 1675 that carry a mass are used here, read from data/2012/SparrowSurvival.csv (provenance in data/2012/README.md). The simulated quantities are drawn from models fitted to that file, from stated seeds, in cells you can read."
-footer_note: "Stats Hours with Itchy · Class 10 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-12"
+footer_note: "Stats Hours with Itchy · Class 10 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-12"
 ---
 
 # Class 10: not even the groups are strangers
@@ -43,17 +43,17 @@ By the end of this class you should be able to:
 
 **Itchy:** Class 6 said rows are not strangers, and gave every bird its own nudge. Class 7 let the nudges have slopes. Class 9 let them live inside a coin flip. Every one of those chapters made the same quiet promise, and today we break it. Momo, you have the file open. Read me the promise.
 
-**Momo:** `u_j ~ N(0, σ_u²)`, independently for each *j*.
+**Momo:** `u_j ~ N(0, σ_b²)`, independently for each *j*.
 
 **Itchy:** Independently for each *j*. Every group drawn fresh, knowing nothing about any other group. That is a lie about sparrows, about species and about places, and today we replace it with a matrix.
 
 ```{julia}
 #| label: setup
 using Random
-# tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.
-include("../tools/figures.jl")
+# tools/diagnostics.jl includes tools/figures.jl, which includes
+# tools/theme_itchy.jl itself, so one include does all three.
+include("../tools/diagnostics.jl")
 using DRM, DataFrames, CSV, Statistics, LinearAlgebra, Printf, CairoMakie
-import Distributions          # qualified: DRM exports its own Poisson, Binomial, …
 set_theme!(theme_itchy(:light))
 
 raw = CSV.read("../data/2012/SparrowSurvival.csv", DataFrame; missingstring = ["NA", ""])
@@ -211,7 +211,7 @@ fig
 
 > **y = Xβ + a + ε, with a ~ N(0, σ_A² A) and ε ~ N(0, σ² I).**
 
-**Itchy:** *a* is the vector of **breeding values**, one per chick: the part of a chick's mass that its genes are responsible for, summed over every locus. In Class 6 the random effect was `N(0, σ_u² I)` and the `I` was invisible because nobody writes it. Today it is an `A` and it is the whole content of the model. σ_A² is the **additive genetic variance**. Momo, before you see the code, what has actually changed?
+**Itchy:** *a* is the vector of **breeding values**, one per chick: the part of a chick's mass that its genes are responsible for, summed over every locus. In Class 6 the random effect was `N(0, σ_b² I)` and the `I` was invisible because nobody writes it. Today it is an `A` and it is the whole content of the model. σ_A² is the **additive genetic variance**. Momo, before you see the code, what has actually changed?
 
 **Momo:** Nothing about the shape. The random effect is still normal, still centred on zero, still has one variance. Only the levels are now correlated with each other, by a matrix I supplied rather than anything the model estimated.
 
@@ -456,43 +456,24 @@ fig_diagnostic(qr ./ std(qr); title = "chick mass, A + brood model")
 
 **Itchy:** Both ends up and the middle down is a ∪, and a ∪ in a worm plot has one name: the residuals are **skewed to the right**. A mass has a hard floor and no ceiling: a chick that weighs nothing is a chick that is not there, and a well-fed chick can be enormous. A right-skewed positive response is what a `Gamma` family is for; this book does not teach it, and on this file it would change the prediction intervals a great deal and the variance *ratio* very little. Not today. On to Jaro's question, which we answer the way this book always answers it: **make data where you know the truth, and see what the estimator says.**
 
-**Itchy:** One thing first, and you may take it on trust. An animal-model fit takes the engine about two minutes on this file, and I want fifteen hundred of them. When every individual has one record there is a shortcut: rotate the data by the eigenvectors of *A*, and the model becomes a search over one number, the heritability. The cell below is that fit — and because it is the likelihood written out, it can also do the one thing the engine would not, which is REML. The linear algebra in it — `eigen`, the transpose `'`, and `\` for solving a system of equations — is not something this book teaches; read the two printed lines and skip the rest.
+**Itchy:** One thing first, and you may take it on trust. An animal-model fit takes the engine about two minutes on this file, and I want fifteen hundred of them. When every individual has one record there is a shortcut: rotate the data by the eigenvectors of *A*, and the model becomes a search over one number, the heritability. Because it is the likelihood written out, it can also do the one thing the engine would not, which is REML — that machinery, `profile_ll` and `fit_h2`, lives in `tools/diagnostics.jl`, documented there, because the linear algebra in it is not something this book teaches; the engine has no REML for a structured random effect at all ([Where the engine stops](appendix-b-engine.html)), which is the whole reason we are pricing the gap by hand. Here is the call and the two numbers it prints.
 
 ```{julia}
 #| label: sim-machinery
 # With A = U diag(lambda) U', the covariance of U'y is diagonal: h2 * lambda_i + (1 - h2),
-# times the total variance. Fixed effects and total variance have closed forms at each h2.
+# times the total variance. `profile_ll` and `fit_h2` — the closed-form fixed-effect and
+# variance fit at one h2, and the grid search over h2 that calls it — live in
+# tools/diagnostics.jl, documented there; `recover` below reuses lambda and Xrot many times.
 E = eigen(Symmetric(A))
 lambda, U = E.values, E.vectors
 Xdes = hcat(ones(n), Float64.(chicks.Sex .== "M"),
             [Float64(chicks.Year[i] == y) for i in 1:n, y in sort(unique(chicks.Year))[2:end]])
 Xrot = U' * Xdes
-p_fixed = size(Xrot, 2)
 grid = 0.0:0.001:0.995
 
-# Log-likelihood at heritability h. `reml = true` divides by n - p instead of n and adds one
-# term for the cost of having estimated the fixed effects: that is the whole of REML.
-function profile_ll(yrot, h; reml = false)
-    w  = h .* lambda .+ (1 - h)
-    XW = Xrot ./ w
-    M  = Xrot' * XW
-    b  = M \ (XW' * yrot)
-    r  = yrot - Xrot * b
-    m  = reml ? n - p_fixed : n
-    s2 = sum(abs2.(r) ./ w) / m
-    ll = -0.5 * (m * log(s2) + sum(log, w) + m + m * log(2π))
-    return reml ? ll - 0.5 * logdet(M) : ll
-end
-
-# Estimate: the best grid value. 95% profile interval: every grid value within chi2(1)/2 of it.
-function fit_h2(yrot; reml = false)
-    lls = [profile_ll(yrot, h; reml = reml) for h in grid]
-    inside = lls .>= maximum(lls) - Distributions.quantile(Distributions.Chisq(1), 0.95) / 2
-    return (h2 = grid[argmax(lls)], lo = grid[findfirst(inside)], hi = grid[findlast(inside)])
-end
-
 yrot = U' * Float64.(chicks.Mass2)
-ml, rml = fit_h2(yrot), fit_h2(yrot; reml = true)
+ml  = fit_h2(yrot, lambda, Xrot, grid)
+rml = fit_h2(yrot, lambda, Xrot, grid; reml = true)
 
 @printf("h2 by ML   : the engine %.4f, this cell %.3f   (95%% profile interval %.3f to %.3f)\n",
         h2_naive.estimate, ml.h2, ml.lo, ml.hi)
@@ -519,7 +500,7 @@ function recover(sigma_a, sigma_b, sigma_r, rng)
         a = sigma_a .* (L * randn(rng, n))                 # breeding values
         b = sigma_b .* randn(rng, length(brood_levels))    # brood effects
         y = Xdes * beta .+ a .+ b[brood_index] .+ sigma_r .* randn(rng, n)
-        f = fit_h2(U' * y)
+        f = fit_h2(U' * y, lambda, Xrot, grid)
         push!(est, f.h2); push!(lo, f.lo); push!(hi, f.hi)
     end
     return (est = est, lo = lo, hi = hi)
@@ -634,15 +615,9 @@ n_split   = count(A[i, j] > 0 && brood[i] != brood[j] for i in 1:n for j in (i +
 
 **Itchy:** Both are today's problem — non-independence from a shared history, or from shared effect sizes — and both need a book rather than an afternoon. They are not in this one, deliberately.
 
-<!-- box: translate | id: pedigree-input | ch: 10 | checked: 2026-09-12 -->
+**Momo:** And nobody builds that matrix by hand in practice.
 
-> **↔ TRANSLATE: R will build the matrix for you, and Julia will not**
->
-> In DRM.jl the matrix is a keyword on `drm`, `animal(1 | id)` with `A = A`, and building it is
-> your job — which is why this chapter spent a page doing it in the open. In `drmTMB` it goes
-> inside the marker, `animal(1 | id, A = A)`, or the package walks a three-column pedigree of
-> `id`, `dam`, `sire` into `A` itself: `animal(1 | id, pedigree = ped)`. A matrix a package built
-> for you is one you should still check, three entries by name, exactly as above.
+**Itchy:** In practice a package usually builds it for you — the R twin of this engine will walk a three-column pedigree of `id`, `dam` and `sire` into `A` itself — which is why this chapter spent a page doing it in the open, because a matrix a package built for you is one you should still check, three entries by name, exactly as above.
 
 **Toto:** So today's summary is: tell the model who is related to whom.
 
@@ -654,7 +629,7 @@ n_split   = count(A[i, j] > 0 && brood[i] != brood[j] for i in 1:n for j in (i +
 
 ### Stats stuff
 
-- **The last constant, freed.** Classes 6, 7 and 9 let groups differ but drew every group's effect independently, `u ~ N(0, σ_u² I)`. A structured random effect replaces the `I` with a **known** matrix: `a ~ N(0, σ_A² A)`. You supply the matrix; the model estimates one scalar, how much that structure is worth.
+- **The last constant, freed.** Classes 6, 7 and 9 let groups differ but drew every group's effect independently, `u ~ N(0, σ_b² I)`. A structured random effect replaces the `I` with a **known** matrix: `a ~ N(0, σ_A² A)`. You supply the matrix; the model estimates one scalar, how much that structure is worth.
 - **The additive relationship matrix.** *A*ᵢⱼ = ½(*A*ᵢ,ₛᵢᵣₑ₍ⱼ₎ + *A*ᵢ,dam₍ⱼ₎), *A*ᵢᵢ = 1 + *F*ᵢ. With unrelated non-inbred founders and one generation this collapses to ¼ per shared parent: full sibs ½, half sibs ¼. Build it in a cell and check named entries against the file — a matrix can be the right *shape* and still be indexed wrongly.
 - **The animal model.** `y = Xβ + a + ε`, `a ~ N(0, σ_A² A)`. **h² = V_A / V_P** is a ratio of variance components, exactly like Class 6's repeatability, and V_P is **conditional on the fixed effects**: whatever your covariates explain is outside it. Negligible on this file, decisive on one where the covariates matter.
 - **The confound that eats heritabilities.** A relatedness matrix says relatives share genes, not that they shared a nest, a mother's condition, a territory or a year. Anything else that makes relatives alike, and is not in the model, is absorbed by σ_A and reported as heritability (Kruuk & Hadfield 2007). Fitting the brood here cut h² by about `{julia} string(round(Int, 100 * (1 - h2_full.estimate / h2_naive.estimate)), "%")`, and `{julia} string(round(Int, 100 * (sigma_e_naive^2 - V_R) / V_B), "%")` of the brood variance came out of the **residual**, where the difference between same-brood and different-brood full sibs had been hiding.
@@ -677,7 +652,7 @@ n_split   = count(A[i, j] > 0 && brood[i] != brood[j] for i in 1:n for j in (i +
 - **`Matrix{Float64}(I, n, n)`, `vcat`, `fill(1, 3)`.** An identity matrix, vectors joined end to end, and a vector of one repeated value.
 - **`let m = Dict(...) ... end`.** A block with a temporary name that does not leak out.
 - **`if k == 1 ... else ... end`.** The full form of `if`, for when the branches are statements rather than values.
-- **`cholesky(Symmetric(A)).L`.** How you *draw* a correlated random effect: `σ_A * L * randn(rng, n)` has covariance σ_A² A. Beyond it, the matrix algebra of the profile cell — `eigen`, `\`, `hcat` — is not taught here.
+- **`cholesky(Symmetric(A)).L`.** How you *draw* a correlated random effect: `σ_A * L * randn(rng, n)` has covariance σ_A² A. Beyond it, the linear algebra behind the REML fit — `eigen`, `\`, `hcat` — is not taught here; `profile_ll` and `fit_h2` do it in `tools/diagnostics.jl`.
 
 ### Calls you used
 

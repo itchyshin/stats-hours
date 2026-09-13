@@ -12,7 +12,7 @@ status_tag: Draft
 status_note: "A reference page, not a rung: it teaches nothing on its own. Every row was checked against the chapter that met it, at the engine version named above."
 provenance: "This page runs no code and computes nothing. Every row was observed by running a chapter of this book at the engine version named above, not by testing the engine directly on this page."
 caveat: "This is a record of what a reader meets while working through the book, not the engine's own issue tracker. A limitation with no issue number here is a known behaviour, not necessarily an open bug; some are the engine doing exactly what it documents, and the workaround is simply to know it."
-footer_note: "Stats Hours with Itchy · Appendix B of a planned 13, ten in version 1, plus a coda · draft, written 2026-09-12"
+footer_note: "Stats Hours with Itchy · Appendix B of twelve rungs, ten in version 1, plus a coda · draft, written 2026-09-12"
 ---
 
 # Appendix B: where the engine stops
@@ -36,6 +36,7 @@ and where it is tracked.
 | `simulate(fit; nsim = k)` | Draws new responses with every random effect set to zero: population-level draws, not draws that reproduce a mixed model's total spread. | For a null that should have group effects, add them yourself from the same generator, seeded and passed as an argument. | — |
 | Correlated random slope, uncentred covariate | A Gaussian `(1 + x | g)` can throw `DomainError` — the log of a negative number — when the covariate sits far from zero. | Centre the covariate; the near-singular determinant is a numerical artefact of an off-centre origin, not evidence the effect is unidentifiable. | DRM.jl #762 |
 | `re_sd(fit)` on a correlated block | Returns an empty `Dict`; the printed covariance block is a Cholesky factor (`L11`, `L22`, `L21`), not σ₀, σ₁ and ρ. | Use `vc(fit)` instead — a covariance matrix. Take square roots of the diagonal for the SDs and divide for ρ. | DRM.jl #763 |
+| The correlation in a random-slope block | `vc(fit)` gives the point estimate of ρ and nothing about its precision; no standard error or interval is reported, where the R twin prints a standard error beside it. | Treat ρ as Class 7 does — a quantity whose sign depends on where the covariate's zero sits — and do not report it to a precision the engine cannot give. | — |
 | `Binomial()` random slopes | Accepts a random intercept `(1 | g)` but refuses a correlated random slope `(1 + x | g)`, where seven other families and the R twin accept one. | None yet. | DRM.jl #753 |
 | `confint(fit)` on a scale block | The `:resd` and `:sigma` rows come back on the log scale. | Exponentiate the endpoints for an interval on the standard deviation. | — |
 | `ranef(fit)` on a non-Gaussian fit | Returns an empty `Dict`; the failure is silent unless you index it, which raises a `KeyError`. | Compute the per-group effects yourself: a one-dimensional penalised maximisation, about six lines, checked against `ranef` on a Gaussian fit of the same groups. | DRM.jl #759 |

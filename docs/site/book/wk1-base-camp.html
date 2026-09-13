@@ -99,7 +99,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
     <p class="meta">
       <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
-      <b>Provenance</b> Everything printed below — tables, figures and the four errors — came from running this chapter’s code from top to bottom when the site was built; nothing is typed from memory. The four errors are real errors, left in on purpose. Every random draw states its seed right where it is made. The single block of R output was run once by hand, in R, on 2026-09-07, on the same data file, and pasted in; the script is at data/ch1/ch1-r-box.R so you can run it yourself.<br>
+      <b>Provenance</b> Everything printed below — tables, figures and the four errors — came from running this chapter’s code from top to bottom when the site was built; nothing is typed from memory. The four errors are real errors, left in on purpose. Every random draw states its seed right where it is made.<br>
       <b>Caveat</b> The data are real: 171 house sparrows measured on Lundy Island in the author’s 2012 course, read directly from data/2012/MBodySize.csv (where the file came from is recorded in data/2012/README.md). Nothing here is simulated except the coin flips, which say so and carry their seeds.
     </p>
   </div>
@@ -108,7 +108,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="wrap">
 <blockquote>
 <p><strong>What this chapter does not teach: installation.</strong> You need Julia running and this book’s packages available, and there are two honest routes. The <strong>hosted notebook</strong> needs nothing at all — open it and the first cell below works. A <strong>local install</strong> needs the two engines pulled from their repositories by URL, which is a paragraph of instructions that will change the day the two packages are listed in Julia’s public package catalogue and become a one-line <code>Pkg.add</code>. Writing that paragraph now means writing it twice, so this chapter does not. Everything from the first cell onward assumes you are already at a prompt.</p>
-<p><strong>If you are coming from R</strong>, there is one translate box below. It maps <code>read.csv</code> and the <code>dplyr</code> verbs onto their Julia equivalents, and it exists because of one place where the two languages do not merely differ but <em>reverse</em>: an argument order you will get wrong, in an error we meet later in the hour. Its R output was run once by hand, in R, on the same file the Julia code reads, and pasted in; the script is kept at <code>data/ch1/ch1-r-box.R</code> so you can run it yourself.</p>
 </blockquote>
 <hr>
 <h2 id="objectives" class="anchored">Objectives</h2>
@@ -125,18 +124,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 id="the-class" class="anchored">The class</h2>
 <p class="scene">Itchy’s office, 9:00 am on the first morning. Four chairs, one
 whiteboard, and a laptop belonging to TOTO on which Julia has been
-installed for eleven minutes. MOMO has arrived from a decade of SPSS and
-is already suspicious of the absence of menus. EDDIE, who has done this
-before, is here for the coffee.</p>
+installed for eleven minutes. MOMO has arrived from a little R, used
+under protest, and is already suspicious of anything that claims to be
+better. EDDIE, who has done this before, is here for the coffee.</p>
 <div class="line"><span class="who itchy">Itchy</span><p>Nobody fits anything today. Today you get a file into Julia, look at it,
 draw it, and break it on purpose four times. That last part is not a
 joke and it is not filler — it is the reason people give up on this
 language in week one, and I would rather you met it here, with me, than
 alone at eleven at night.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>In SPSS I opened a file by opening a file.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And in an hour you will open one with a line you can put in a paper,
-which somebody else can run, which will give them the same numbers. That
-is the trade. Toto, type this.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>In R I opened a file with <code>read.csv</code> and never thought about
+it again.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And in an hour you will open one here with a line that tells you what
+every column is before you touch it, and you will have watched it fail
+four times and known each time why. That is the trade: a little more
+looking now, a great deal less guessing later. Toto, type this.</p></div>
 <div id="setup" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the book's plotting helpers and colours</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
@@ -290,13 +291,13 @@ wide. <code>BirdID</code> is a <code>String7</code>. Julia is telling
 you the <strong>type</strong> of every column before you have asked, and
 type is what determines what you are allowed to do next. Half of the
 errors in this class are a type you did not check.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>In SPSS a column had a type too, and it lied to me constantly.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Here it cannot lie, because it is not a label somebody set in a dialogue
-box; it is what is actually in memory. If a column you expected to be
-numeric prints as <code>String</code>, you have found a stray comma or
-the word <code>NA</code> in row four hundred, and you have found it in
-the first five seconds rather than in the middle of a model. Now the
-summary.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>In R a column had a type too, and it lied to me constantly.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Here it cannot lie, because it is not a guess made silently when the
+file was read; it is what is actually in memory, printed. If a column
+you expected to be numeric prints as <code>String</code>, you have found
+a stray comma or the word <code>NA</code> in row four hundred, and you
+have found it in the first five seconds rather than in the middle of a
+model. Now the summary.</p></div>
 <div id="cell-look-describe" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(sparrows, <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max, <span class="op">:</span>nmissing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="look-describe" class="cell-output cell-output-display" data-execution_count="5">
@@ -536,13 +537,17 @@ own verb and it takes a <strong>function first</strong> and the thing to
 be filtered second —
 <code>filter(row -&gt; row.Sex == "M", sparrows)</code>. That little
 arrow makes an anonymous function: “given a row, is its <code>Sex</code>
-equal to <code>M</code>”. <code>subset</code> is the DataFrames verb,
-takes the frame first, and reads closer to <code>dplyr</code> once you
-know two things: <code>==("F")</code> is a comparison with one side left
-open, which makes it a function asking “is this equal to F”, and
-<code>ByRow</code> says to ask that of every row in turn. Use either. Do
-not mix them up in the same script and expect to be able to read it in a
-year.</p></div>
+equal to <code>M</code>”. If you have used R’s <code>dplyr</code>, this
+is the one place the two languages do not merely differ but
+<em>reverse</em>: <code>filter(data, condition)</code> there, function
+first here. Every R user types it the wrong way round once, and you will
+do it later in the hour, on purpose. <code>subset</code> is the
+DataFrames verb, takes the frame first, and reads closer to
+<code>dplyr</code> once you know two things: <code>==("F")</code> is a
+comparison with one side left open, which makes it a function asking “is
+this equal to F”, and <code>ByRow</code> says to ask that of every row
+in turn. Use either. Do not mix them up in the same script and expect to
+be able to read it in a year.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And you get 82 and 89, which add up.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Which add up to 171, and I want you to notice that I checked. Every time
 you split something, add the pieces back up. It costs one line and it
@@ -657,95 +662,6 @@ two different claims and people run them together constantly. Hold the
 picture; it is what sits underneath half the arguments in the literature
 about effect sizes — how big a difference is, as opposed to whether one
 exists.</p></div>
-<blockquote>
-<p class="scene">↔︎ TRANSLATE: the same eight lines, in R</p>
-<p>This is the one box of its kind in this chapter, and it earns its place on a single row of the table below. Most of these lines merely <em>differ</em> between the languages, which costs you a lookup. One of them <strong>reverses</strong>, which costs you an error message you will not understand: <code>dplyr::filter(data, condition)</code> takes the data first, and Julia’s <code>filter(function, data)</code> takes the function first. Every R user types it the wrong way round once. You will do it in about five minutes, on purpose.</p>
-<table class="caption-top">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>you want</th>
-<th>in R</th>
-<th>in Julia</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>load the tools</td>
-<td><code>library(dplyr)</code></td>
-<td><code>using DataFrames</code></td>
-</tr>
-<tr class="even">
-<td>read a CSV</td>
-<td><code>read.csv("f.csv")</code></td>
-<td><code>CSV.read("f.csv", DataFrame)</code></td>
-</tr>
-<tr class="odd">
-<td>how big is it</td>
-<td><code>nrow(d)</code>, <code>ncol(d)</code></td>
-<td><code>nrow(d)</code>, <code>ncol(d)</code></td>
-</tr>
-<tr class="even">
-<td>first rows</td>
-<td><code>head(d, 5)</code></td>
-<td><code>first(d, 5)</code></td>
-</tr>
-<tr class="odd">
-<td>summarise</td>
-<td><code>summary(d)</code></td>
-<td><code>describe(d)</code></td>
-</tr>
-<tr class="even">
-<td>one column</td>
-<td><code>d$Wing</code></td>
-<td><code>d.Wing</code></td>
-</tr>
-<tr class="odd">
-<td><strong>keep some rows</strong></td>
-<td><strong><code>filter(d, Sex == "M")</code></strong></td>
-<td><strong><code>filter(row -&gt; row.Sex == "M", d)</code></strong></td>
-</tr>
-<tr class="even">
-<td>group and average</td>
-<td><code>group_by(Sex) %&gt;% summarise(m = mean(Wing))</code></td>
-<td><code>combine(groupby(d, :Sex), :Wing =&gt; mean =&gt; :m)</code></td>
-</tr>
-</tbody>
-</table>
-<p>The R output below was run once by hand, in R, on 2026-09-07, on the same archived file this chapter reads, and pasted in here; it is not re-run when the page is made. The script is kept at <code>data/ch1/ch1-r-box.R</code>; its captured output is at <code>data/ch1/ch1-r-box.txt</code>. Compare its numbers with the Julia numbers above: they are the same birds, so they are the same numbers.</p>
-</blockquote>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run once in R on 2026-09-07 and pasted in; not re-run with the page. Command:</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   Rscript data/ch1/ch1-r-box.R</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, dplyr 1.2.1, reading data/2012/MBodySize.csv</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>nrow<span class="sc">:</span> <span class="dv">171</span>   ncol<span class="sc">:</span> <span class="dv">8</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>   BirdID Sex   Tarsus    BillL    BillW     Tail     Wing   Weight</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> TA14502   F <span class="fl">18.43333</span> <span class="fl">13.26667</span> <span class="fl">6.533333</span> <span class="fl">51.76667</span> <span class="fl">71.56667</span> <span class="fl">27.96667</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> TA14505   F <span class="fl">18.10000</span> <span class="fl">13.00000</span> <span class="fl">6.133333</span> <span class="fl">57.33333</span> <span class="fl">76.50000</span> <span class="fl">27.40000</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="dv">3</span> TA14506   F <span class="fl">18.45000</span> <span class="fl">13.05000</span> <span class="fl">6.200000</span> <span class="fl">55.50000</span> <span class="fl">75.00000</span> <span class="fl">25.15000</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>     Tarsus           Wing</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a> Min.   <span class="sc">:</span><span class="fl">16.90</span>   Min.   <span class="sc">:</span><span class="fl">71.57</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a> <span class="dv">1</span>st Qu.<span class="sc">:</span><span class="fl">18.15</span>   <span class="dv">1</span>st Qu.<span class="sc">:</span><span class="fl">76.45</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a> Median <span class="sc">:</span><span class="fl">18.63</span>   Median <span class="sc">:</span><span class="fl">77.90</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a> Mean   <span class="sc">:</span><span class="fl">18.61</span>   Mean   <span class="sc">:</span><span class="fl">77.85</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a> <span class="dv">3</span>rd Qu.<span class="sc">:</span><span class="fl">19.11</span>   <span class="dv">3</span>rd Qu.<span class="sc">:</span><span class="fl">79.25</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a> Max.   <span class="sc">:</span><span class="fl">20.55</span>   Max.   <span class="sc">:</span><span class="fl">84.00</span></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>mean wing<span class="sc">:</span> <span class="fl">77.85234</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>males<span class="sc">:</span> <span class="dv">82</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co"># A tibble: 2 x 3</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  Sex   mean_wing     n</span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>int<span class="sc">&gt;</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> F          <span class="fl">76.6</span>    <span class="dv">89</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="dv">2</span> M          <span class="fl">79.2</span>    <span class="dv">82</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <h3 id="reading-the-red" class="anchored">Reading the red</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Right. Everybody close whatever else is open. This section is the reason
 this class exists on the first morning rather than the fifth, and it is
@@ -756,13 +672,13 @@ thirty lines of red text with a word like <code>MethodError</code> in
 it, feel stupid, and go back to R. Nothing in those thirty lines is
 trying to make you feel stupid. Most of it is Julia telling you, in
 detail, what it <em>does</em> know how to do.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>In SPSS an error was one sentence.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>In R an error was one sentence.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>One sentence which told you nothing. Julia gives you a paragraph which
 tells you everything, and the skill is knowing which line of the
 paragraph matters. Four failures, in the order you will meet them. Toto,
 misspell a column.</p></div>
 <div id="err-column" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sparrows.Wingg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sparrows.Wingg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>ArgumentError: column name "Wingg" not found in the data frame; existing most similar names are: "Wing"
@@ -789,7 +705,7 @@ error.</p></div>
 because somebody could compute it. Watch what happens when nobody can.
 Momo, load a package.</p></div>
 <div id="err-package" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrame</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrame</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>ArgumentError: Package DataFrame not found in current path.
@@ -825,7 +741,7 @@ stack trace contains none of your code, the mistake is in <em>what you
 asked for</em>, not in what you did with it. Toto, add a number to a
 piece of text.</p></div>
 <div id="err-type" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>sparrows.Tarsus[<span class="fl">1</span>] <span class="op">+</span> <span class="st">"0.5"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>sparrows.Tarsus[<span class="fl">1</span>] <span class="op">+</span> <span class="st">"0.5"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>MethodError: no method matching +(::Float64, ::String)
@@ -875,12 +791,13 @@ numeric column, and the type row in <code>first(sparrows, 5)</code> is
 where you would have caught it an hour earlier. <strong>The rule is:
 when the function is enormous and general, read the first line. When it
 is small and specific, the candidate list is worth its weight.</strong>
-Which brings us to the one that is specific to arriving here from R.</p></div>
+Which brings us to the one I warned you about when you first met
+<code>filter</code>.</p></div>
 <div id="err-order" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(sparrows, row <span class="op">-&gt;</span> row.Sex <span class="op">==</span> <span class="st">"M"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(sparrows, row <span class="op">-&gt;</span> row.Sex <span class="op">==</span> <span class="st">"M"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
-<pre>MethodError: no method matching filter(::DataFrame, ::var"#23#24")
+<pre>MethodError: no method matching filter(::DataFrame, ::var"#25#26")
 
 Closest candidates are:
   filter(::Any, <span class="ansi-bright-red-fg">::Attributes</span>)
@@ -893,7 +810,7 @@ Closest candidates are:
 </div>
 </div>
 </div>
-<div class="line"><span class="who momo">Momo</span><p>That is the line the translate box warned about.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>That is the reversal you warned about.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>It is, and now you have seen the punishment. Same three parts, and this
 time the candidate list earns its keep, because <code>filter</code> is a
 small specific function rather than <code>+</code>. First line:
@@ -944,18 +861,18 @@ we make randomness that repeats. <code>MersenneTwister</code> is a
 random-number generator, named after the arithmetic inside it; the
 number in the brackets is the seed, the starting point it counts from.</p></div>
 <div id="seed-first" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A coin, flipped n times. The generator is a keyword with no default, so it</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># is impossible to call this function and forget to say which stream of</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># randomness you meant. That is the house rule, in one line of code.</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">flip</span>(n; rng) <span class="op">=</span> <span class="fu">rand</span>(rng, <span class="dt">Bool</span>, n)</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>n_flips <span class="op">=</span> <span class="fl">1000</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>run_a <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> rng_sim)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>p_a <span class="op">=</span> <span class="fu">mean</span>(run_a)</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"flips: %d   proportion heads: %.4f</span><span class="sc">\n</span><span class="st">"</span>, n_flips, p_a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A coin, flipped n times. The generator is a keyword with no default, so it</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># is impossible to call this function and forget to say which stream of</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># randomness you meant. That is the house rule, in one line of code.</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">flip</span>(n; rng) <span class="op">=</span> <span class="fu">rand</span>(rng, <span class="dt">Bool</span>, n)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>n_flips <span class="op">=</span> <span class="fl">1000</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>run_a <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> rng_sim)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>p_a <span class="op">=</span> <span class="fu">mean</span>(run_a)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"flips: %d   proportion heads: %.4f</span><span class="sc">\n</span><span class="st">"</span>, n_flips, p_a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>flips: 1000   proportion heads: 0.4830</code></pre>
 </div>
@@ -972,14 +889,14 @@ it. And <code>rand(rng, Bool, n)</code> reads “from <code>rng</code>,
 draw <code>n</code> trues or falses”, which is a coin.</p></div>
 <p>Now the number. It is not a half, and it should not be. 1000 flips of a fair coin lands near a half, not on it, and how near is a question with an actual answer that Appendix A works out. What matters this morning is the other thing: run it again.</p>
 <div id="seed-again" class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>run_b <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>))</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>run_c <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260908</span>))</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>p_b <span class="op">=</span> <span class="fu">mean</span>(run_b)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>p_c <span class="op">=</span> <span class="fu">mean</span>(run_c)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"same seed     : proportion %.4f   identical draws: %s</span><span class="sc">\n</span><span class="st">"</span>, p_b, run_a <span class="op">==</span> run_b)</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"seed + one    : proportion %.4f   identical draws: %s</span><span class="sc">\n</span><span class="st">"</span>, p_c, run_a <span class="op">==</span> run_c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>run_b <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>run_c <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260908</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>p_b <span class="op">=</span> <span class="fu">mean</span>(run_b)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>p_c <span class="op">=</span> <span class="fu">mean</span>(run_c)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"same seed     : proportion %.4f   identical draws: %s</span><span class="sc">\n</span><span class="st">"</span>, p_b, run_a <span class="op">==</span> run_b)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"seed + one    : proportion %.4f   identical draws: %s</span><span class="sc">\n</span><span class="st">"</span>, p_c, run_a <span class="op">==</span> run_c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>same seed     : proportion 0.4830   identical draws: true
 seed + one    : proportion 0.4840   identical draws: false</code></pre>
@@ -1000,19 +917,19 @@ you.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Which is exactly why, and that is Appendix A’s whole subject. Draw the
 two runs.</p></div>
 <div id="cell-fig-coin" class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">running</span>(v) <span class="op">=</span> <span class="fu">cumsum</span>(v) <span class="op">./</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(v))</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"flips so far"</span>, ylabel <span class="op">=</span> <span class="st">"proportion heads"</span>,</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two seeds, one coin"</span>)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.5</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.8</span>))</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_a); linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"seed 20260907"</span>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_c); linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"seed 20260908"</span>)</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co"># full 0-1 range: the first few flips really do sit at 0 or 1, and clipping them</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co"># to a narrower window would hide exactly the wildness this figure is about.</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>ax.limits <span class="op">=</span> (<span class="cn">nothing</span>, <span class="cn">nothing</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>fig[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">=</span> <span class="fu">Legend</span>(fig, ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">running</span>(v) <span class="op">=</span> <span class="fu">cumsum</span>(v) <span class="op">./</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(v))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">540</span>, <span class="fl">380</span>))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"flips so far"</span>, ylabel <span class="op">=</span> <span class="st">"proportion heads"</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two seeds, one coin"</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.5</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.8</span>))</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_a); linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"seed 20260907"</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, <span class="fl">1</span><span class="op">:</span>n_flips, <span class="fu">running</span>(run_c); linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, label <span class="op">=</span> <span class="st">"seed 20260908"</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># full 0-1 range: the first few flips really do sit at 0 or 1, and clipping them</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># to a narrower window would hide exactly the wildness this figure is about.</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>ax.limits <span class="op">=</span> (<span class="cn">nothing</span>, <span class="cn">nothing</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>fig[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">=</span> <span class="fu">Legend</span>(fig, ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="25">
 <div id="fig-coin" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -1045,7 +962,7 @@ is the morning’s second macro, and the <code>@</code> is why it can take
 <code>Wing ~ Tarsus</code> as you would write it on paper: a function
 would try to evaluate <code>Wing</code> and find no such thing.</p></div>
 <div id="cell-formula-object" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> <span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> <span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="formula-object" class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>FormulaTerm
 Response:
@@ -1064,7 +981,7 @@ category, or a column that does not exist. <code>unknown</code> is not a
 failure. It is the formula honestly reporting that it has not been
 introduced to anybody yet. Now put it in the box this book uses.</p></div>
 <div id="cell-formula-box" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bf</span>(f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bf</span>(f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="formula-box" class="cell-output cell-output-display" data-execution_count="27">
 <pre><code>DrmFormula(:Wing, Pair{Symbol, Any}[:mu =&gt; Tarsus, :sigma =&gt; 1], nothing)</code></pre>
 </div>
@@ -1138,7 +1055,7 @@ climb.</p></div>
 <li><strong>Barik, T., Smith, J., Lubick, K., Holmes, E., Feng, J., Murphy-Hill, E. &amp; Parnin, C. (2017) “Do Developers Read Compiler Error Messages?”, <em>2017 IEEE/ACM 39th International Conference on Software Engineering (ICSE)</em>, 575–585.</strong> doi:10.1109/ICSE.2017.59. An eye-tracking study of 56 people fixing real defects. Its findings are the reason this class spends an hour of its first morning on red text: participants did read the messages, reading them was about as hard as reading source code, that difficulty predicted whether they solved the task, and it took 13–25% of their total time.</li>
 <li><strong>Becker, B. A., Denny, P., Pettit, R., Bouchard, D., Bouvier, D., Harrington, B., Kamil, A., Karkare, A., McDonald, C., Osera, P.-M., Pearce, J. L. &amp; Prather, J. (2019) “Compiler Error Messages Considered Unhelpful: The Landscape of Text-Based Programming Error Message Research”, <em>ITiCSE-WGR ’19</em>, 177–210.</strong> doi:10.1145/3344429.3372508. Half a century of research on error messages, gathered in one place. Read it if you ever have to teach this to somebody else: it is a survey of what has been tried, including what does not work.</li>
 <li><strong>Danisch, S. &amp; Krumbiegel, J. (2021) “Makie.jl: Flexible high-performance data visualization for Julia”, <em>Journal of Open Source Software</em> 6(65):3349.</strong> doi:10.21105/joss.03349. The plotting library under every figure in this book. Worth skimming once so that <code>Figure</code>, <code>Axis</code> and the trailing exclamation marks stop being incantations.</li>
-<li><strong>The Julia manual, “Getting Started” and “Noteworthy Differences from R”</strong> (<a href="https://docs.julialang.org/" class="uri">https://docs.julialang.org/</a>). Not a paper, and the single most useful thing on this list for its first week. The differences page is a list of exactly the traps this chapter’s translate box has room for only one of.</li>
+<li><strong>The Julia manual, “Getting Started” and “Noteworthy Differences from R”</strong> (<a href="https://docs.julialang.org/" class="uri">https://docs.julialang.org/</a>). Not a paper, and the single most useful thing on this list for its first week. The differences page is a list of exactly the traps this chapter had room to show you only one of.</li>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
@@ -1150,9 +1067,9 @@ climb.</p></div>
 </ol>
 <p><strong>A worked answer, and its marking.</strong> Toto handed this in. His code first, then his explanation, then what Itchy wrote in the margin.</p>
 <div id="worked-answer" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>big <span class="op">=</span> <span class="fu">filter</span>(row <span class="op">-&gt;</span> row.Tarsus <span class="op">&gt;</span> <span class="fu">mean</span>(sparrows.Tarsus), sparrows)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>small <span class="op">=</span> <span class="fu">subset</span>(sparrows, <span class="op">:</span>Tarsus <span class="op">=&gt;</span> <span class="fu">ByRow</span>(<span class="op">&lt;=</span>(<span class="fu">mean</span>(sparrows.Tarsus))))</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"above: %d   at or below: %d   total: %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nrow</span>(big), <span class="fu">nrow</span>(small), <span class="fu">nrow</span>(big) <span class="op">+</span> <span class="fu">nrow</span>(small))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>big <span class="op">=</span> <span class="fu">filter</span>(row <span class="op">-&gt;</span> row.Tarsus <span class="op">&gt;</span> <span class="fu">mean</span>(sparrows.Tarsus), sparrows)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>small <span class="op">=</span> <span class="fu">subset</span>(sparrows, <span class="op">:</span>Tarsus <span class="op">=&gt;</span> <span class="fu">ByRow</span>(<span class="op">&lt;=</span>(<span class="fu">mean</span>(sparrows.Tarsus))))</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"above: %d   at or below: %d   total: %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nrow</span>(big), <span class="fu">nrow</span>(small), <span class="fu">nrow</span>(big) <span class="op">+</span> <span class="fu">nrow</span>(small))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>above: 86   at or below: 85   total: 171</code></pre>
 </div>
@@ -1178,7 +1095,7 @@ prints the two counts and their sum, so I can see they add up to 171.</p></div>
   <a class="chapter-nav-link prev" href="wk0-preface.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Preface · Why one engine, and what this book will not cover</span></a><a class="chapter-nav-link next" href="wk2-linear-models.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 2 · One line through a cloud of sparrows</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 1 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-07<br>
+  Stats Hours with Itchy · Class 1 of twelve rungs (ten in version 1, plus a coda) · draft · code last run 2026-09-07<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

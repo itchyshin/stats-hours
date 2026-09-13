@@ -7,12 +7,12 @@ status: draft
 created: 2026-09-07
 engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, julia, random-slopes, centring, boundary, shrinkage, DRM.jl]
-deck: "One extra term, two extra parameters, a correlation that changes its sign when you move the origin of a covariate without changing the model at all, and a slope variance that turns out to have been doing somebody else's job."
+deck: "A covariate that was two covariates, one extra term with two extra parameters, a correlation that changes its sign when you move the origin without changing the model at all, and what the slope variance would have been doing if the fixed part had not been given its second coefficient first."
 status_tag: Draft
 status_note: "Every number and figure on this page was computed when the site was built."
-provenance: "Every block of Julia code on this page ran when the site was built, including the one that fails. Every random draw comes from a generator set up in the block that uses it. The one R block was run once by hand, on the date shown (2026-09-07); the script is kept at data/ch7/ch7-r-box.R."
+provenance: "Every block of Julia code on this page ran when the site was built, including the one that fails. Every random draw comes from a generator set up in the block that uses it."
 caveat: "The data are real. These are the Lundy Island house sparrows of the author's 2012 course, read from the archived data/2012/BodySize.csv with the repeated measurements intact (where the file comes from is recorded in data/2012/README.md). Nothing on this page is simulated."
-footer_note: "Stats Hours with Itchy · Class 7 of a planned 13, ten in v1, plus a coda · draft, built 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 7 of twelve rungs, ten in v1, plus a coda · draft, built 2026-09-07"
 ---
 
 # Class 7: not everyone shares a slope
@@ -29,17 +29,17 @@ footer_note: "Stats Hours with Itchy · Class 7 of a planned 13, ten in v1, plus
 By the end of this class you should be able to:
 
 1. Say what a random slope frees, and check *before you fit it* whether your covariate varies enough **within** groups for the question to have an answer.
-2. Fit `(1 + x | group)` and read the two standard deviations and the correlation out of the covariance block the engine returns.
-3. Explain why the intercept–slope correlation changes, and can change sign, when you move the origin of the covariate without changing the model.
-4. Compare a random-slope model against a random-intercept model with AIC and with a likelihood-ratio test, and say why the usual reference distribution is wrong when the thing you are testing is a variance.
-5. Describe what shrinkage does to a group's *slope*, and say why a group with three measurements keeps only a little of the slope its own points suggest.
-6. Split a repeated-measures covariate into its within-group and between-group parts, and say what a single coefficient on the unsplit covariate is a blend of.
+2. Split a repeated-measures covariate into its within-group and between-group parts, say what a single coefficient on the unsplit covariate is a blend of, and say why this comes *before* the random slope.
+3. Fit `(1 + x | group)` on the within part and read the two standard deviations and the correlation out of the covariance block the engine returns.
+4. Explain why the intercept–slope correlation changes, and can change sign, when you move the origin of the covariate without changing the model.
+5. Compare a random-slope model against a random-intercept model with AIC and with a likelihood-ratio test, and say why the usual reference distribution is wrong when the thing you are testing is a variance.
+6. Describe what shrinkage does to a group's *slope*, and say why a group with three measurements keeps only a little of the slope its own points suggest.
 
 ---
 
 ## The class
 
-**Itchy's office, 9:00 am. TOTO has come straight from Class 6 with the caterpillar plot still open on the laptop. MOMO is here early with a question she wrote down last week and did not ask. EDDIE has brought a dunnock dataset he intends to break. JARO is in the corridor and will be needed by the end of the hour.**
+**Itchy's office, 9:00 am. TOTO has come straight from Class 6 with the caterpillar plot still open on the laptop. MOMO is here early with a question she wrote down last week and did not ask. EDDIE has brought a dunnock dataset he intends to break. JARO is in the corridor and will be needed before the hour is out.**
 
 **Itchy:** Last week I drew you a picture and said one sentence about it that I want back before we start. Toto. The picture with all the bird lines in it.
 
@@ -69,7 +69,7 @@ sparrows = dropmissing(raw, [:Wing, :Weight])
 w_bar = mean(sparrows.Weight)
 sparrows.wc = sparrows.Weight .- w_bar     # mass, centred on its own mean
 
-# Each bird's own mean mass, and each capture's departure from it. The last
+# Each bird's own mean mass, and each capture's departure from it. The third
 # section of this class needs both; nothing before it does.
 bird_mass = combine(groupby(sparrows, :BirdID), :Weight => mean => :m)
 joined = leftjoin(sparrows, bird_mass, on = :BirdID)
@@ -212,19 +212,55 @@ s_pooled = first(sigma(pooled_fit));
 
 **Toto:** And the slope halved.
 
-**Itchy:** The slope more than halved, from `{julia} round(b_pooled, digits = 4)` to `{julia} round(b_ri, digits = 4)` millimetres of wing per gram, which is a bigger move than anything Class 6 showed you. That is the second thing this predictor is doing, and it is bigger than today's subject. The pooled line is answering a blend of two questions — heavier birds are bigger birds, and a given bird gains and loses mass — and putting a bird term in the model changes the blend without separating it. **We will separate it, on this page, in the last section of the class.** Everything between here and there is fitted on the blended model, and the last section shows you which numbers move when we pull it apart.
+**Itchy:** The slope more than halved, from `{julia} round(b_pooled, digits = 4)` to `{julia} round(b_ri, digits = 4)` millimetres of wing per gram, which is a bigger move than anything Class 6 showed you. That is the second thing this predictor is doing, and it is bigger than today's subject. The pooled line is answering a blend of two questions — heavier birds are bigger birds, and a given bird gains and loses mass — and putting a bird term in the model changes the blend without separating it. So separate it now, before we free anything, because it takes one line and one parameter.
+
+### The covariate that was two covariates
+
+**Itchy:** Split mass into two columns: the bird's **own average mass**, a fact about the bird, and each capture's **departure from that average**, a fact about the day. The setup cell built both, `wbar` and `wdev`, and they add back up to `wc`, so nothing has been added to the data. Give them separate coefficients.
+
+```{julia}
+#| label: split
+# wbar is the bird's own mean mass (centred); wdev is this capture minus that
+# mean. They are orthogonal by construction, and wbar + wdev = wc.
+sep_ri = drm(bf(@formula(Wing ~ wdev + wbar + (1|BirdID))), Gaussian(); data = sparrows)
+bs, ses = coef(sep_ri, :mu), stderror(sep_ri)
+npar(f) = round(Int, (aic(f) + 2 * loglik(f)) / 2)     # AIC = 2k - 2 logLik
+
+@printf("%-26s %7s %10s %11s\n", "", "params", "logLik", "AIC")
+for (nm, f) in (("wc + (1|BirdID)", ri_fit), ("wdev + wbar + (1|BirdID)", sep_ri))
+    @printf("%-26s %7d %10.4f %11.4f\n", nm, npar(f), loglik(f), aic(f))
+end
+
+@printf("\nwithin-bird slope  : %+.4f   SE %.4f   z %5.2f\n", bs[2], ses[2], bs[2] / ses[2])
+@printf("between-bird slope : %+.4f   SE %.4f   z %5.2f\n", bs[3], ses[3], bs[3] / ses[3])
+@printf("unsplit, from above: %+.4f\n", b_ri)
+d_aic_split = aic(ri_fit) - aic(sep_ri)
+@printf("\nAIC bought by ONE extra fixed parameter: %.4f\n", d_aic_split)
+```
+
+**Toto:** The two slopes are nothing like each other.
+
+**Itchy:** Nothing like each other. Between birds, `{julia} round(bs[3], digits = 4)` millimetres of wing per gram, with a *z* of `{julia} round(bs[3] / ses[3], digits = 1)`: bigger birds are heavier birds and have longer wings, which is not news and is not a question anyone needed a random slope to ask. Within a bird, `{julia} round(bs[2], digits = 4)`, with a standard error of `{julia} round(ses[2], digits = 4)` and a *z* of `{julia} round(bs[2] / ses[2], digits = 2)`. **On this file there is no detectable within-bird effect of mass on wing at all.** And the unsplit coefficient from the last cell, `{julia} round(b_ri, digits = 4)`, sits between them, because that is what a blend does.
+
+**Momo:** So a paper that reports the one coefficient is reporting neither.
+
+**Itchy:** It is reading a between-bird fact and a within-bird fact through one number, which is the oldest mistake in the repeated-measures literature. And read the AIC: one extra fixed parameter buys `{julia} round(d_aic_split, digits = 2)`. Remember that number, because the random slope, which costs two, is about to buy less. **The cheapest thing on this page is not going to be the random slope. It is noticing that a covariate with a within part and a between part is two covariates.** That is worth more to you than anything else I will say today, and it belongs in every repeated-measures model you fit.
+
+**Eddie:** And the random slope?
+
+**Itchy:** Now has a column to go on. A bird can only have its own slope on the column that moves within it, and that column is now sitting in the model under its own name.
 
 ### Freeing the slope
 
-> **μ_ij = (β0 + u_0j) + (β1 + u_1j) x_ij, with (u_0j, u_1j) ~ N(0, Σ) and y_ij ~ N(μ_ij, σ²)**
+> **μ_ij = (β0 + u_0j) + (β1 + u_1j) x_ij + β2 m_j, with (u_0j, u_1j) ~ N(0, Σ) and y_ij ~ N(μ_ij, σ²)**
 >
 > **Σ = [σ_0², ρ σ_0 σ_1 ; ρ σ_0 σ_1, σ_1²]**
 
-**Itchy:** Measurement *i* on bird *j*, and the same six symbols as Class 6 with two additions. u_0j is the bird's own nudge to the intercept, which is exactly last week's u_j. u_1j is the bird's own nudge to the **slope**, and it is new. They are drawn together, from a two-dimensional normal, so there are three numbers in Σ rather than one: σ_0 the spread of intercepts, σ_1 the spread of slopes, and ρ the correlation between a bird's intercept and its slope.
+**Itchy:** Measurement *i* on bird *j*. x_ij is `wdev`, the capture's departure from its own bird's average mass; m_j is `wbar`, that average, and β2 is the between-bird slope you just read. The rest is the same six symbols as Class 6 with two additions. u_0j is the bird's own nudge to the intercept, which is exactly last week's u_j. u_1j is the bird's own nudge to the **slope**, and it is new. They are drawn together, from a two-dimensional normal, so there are three numbers in Σ rather than one: σ_0 the spread of intercepts, σ_1 the spread of slopes, and ρ the correlation between a bird's intercept and its slope.
 
 **Eddie:** Three numbers, and the model gained two parameters rather than one.
 
-**Itchy:** Two: σ_1 and ρ. Remember that, because it is what the test is testing. In code it is one term, and you have seen the shape of it before.
+**Itchy:** Two: σ_1 and ρ. Remember that, because it is what the test is testing. In code it is one term, and Toto has already typed it.
 
 ```{julia}
 #| label: fit-uncentred
@@ -234,21 +270,17 @@ drm(bf(@formula(Wing ~ Weight + (1 + Weight|BirdID))), Gaussian(); data = sparro
 
 **Toto:** That is not a warning, that is a crash.
 
-**Itchy:** That is a crash, and I put it in front of you because you will meet it on your own data this week. It is this engine's optimiser failing on a covariate whose zero sits far outside its range — an arithmetic failure inside the software, not a fact about the model, and the next section proves that with a number; the post-mortem is in [Where the engine stops](appendix-b-engine.html). The fix is to centre. Same model, `Weight` replaced by `wc` in both places it appears, and nothing else.
+**Itchy:** That is a crash, and it is the line most people type first, so you will meet it on your own data this week. Two things are wrong with it, and only one of them crashed. The crash is this engine's optimiser failing on a covariate whose zero sits far outside its range — a sparrow of no grams — an arithmetic failure inside the software, not a fact about the model, and the next section proves that with a number; the post-mortem is in [Where the engine stops](appendix-b-engine.html). The cure is to centre: put zero somewhere the data are. The other thing wrong is the one we just spent ten minutes on: that line puts the per-bird slope on the blended column. Put it on the within column instead, which is centred already, on each bird's own average mass, and both problems go at once.
 
 ```{julia}
-#| label: fit-centred
-rs_fit = drm(bf(@formula(Wing ~ wc + (1 + wc|BirdID))), Gaussian(); data = sparrows)
+#| label: fit-within
+rs_fit = drm(bf(@formula(Wing ~ wdev + wbar + (1 + wdev|BirdID))), Gaussian(); data = sparrows)
 rs_fit
 ```
 
-**Toto:** `wc` instead of `Weight`. That is the centred one from the setup cell.
+**Toto:** `wdev` in both places, and `wbar` staying in the fixed part.
 
-**Itchy:** Mass minus its own mean, `{julia} round(w_bar, digits = 3)` grams, and nothing else. Same data, same response, same formula shape, same family. One fit dies and one converges, and the only difference is where zero is.
-
-**Momo:** That cannot be a real difference between models.
-
-**Itchy:** It is not a real difference between models, and I am going to prove that in the next ten minutes with a number. Read the new block first. There is no `resd` line this time; there is a random-effect covariance block, printed in the form the optimiser works with rather than as σ_0, σ_1 and ρ. `vc(fit)` hands you Σ itself, and the next cell takes the three numbers out of it: `V[1, 1]` is row one, column one of a matrix, `V[1, 2]` the entry beside it.
+**Itchy:** Same response, same family, one term more than the last fit, and it converges. Read the new block. There is no `resd` line this time; there is a random-effect covariance block, printed in the form the optimiser works with rather than as σ_0, σ_1 and ρ. `vc(fit)` hands you Σ itself, and the next cell takes the three numbers out of it: `V[1, 1]` is row one, column one of a matrix, `V[1, 2]` the entry beside it.
 
 ```{julia}
 #| label: read-the-block
@@ -256,44 +288,44 @@ V = vc(rs_fit)[:BirdID]                      # the 2x2 covariance of (intercept,
 sd0, sd1 = sqrt(V[1, 1]), sqrt(V[2, 2])
 rho = V[1, 2] / (sd0 * sd1)
 sigma_e = first(sigma(rs_fit))
-b_rs = coef(rs_fit, :mu)
+b_rs = coef(rs_fit, :mu)                     # intercept, within slope, between slope
 
 @printf("sigma_0 (spread of bird intercepts) : %.4f mm\n", sd0)
 @printf("sigma_1 (spread of bird slopes)     : %.4f mm per g\n", sd1)
 @printf("rho     (their correlation)         : %+.4f\n", rho)
 @printf("sigma   (within a bird)             : %.4f mm\n\n", sigma_e)
-@printf("population slope beta1              : %.4f   SE %.4f\n",
+@printf("within-bird slope beta1             : %.4f   SE %.4f\n",
         b_rs[2], stderror(rs_fit)[2])
 ```
 
-**Toto:** So a bird's own slope is the population slope plus its nudge, and the nudges have a standard deviation of `{julia} round(sd1, digits = 4)`.
+**Toto:** So a bird's own slope is the within-bird slope plus its nudge, and the nudges have a standard deviation of `{julia} round(sd1, digits = 4)`.
 
-**Itchy:** Which you should immediately compare with the population slope itself, `{julia} round(b_rs[2], digits = 4)`. The spread of the slopes is larger than the average slope: taken at face value, a good number of these birds have a *negative* slope while the average bird has a positive one. Whether to take it at face value is the second half of the hour.
+**Itchy:** Which you should immediately compare with the within-bird slope itself, `{julia} round(b_rs[2], digits = 4)`. The spread of the slopes is `{julia} round(sd1 / b_rs[2], digits = 1)` times the average slope: taken at face value, a good number of these birds lose measured wing as they put on mass, while the average bird gains a little. Whether to take it at face value is the second half of the hour.
 
 ### The correlation you did not ask for
 
 **Momo:** I want to go back. You said you could prove the crash was not a real difference between models.
 
-**Itchy:** And ρ is how. Fit the same model at four origins, changing nothing else — twenty grams, twenty-four, the mean, thirty. `at_origin` does one fit and ends with `return` and a NamedTuple, the explicit way of saying what a function hands back; `map(at_origin, origins)` calls it on each origin and collects the four results, which is a comprehension by another name.
+**Itchy:** And ρ is how. Fit the same model at four origins, changing nothing else. `wdev` is zero at each bird's own average mass; move that zero five grams down, one gram down, leave it where it is, move it five grams up. `at_origin` does one fit and ends with `return` and a NamedTuple, the explicit way of saying what a function hands back; `map(at_origin, origins)` calls it on each origin and collects the four results, which is a comprehension by another name.
 
 ```{julia}
 #| label: origins
 function at_origin(origin)
-    d = DataFrame(BirdID = sparrows.BirdID, Wing = sparrows.Wing,
-                  x = sparrows.Weight .- origin)
-    f = drm(bf(@formula(Wing ~ x + (1 + x|BirdID))), Gaussian(); data = d)
+    d = DataFrame(BirdID = sparrows.BirdID, Wing = sparrows.Wing, wbar = sparrows.wbar,
+                  x = sparrows.wdev .- origin)
+    f = drm(bf(@formula(Wing ~ x + wbar + (1 + x|BirdID))), Gaussian(); data = d)
     W = vc(f)[:BirdID]
     s0, s1 = sqrt(W[1, 1]), sqrt(W[2, 2])
     return (; sd0 = s0, sd1 = s1, rho = W[1, 2] / (s0 * s1),
             sigma = first(sigma(f)), aic = aic(f), b1 = coef(f, :mu)[2])
 end
 
-origins = [20.0, 24.0, w_bar, 30.0]
+origins = [-5.0, -1.0, 0.0, 5.0]
 @printf("%-14s %9s %9s %9s %9s %12s\n",
-        "x = mass -", "sigma_0", "sigma_1", "rho", "sigma", "AIC")
+        "x = wdev -", "sigma_0", "sigma_1", "rho", "sigma", "AIC")
 rows = map(at_origin, origins)
 for (o, r) in zip(origins, rows)
-    @printf("%-14.3f %9.4f %9.4f %+9.4f %9.5f %12.4f\n",
+    @printf("%-14.1f %9.4f %9.4f %+9.4f %9.5f %12.4f\n",
             o, r.sd0, r.sd1, r.rho, r.sigma, r.aic)
 end
 @printf("\nlargest AIC difference across the four : %.3e\n",
@@ -304,11 +336,11 @@ end
 
 **Toto:** The correlation changed sign.
 
-**Itchy:** The correlation changed sign, from `{julia} round(rows[1].rho, digits = 4)` at twenty grams to `{julia} round(rows[end].rho, digits = 4)` at thirty. And read the last two columns before anyone gets excited: σ_1 is the same to four decimal places in every row, σ is the same, the slope is the same, and the AIC differs by `{julia} @sprintf("%.0e", maximum(r.aic for r in rows) - minimum(r.aic for r in rows))`. **These are not four models. This is one model, written down four ways.**
+**Itchy:** The correlation changed sign, from `{julia} round(rows[1].rho, digits = 4)` five grams below a bird's own average to `{julia} round(rows[end].rho, digits = 4)` five grams above it. And read the last two columns before anyone gets excited: σ_1 is the same to four decimal places in every row, σ is the same, the slope is the same, and the AIC differs by `{julia} @sprintf("%.0e", maximum(r.aic for r in rows) - minimum(r.aic for r in rows))`. **These are not four models. This is one model, written down four ways.** And that is the proof about the crash: where zero sits is not part of the model, so a fit that dies when zero moves has died of arithmetic.
 
 **Momo:** Then what is ρ a statement about?
 
-**Itchy:** ρ is the correlation between a bird's slope and its intercept, and its **intercept is its predicted wing length at x equal to zero**. Move zero and you are asking about the bird's wing length at a different mass, so of course the correlation changes. At twenty grams, which is below every bird in the file, "intercept" means an extrapolation backwards, and a bird with a steeper slope necessarily extrapolates to a lower value — hence a negative correlation, manufactured by the arithmetic. At thirty grams the tilt goes the other way for the same reason. At the mean, ρ is closest to being about the birds and not about the origin. So: report ρ with its origin in the same sentence, and centre a covariate whose zero is outside its range, every time.
+**Itchy:** ρ is the correlation between a bird's slope and its intercept, and its **intercept is its predicted wing length at x equal to zero**. Move zero and you are asking about the bird's wing length at a different mass, so of course the correlation changes. Five grams below a bird's own average is lighter than that bird was ever weighed, so "intercept" there means an extrapolation backwards, and a bird with a steeper slope necessarily extrapolates to a lower value — hence a negative correlation, manufactured by the arithmetic. Five grams above, the tilt goes the other way for the same reason. At a bird's own average, ρ is closest to being about the birds and not about the origin, and that is the one origin `wdev` gives every bird for free. So: report ρ with its origin in the same sentence, and centre a covariate whose zero is outside its range, every time.
 
 **Toto:** Show me the sign change instead of making me read it off a column.
 
@@ -316,35 +348,34 @@ end
 
 ```{julia}
 #| label: fig-origin-rho
-#| fig-cap: "The correlation ρ as a continuous function of where mass is centred, computed from the one fitted Σ by a change of coordinates, with no refitting. It crosses zero where the curve meets the dotted line: negative to the left, positive to the right. The four diamonds are the four origins from the table above, each labelled with its ρ. The shaded strip is the mass this file actually contains; twenty grams sits outside it, which is why ρ there is an extrapolation backwards."
+#| fig-cap: "The correlation ρ as a continuous function of where the within-bird covariate is centred, computed from the one fitted Σ by a change of coordinates, with no refitting. It crosses zero where the curve meets the dotted line: negative to the left, positive to the right. The four diamonds are the four origins from the table above, each labelled with its ρ. The shaded strip is how far any capture in this file sits from its own bird's average mass; five grams either way is outside it, which is why ρ there is an extrapolation."
 # Moving the origin by a: u0' = u0 + a*u1, so Var(u0') = s0^2 - 2a*Cov + a^2*s1^2
 # and Cov' = Cov - a*s1^2. sigma_1 and the likelihood cannot move.
 shifted(a) = [V[1,1] - 2a*V[1,2] + a^2*V[2,2]   V[1,2] - a*V[2,2]
               V[1,2] - a*V[2,2]                 V[2,2]]
 rho_at(t) = (S = shifted(-t); S[1, 2] / sqrt(S[1, 1] * S[2, 2]))
 t_zero = -V[1, 2] / V[2, 2]                      # where the correlation is exactly zero
-t_grid = range(minimum(origins) - w_bar - 1, maximum(origins) - w_bar + 1, length = 200)
-origin_t = origins .- w_bar
+t_grid = range(minimum(origins) - 1, maximum(origins) + 1, length = 200)
 
 fig = Figure(size = (520, 380))
-ax = Axis(fig[1, 1]; xlabel = "origin, as mass minus $(round(w_bar, digits = 1)) g (g)",
+ax = Axis(fig[1, 1]; xlabel = "origin, in grams from the bird's own average mass",
     ylabel = "correlation ρ", title = "One curve, not four fits")
-vspan!(ax, minimum(sparrows.wc), maximum(sparrows.wc); color = (:grey, 0.08))
+vspan!(ax, minimum(sparrows.wdev), maximum(sparrows.wdev); color = (:grey, 0.08))
 hlines!(ax, [0.0]; linestyle = :dot, color = (:grey, 0.6))
 lines!(ax, t_grid, rho_at.(t_grid); linewidth = 2)
-scatter!(ax, origin_t, [r.rho for r in rows]; markersize = 11, marker = :diamond)
-for (t, r) in zip(origin_t, rows)
+scatter!(ax, origins, [r.rho for r in rows]; markersize = 11, marker = :diamond)
+for (t, r) in zip(origins, rows)
     text!(ax, t, r.rho; text = string(round(r.rho, digits = 2)),
         align = (:center, :bottom), offset = (0, 8), fontsize = 12)
 end
 fig
 ```
 
-**Itchy:** `{julia} round(t_zero + w_bar, digits = 2)` grams — that is where ρ is exactly zero, not at some special boundary, just the one mass at which the curve crosses its own axis. Left of it, negative; right of it, positive; and the four points are the four rows of that table, now impossible to mistake for four different models.
+**Itchy:** An origin of `{julia} round(t_zero, digits = 2)` grams — that is where ρ is exactly zero — sits outside the strip: no capture in this file is that far from its bird's average, the furthest below being `{julia} round(minimum(sparrows.wdev), digits = 2)`. Left of it, negative; right of it, positive; and the four points are the four rows of that table, now impossible to mistake for four different models.
 
 **Momo:** Then what is the ρ we have?
 
-**Itchy:** `{julia} round(rho, digits = 4)`, at a mass of `{julia} round(w_bar, digits = 3)` grams, and the honest reading is: birds that are longer-winged at average mass tend, mildly, to gain more measured wing per gram. Mildly. Look at its standard error in the R box later on before you write a sentence about it.
+**Itchy:** `{julia} round(rho, digits = 4)`, at each bird's own average mass, and the reading is: a bird that is longer-winged at its own average mass tends to gain more measured wing per gram it puts on. It is a within-bird statement, because the column it sits on is the within column. Hold it lightly all the same; the section after the residuals says why.
 
 ### Is the extra term worth it
 
@@ -352,23 +383,21 @@ fig
 
 ```{julia}
 #| label: compare-aic
-npar(f) = round(Int, (aic(f) + 2 * loglik(f)) / 2)     # AIC = 2k - 2 logLik
-
-@printf("%-22s %8s %12s %12s\n", "", "params", "logLik", "AIC")
-for (nm, f) in (("wc + (1|BirdID)", ri_fit), ("wc + (1 + wc|BirdID)", rs_fit))
-    @printf("%-22s %8d %12.4f %12.4f\n", nm, npar(f), loglik(f), aic(f))
+@printf("%-30s %8s %12s %12s\n", "", "params", "logLik", "AIC")
+for (nm, f) in (("wdev + wbar + (1|BirdID)", sep_ri), ("wdev + wbar + (1 + wdev|BirdID)", rs_fit))
+    @printf("%-30s %8d %12.4f %12.4f\n", nm, npar(f), loglik(f), aic(f))
 end
-d_aic = aic(ri_fit) - aic(rs_fit)
+d_aic = aic(sep_ri) - aic(rs_fit)
 @printf("\nAIC drops by %.4f for two extra parameters\n", d_aic)
 ```
 
-**Toto:** That is a big drop.
+**Toto:** Less than the split bought.
 
-**Itchy:** It is a big drop, and AIC has already charged us two parameters for it. Now the test. I am going to ask the naive question first and read what the engine says back.
+**Itchy:** Less than the split bought for one parameter, and AIC has already charged two for this one. It is still a drop. Now the test. I am going to ask the naive question first and read what the engine says back.
 
 ```{julia}
 #| label: naive-lrt
-lrtest(ri_fit, rs_fit)
+lrtest(sep_ri, rs_fit)
 ```
 
 **Momo:** It gave me the number and told me not to use it.
@@ -379,20 +408,20 @@ lrtest(ri_fit, rs_fit)
 
 ```{julia}
 #| label: boundary-lrt
-stat = 2 * (loglik(rs_fit) - loglik(ri_fit))
+stat = 2 * (loglik(rs_fit) - loglik(sep_ri))
 
 # Stram & Lee (1994): q random effects against q + 1. For q = 1 the null is a
 # 50:50 mixture of chi-squared with 1 and 2 degrees of freedom.
 p_sl(s) = 0.5 * ccdf(Chisq(1), s) + 0.5 * ccdf(Chisq(2), s)
 
 @printf("LR statistic                                  : %.4f\n\n", stat)
-@printf("naive chi-squared(2)                          : %.3e\n", ccdf(Chisq(2), stat))
-@printf("Stram & Lee mixture, 0.5 chi2(1) + 0.5 chi2(2): %.3e\n", p_sl(stat))
+@printf("naive chi-squared(2)                          : %.4f\n", ccdf(Chisq(2), stat))
+@printf("Stram & Lee mixture, 0.5 chi2(1) + 0.5 chi2(2): %.4f\n", p_sl(stat))
 ```
 
-**Toto:** Both tiny.
+**Toto:** Both under five percent.
 
-**Itchy:** Both tiny, and notice that *first*, because it means nothing in this paragraph changes the decision. When the numbers are not tiny, the ordering matters: the naive reference is the conservative one — it loses power rather than inventing significance — and the mixture is the right one for this step. The engine's own boundary correction is built for independent variances, a different mixture and not this case; [Where the engine stops](appendix-b-engine.html) says which is which. **Read the assumptions on a correction before you take its p-value.**
+**Itchy:** Both under five percent, and neither by a mile, which is exactly when the reference distribution earns its keep: `{julia} round(ccdf(Chisq(2), stat), digits = 3)` from the naive reference, `{julia} round(p_sl(stat), digits = 3)` from the mixture. The ordering is the thing to remember: the naive reference is the conservative one — it loses power rather than inventing significance — and the mixture is the right one for this step. The engine's own boundary correction is built for independent variances, a different mixture and not this case; [Where the engine stops](appendix-b-engine.html) says which is which. **Read the assumptions on a correction before you take its p-value.**
 
 **Momo:** And if I still do not believe σ_1? How do I know the model would not find a spread of slopes in data that has none?
 
@@ -412,7 +441,7 @@ model_slope = b_rs[2] .+ B[:, 2]
 own_slope = Dict{String,Float64}()
 for b in repeat_ids
     m = sparrows.BirdID .== b
-    x, y = sparrows.wc[m], sparrows.Wing[m]
+    x, y = sparrows.wdev[m], sparrows.Wing[m]
     own_slope[b] = cov(x, y) / var(x)
 end
 
@@ -459,7 +488,7 @@ fig
 
 **Eddie:** The diamonds are almost flat.
 
-**Itchy:** The diamonds are almost flat, the circles are all over the plot, and the ratio of their spreads is `{julia} round(std(mod) / std(ols), digits = 3)`. A bird keeps roughly a quarter of the slope its own points suggest. That is not the model being timid; it is the model observing that three points and a within-bird spread of about one gram cannot tell it much, and weighting accordingly — Class 6's arithmetic, applied to a slope instead of a mean.
+**Itchy:** The diamonds are almost flat, the circles are all over the plot, and the ratio of their spreads is `{julia} round(std(mod) / std(ols), digits = 3)`. A bird keeps about `{julia} string(round(Int, 100 * std(mod) / std(ols)), "%")` of the slope its own points suggest. That is not the model being timid; it is the model observing that three points and a within-bird spread of about one gram cannot tell it much, and weighting accordingly — Class 6's arithmetic, applied to a slope instead of a mean.
 
 **Momo:** Then why is the spread of the model's slopes over all `{julia} birds` birds, `{julia} round(std(model_slope), digits = 4)`, smaller than σ_1, which is `{julia} round(sd1, digits = 4)`?
 
@@ -467,15 +496,16 @@ fig
 
 ```{julia}
 #| label: fig-bird-lines
-#| fig-cap: "One population line, and one line per bird. Compare with Class 6's version of this figure, where every line was parallel."
-xs = range(minimum(sparrows.wc), maximum(sparrows.wc), length = 50)
+#| fig-cap: "One population line, and one line per bird, each drawn at that bird's own average mass. Compare with Class 6's version of this figure, where every line was parallel."
+xs = range(minimum(sparrows.wdev), maximum(sparrows.wdev), length = 50)
+wbar_of = Dict(zip(sparrows.BirdID, sparrows.wbar))   # each bird's own average mass, centred
 
 fig = Figure(size = (520, 380))
-ax = Axis(fig[1, 1]; xlabel = "mass, centred (g)", ylabel = "wing (mm)",
+ax = Axis(fig[1, 1]; xlabel = "mass, relative to the bird's own average (g)", ylabel = "wing (mm)",
     title = "$(birds) intercepts and $(birds) slopes")
-scatter!(ax, sparrows.wc, sparrows.Wing; markersize = 4, color = (:grey, 0.3))
+scatter!(ax, sparrows.wdev, sparrows.Wing; markersize = 4, color = (:grey, 0.3))
 for j in 1:birds
-    lines!(ax, xs, (b_rs[1] + B[j, 1]) .+ (b_rs[2] + B[j, 2]) .* xs;
+    lines!(ax, xs, (b_rs[1] + b_rs[3] * wbar_of[bird_ids[j]] + B[j, 1]) .+ (b_rs[2] + B[j, 2]) .* xs;
         color = (:grey, 0.20), linewidth = 0.6)
 end
 lines!(ax, xs, b_rs[1] .+ b_rs[2] .* xs; linewidth = 3)
@@ -484,7 +514,7 @@ fig
 
 **Toto:** They fan out.
 
-**Itchy:** They fan out, and they cross, which parallel lines cannot do. That is the constant this class freed, visible.
+**Itchy:** They fan out, and they cross, which parallel lines cannot do. That is the constant this class freed, visible. `Dict(zip(sparrows.BirdID, sparrows.wbar))` in that cell is a lookup table built from two columns side by side, bird to its own average mass, so that each line can start from where its bird actually sits.
 
 ### Is the model any good
 
@@ -498,7 +528,7 @@ rq = residuals(rs_fit; type = :quantile, rng = MersenneTwister(70))
 
 # The model's own marginal SD, row by row, with every bird effect set to zero:
 # Var(y) = sigma_0^2 + 2 rho sigma_0 sigma_1 x + sigma_1^2 x^2 + sigma^2.
-marg = V[1, 1] .+ 2 .* V[1, 2] .* sparrows.wc .+ V[2, 2] .* sparrows.wc .^ 2 .+ sigma_e^2
+marg = V[1, 1] .+ 2 .* V[1, 2] .* sparrows.wdev .+ V[2, 2] .* sparrows.wdev .^ 2 .+ sigma_e^2
 @printf("sqrt(mean(marginal var))/sigma: %.4f\n", sqrt(mean(marg)) / sigma_e)
 ```
 
@@ -508,12 +538,12 @@ marg = V[1, 1] .+ 2 .* V[1, 2] .* sparrows.wc .+ V[2, 2] .* sparrows.wc .^ 2 .+ 
 
 **Eddie:** So subtract the bird's own predicted line, like last week.
 
-**Itchy:** Subtract the bird's own predicted line — both parts of it now, the intercept nudge and the slope nudge — and you have the conditional residual, which is what σ is a claim about. And before you draw anything, look for the rows that are a long way from their own bird, because two are in this file and they will set the scale of the plot if you let them.
+**Itchy:** Subtract the bird's own predicted line — both parts of it now, the intercept nudge and the slope nudge — and you have the conditional residual, which is what σ is a claim about. And before you draw anything, look for the rows that are a long way from their own bird, because there are some in this file and they will set the scale of the plot if you let them.
 
 ```{julia}
 #| label: fig-worm
-#| fig-cap: "Worm plot of the conditional residuals, standardised by their own spread with the two flagged rows left out of the divisor and left in the plot. The vertical axis is deviation from the normal quantile, so a well-behaved model gives a flat line inside the band. The two points at the bottom left are the two rows named in the printout above."
-cond = sparrows.Wing .- fitted(rs_fit) .- B[gi, 1] .- B[gi, 2] .* sparrows.wc
+#| fig-cap: "Worm plot of the conditional residuals, standardised by their own spread with the flagged rows left out of the divisor and left in the plot. The vertical axis is deviation from the normal quantile, so a well-behaved model gives a flat line inside the band. The two points at the bottom left are the two lowest rows named in the printout above; the run leaving the band at the top right is the upper tail, with the third flagged row at its end."
+cond = sparrows.Wing .- fitted(rs_fit) .- B[gi, 1] .- B[gi, 2] .* sparrows.wdev
 
 @printf("SD of conditional residuals : %.4f   (sigma is %.4f)\n", std(cond), sigma_e)
 @printf("shortfall                   : %.1f%%\n\n", 100 * (1 - std(cond) / sigma_e))
@@ -527,17 +557,20 @@ for i in bad
     @printf("%s recorded at Wing %.1f; its own wings %s at masses %s\n",
             b, sparrows.Wing[i], string(sparrows.Wing[m]), string(sparrows.Weight[m]))
 end
+bad_below = count(cond[bad] .< 0)
 
 # Standardise by a spread those rows cannot set, then count what sits outside
-# the same pointwise band the figure draws.
+# the same pointwise band the figure draws: n_outside, from tools/figures.jl,
+# is the worm-plot arithmetic Class 5 exposed, reused rather than rewritten.
 sd_clean = std(cond[keep])
 z = cond ./ sd_clean
-zz = sort(z); pp = ((1:n) .- 0.5) ./ n
-theo = sqrt(2) .* erfinv_approx.(2 .* pp .- 1)
-band = 2 .* sqrt.(pp .* (1 .- pp) ./ n) ./ (exp.(-theo .^ 2 ./ 2) ./ sqrt(2pi))
-outside = count(abs.(zz .- theo) .> band)
+outside = n_outside(z)
+below = n_below(z)
 lowest_two = sparrows.BirdID[sortperm(z)[1:2]]
-@printf("\npoints outside the pointwise band : %d of %d\n", outside, n)
+@printf("\nrows flagged                      : %d, %d below their bird and %d above\n",
+        length(bad), bad_below, length(bad) - bad_below)
+@printf("points outside the pointwise band : %d of %d, %d below it and %d above\n",
+        outside, n, below, outside - below)
 @printf("the two lowest residuals belong to : %s\n", join(lowest_two, ", "))
 
 fig_diagnostic(z; title = "within-bird residuals, random-slope fit")
@@ -549,120 +582,62 @@ fig_diagnostic(z; title = "within-bird residuals, random-slope fit")
 
 **Momo:** Then read it, because those two points at the bottom left are a long way out.
 
-**Itchy:** They are the two rows the cell named — `{julia} outside` points sit outside the band, and the two lowest residuals belong to `{julia} join(lowest_two, " and ")` — and the rest of the worm stays inside the band. One is a bird recorded at sixty-seven millimetres whose other three wings are all in the middle seventies; the other is four to six millimetres below its own three. Wing in this file is a whole number in `{julia} string(round(Int, 100 * mean(sparrows.Wing .== round.(sparrows.Wing))), "%")` of rows, so σ of `{julia} round(sigma_e, digits = 4)` millimetres is close to the recording granularity, and a dropped digit is a live hypothesis alongside a broken primary or a bird caught mid-moult. **This is a finding about the file, not about random slopes**, so I am naming it, leaving it in the plot, and sending it to Exercise 7. Two things you may not do: quote σ from this fit as if those rows belonged in it, and read a worm plot standardised by a spread that the outliers you are looking for helped to set.
-
-### One box, and it is earned
-
-**Itchy:** An R-trained reader will type this model in `lmer` and get a printed correlation with a standard error next to it, which our engine does not give you. That is worth one box, because the correlation is the parameter this chapter has spent twenty minutes warning you about.
-
-> **↔ TRANSLATE: the same fit in R, and one thing R prints that Julia does not**
->
-> `drmTMB` is the R twin of this engine and takes the identical formula inside the identical
-> `bf()` box. It reaches the same maximum — the same two standard deviations, correlation, σ
-> and log-likelihood — and *adds* a printed **correlation with a standard error**, which
-> DRM.jl does not report. That is an absence in the Julia engine, not a disagreement.
->
-> `lme4::lmer` is here for comparison only. Its default is REML and ours is ML, so its
-> variance components come out slightly larger; pass `REML = FALSE` and it lands on our
-> numbers. Class 8 spends its hour on that difference.
->
-> The block below was run once by hand, on the date shown, against the file this chapter's
-> first cell writes; it does not re-run when the page is built. The script is kept at
-> `data/ch7/ch7-r-box.R`.
-
-```r
-# run once by hand on 2026-09-07; this block does not re-run when the page is built. Produced with:
-#   Rscript data/ch7/ch7-r-box.R
-
-R 4.6.0 | drmTMB 0.7.0 | lme4 2.0.1 | 459 rows, 171 birds
-
-drmTMB (estimator: ML)
-  sd(intercept) 1.7177  (SE 0.1201)
-  sd(slope)     0.4308  (SE 0.0768)
-  correlation   +0.2354  (SE 0.1383)   <- printed, with a standard error
-  sigma         1.0179
-  logLik        -872.6137
-
-lme4::lmer, same formula
-  default (REML)     sd0 1.7233  sd1 0.4353  cor +0.2335  sigma 1.0180  logLik -875.5085
-  REML = FALSE (ML)  sd0 1.7177  sd1 0.4308  cor +0.2354  sigma 1.0179  logLik -872.6137
-```
-
-**Momo:** The correlation's standard error is bigger than half the correlation.
-
-**Itchy:** The standard error is more than half the estimate, which is the sentence I wanted you to reach on your own. ρ depends on where zero is, it changes sign, and on top of that, on `{julia} birds` birds with a median of `{julia} round(Int, k_med)` captures each, it sits under two standard errors from zero. **Fit the correlation because leaving it out constrains the model; do not build a story on it.**
-
-### The slope that was doing two jobs
-
-**Itchy:** Last section, the one I promised you an hour ago. Momo, my own sentence, back at me.
-
-**Momo:** That the pooled line was answering a blend of two questions, and that putting a bird term in the model changed the blend without separating it.
-
-**Itchy:** And every number since has been fitted on the blend. So let us separate it, because it takes one line and one parameter. Split mass into two columns: the bird's **own average mass**, a fact about the bird, and each capture's **departure from that average**, a fact about the day. Then give them separate coefficients.
+**Itchy:** They are the two lowest of the `{julia} length(bad)` rows the cell named, and they belong to `{julia} join(lowest_two, " and ")`. `{julia} outside` points sit outside the band altogether: those `{julia} below` below it, and `{julia} outside - below` above it at the top right, where the upper tail lifts out of the band with the third flagged row at its end. The middle of the worm is flat, which is the part the plot is for. Read the flagged rows' lines in the printout rather than take my word. Of the `{julia} length(bad)` rows, `{julia} bad_below` sit below their bird's line: one is a bird recorded at sixty-seven millimetres whose other three wings are all in the middle seventies, the other is four to six millimetres below its own three. The remaining row sits above its line, a bird caught twice and eight millimetres longer the second time. Wing in this file is a whole number in `{julia} string(round(Int, 100 * mean(sparrows.Wing .== round.(sparrows.Wing))), "%")` of rows, so σ of `{julia} round(sigma_e, digits = 4)` millimetres is close to the recording granularity, and a dropped digit is a live hypothesis alongside a broken primary or a bird caught mid-moult. **This is a finding about the file, not about random slopes**, so Class 6's rule applies: report the fit with the rows in, and say in one sentence what moves with them out.
 
 ```{julia}
-#| label: mundlak
-# wbar and wdev were built in the setup cell: wbar is the bird's own mean mass
-# (centred), wdev is this capture minus that mean. They are orthogonal by
-# construction, and wbar + wdev = wc, so nothing has been added to the data.
-sep_ri = drm(bf(@formula(Wing ~ wdev + wbar + (1|BirdID))),         Gaussian(); data = sparrows)
-sep_rs = drm(bf(@formula(Wing ~ wdev + wbar + (1 + wdev|BirdID))), Gaussian(); data = sparrows)
+#| label: rows-out
+keep_ri = drm(bf(@formula(Wing ~ wdev + wbar + (1|BirdID))),        Gaussian(); data = sparrows[keep, :])
+keep_rs = drm(bf(@formula(Wing ~ wdev + wbar + (1 + wdev|BirdID))), Gaussian(); data = sparrows[keep, :])
 
-W = vc(sep_rs)[:BirdID]
-sd1_sep = sqrt(W[2, 2])
-rho_sep = W[1, 2] / (sqrt(W[1, 1]) * sd1_sep)
-bs, ses = coef(sep_ri, :mu), stderror(sep_ri)
+@printf("sigma,             rows in vs out : %.4f vs %.4f\n", sigma_e, first(sigma(keep_rs)))
+@printf("AIC for the slope, rows in vs out : %.4f vs %.4f\n", d_aic, aic(keep_ri) - aic(keep_rs))
+```
+
+**Itchy:** `sparrows[keep, :]` is the rows listed in `keep` and every column. With `{julia} length(bad)` rows out of `{julia} n`, σ moves from `{julia} round(sigma_e, digits = 4)` to `{julia} round(first(sigma(keep_rs)), digits = 4)`, and the random slope's advantage in AIC shrinks from `{julia} round(d_aic, digits = 2)` to `{julia} round(aic(keep_ri) - aic(keep_rs), digits = 2)`. It survives, but it was leaning on those rows harder than the plot suggests, and the second fit printed a warning as well as a number: the engine says that without those rows the fit sits at a boundary. Which number is on the boundary, and which of the `{julia} length(bad)` rows the slope was leaning on, is Exercise 8. Two things you may not do: quote σ from this fit as if those rows belonged in it, and read a worm plot standardised by a spread that the outliers you are looking for helped to set.
+
+### The number not to build on
+
+**Itchy:** One more thing about ρ before the last section, because it is the parameter this chapter has spent twenty minutes warning you about. This engine prints the correlation and no standard error beside it; its R twin prints both ([Where the engine stops](appendix-b-engine.html)). Whichever you use, remember what the figure showed: ρ depends on where zero is, it changes sign when the origin moves, and on `{julia} birds` birds with a median of `{julia} round(Int, k_med)` captures each it is estimated from very little — Exercise 8 shows what `{julia} length(bad)` rows do to it. **Fit the correlation because leaving it out constrains the model; do not build a story on it.**
+
+### What the blended fit would have said
+
+**Itchy:** Last thing before the summary, and it is the model most people fit: the random slope on the whole of mass, `wc`, with nothing split. I am fitting it so that you can see what I would have told you if we had freed the slope first and split the covariate afterwards.
+
+```{julia}
+#| label: blended
+blend_rs = drm(bf(@formula(Wing ~ wc + (1 + wc|BirdID))), Gaussian(); data = sparrows)
+
+Vb = vc(blend_rs)[:BirdID]
+sd1_blend = sqrt(Vb[2, 2])
+rho_blend = Vb[1, 2] / (sqrt(Vb[1, 1]) * sd1_blend)
+stat_blend = 2 * (loglik(blend_rs) - loglik(ri_fit))
 
 @printf("%-30s %7s %10s %9s %9s %11s\n", "", "params", "logLik", "sigma_1", "rho", "AIC")
-for (nm, f, s1, r) in (("wc + (1|BirdID)",           ri_fit, NaN, NaN),
-                       ("wc + (1 + wc|BirdID)",      rs_fit, sd1, rho),
-                       ("wdev + wbar + (1|BirdID)",  sep_ri, NaN, NaN),
-                       ("wdev + wbar + (1 + wdev|.)", sep_rs, sd1_sep, rho_sep))
+for (nm, f, s1, r) in (("wc + (1|BirdID)",           ri_fit,   NaN,       NaN),
+                       ("wc + (1 + wc|BirdID)",      blend_rs, sd1_blend, rho_blend),
+                       ("wdev + wbar + (1|BirdID)",  sep_ri,   NaN,       NaN),
+                       ("wdev + wbar + (1 + wdev|.)", rs_fit,  sd1,       rho))
     @printf("%-30s %7d %10.4f %9s %9s %11.4f\n", nm, npar(f), loglik(f),
             isnan(s1) ? "-" : @sprintf("%.4f", s1),
             isnan(r)  ? "-" : @sprintf("%+.4f", r), aic(f))
 end
 
-@printf("\nwithin-bird slope  : %+.4f   SE %.4f   z %5.2f\n", bs[2], ses[2], bs[2] / ses[2])
-@printf("between-bird slope : %+.4f   SE %.4f   z %5.2f\n", bs[3], ses[3], bs[3] / ses[3])
-@printf("they differ by     : %+.4f\n\n", bs[3] - bs[2])
-
-lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
-@printf("AIC bought by ONE extra fixed parameter : %.4f\n", aic(ri_fit) - aic(sep_ri))
-@printf("AIC bought by TWO random-slope parameters: %.4f\n", aic(ri_fit) - aic(rs_fit))
-@printf("LR for the slope, blended  : %.4f  (p %.3e)\n", stat, p_sl(stat))
-@printf("LR for the slope, separated: %.4f  (p %.3e)\n", lr_sep, p_sl(lr_sep))
+@printf("\nAIC bought by ONE extra fixed parameter : %.4f\n", d_aic_split)
+@printf("AIC bought by the blended random slope  : %.4f\n", aic(ri_fit) - aic(blend_rs))
+@printf("AIC bought by the separated random slope: %.4f\n", d_aic)
+@printf("LR for the slope, blended  : %.4f  (p %.3e)\n", stat_blend, p_sl(stat_blend))
+@printf("LR for the slope, separated: %.4f  (p %.3e)\n", stat, p_sl(stat))
 @printf("share of the blended LR that was fixed-effect misspecification: %.1f%%\n",
-        100 * (1 - lr_sep / stat))
+        100 * (1 - stat / stat_blend))
 ```
 
-**Toto:** The two slopes are nothing like each other.
+**Toto:** σ_1 is nearly twice as big.
 
-**Itchy:** Nothing like each other. Between birds, `{julia} round(bs[3], digits = 4)` millimetres of wing per gram, with a *z* of `{julia} round(bs[3] / ses[3], digits = 1)`: bigger birds are heavier birds and have longer wings, which is not news and is not a question anyone needed a random slope to ask. Within a bird, `{julia} round(bs[2], digits = 4)`, with a standard error of `{julia} round(ses[2], digits = 4)` and a *z* of `{julia} round(bs[2] / ses[2], digits = 2)`. **On this file there is no detectable within-bird effect of mass on wing at all.** And the blended coefficient I have been reading to you all morning, `{julia} round(b_rs[2], digits = 4)`, sits between them, because that is what a blend does.
+**Itchy:** `{julia} round(sd1_blend, digits = 4)` against the `{julia} round(sd1, digits = 4)` you have been working with, and the likelihood-ratio statistic `{julia} round(stat_blend, digits = 2)` against `{julia} round(stat, digits = 2)`: had I put the slope on the unsplit column, **`{julia} string(round(Int, 100 * (1 - stat / stat_blend)), "%")` of the evidence I showed you for random slopes would have been evidence for a misspecified fixed part.** The mechanism is one line of algebra: a per-bird slope on the blended column multiplies **both** parts, u_1j times the within deviation *and* u_1j times the bird's own average. So the slope variance has to absorb the between-versus-within contrast the fixed part refused to separate. It is doing two jobs. Give the fixed part its second coefficient first and σ_1 only ever has one.
 
-**Momo:** Then the sentence you said earlier, that longer-winged birds gain more measured wing per gram, was about the wrong thing.
+**Eddie:** And the blended random slope buys `{julia} round(aic(ri_fit) - aic(blend_rs), digits = 2)` of AIC for two parameters, when the split bought `{julia} round(d_aic_split, digits = 2)` for one.
 
-**Itchy:** It was reading a between-bird fact as a within-bird one, the oldest mistake in the repeated-measures literature, and I let it stand for an hour so that you would see what a blend does when nobody splits it. Now read the third row of the table, which should annoy you most.
-
-**Eddie:** One extra fixed parameter buys `{julia} round(aic(ri_fit) - aic(sep_ri), digits = 2)` of AIC. The whole random slope buys `{julia} round(aic(ri_fit) - aic(rs_fit), digits = 2)` for two.
-
-**Itchy:** One parameter, more AIC, and it beats the model this chapter has been building all morning with one parameter fewer. **The cheapest thing on this page was never the random slope. It was noticing that a covariate with a within part and a between part is two covariates.** That is worth more to you than anything else I have said today, and it belongs in every repeated-measures model you fit.
-
-**Momo:** And what happens to σ_1?
-
-**Itchy:** This is the good part. Fit the random slope **on the separated model** — a per-bird slope on the *within* column, which is the only column a within-bird slope could sensibly be on.
-
-**Toto:** σ_1 fell from `{julia} round(sd1, digits = 4)` to `{julia} round(sd1_sep, digits = 4)`, and ρ went from `{julia} round(rho, digits = 4)` up to `{julia} round(rho_sep, digits = 4)`.
-
-**Itchy:** A cut of `{julia} string(round(Int, 100 * (1 - sd1_sep / sd1)), "%")` in the headline number of the hour, and the mechanism is one line of algebra: a per-bird slope on the blended column multiplies **both** parts, u_1j times the within deviation *and* u_1j times the bird's own mean. So in the blended model the slope variance had to absorb the between-versus-within contrast that the fixed part refused to separate. It was doing two jobs. Give the fixed part its second coefficient and σ_1 goes back to doing one.
-
-**Eddie:** And the test?
-
-**Itchy:** The likelihood-ratio statistic falls from `{julia} round(stat, digits = 2)` to `{julia} round(lr_sep, digits = 2)`, so **`{julia} string(round(Int, 100 * (1 - lr_sep / stat)), "%")` of the evidence I showed you for random slopes was evidence for a misspecified fixed part.** The subject survives — read the p-value: `{julia} @sprintf("%.1e", p_sl(lr_sep))` on the separated model, against the same fifty-fifty mixture, and AIC still prefers the random slope by `{julia} round(aic(sep_ri) - aic(sep_rs), digits = 2)`. **Birds really do differ in slope on this file**, by `{julia} string(round(Int, 100 * sd1_sep / sd1), "%")` of what the blended model said. What changed is not the finding. It is the size of it, and where it came from.
-
-**Momo:** So what do I write in a paper?
-
-**Itchy:** The separated model's numbers, because they come from the model that actually asks the within-bird question: AIC improves by `{julia} round(aic(sep_ri) - aic(sep_rs), digits = 2)` for the random slope, and the boundary-corrected p is `{julia} @sprintf("%.1e", p_sl(lr_sep))`. And the order to do it in, which is the sentence to take home: **fit the decomposition first, then ask whether the within slope varies.** That is Exercise 1.
+**Itchy:** Which is the sentence from half an hour ago with its number attached. **The cheapest thing on this page was never the random slope.** The finding survives the split — birds really do differ in slope on this file, by `{julia} string(round(Int, 100 * sd1 / sd1_blend), "%")` of what the blended model would have said, with the rows-out caveat you have just read — but what you write in a paper is the separated model's numbers, because they come from the model that asks the within-bird question: AIC improves by `{julia} round(d_aic, digits = 2)` for the random slope, and the boundary-corrected p is `{julia} round(p_sl(stat), digits = 3)`. And the order to do it in, which is the sentence to take home: **fit the decomposition first, then ask whether the within slope varies.** That is Exercise 1.
 
 ### What has to wait
 
@@ -680,28 +655,28 @@ lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
 
 - **What a random slope frees.** `(1 + x | g)` lets each group have its own steepness as well as its own height; the group lines stop being parallel and start crossing.
 - **Check the covariate before you fit.** A random slope needs *x* to vary **within** groups; one minus the repeatability of *x* is the share that does, and what that variation *is* matters as much as its size: bill width moves within a bird because the calipers do, mass because the bird does.
-- **Two parameters, not one.** A random slope adds a variance **and** a covariance, and the model comparison must charge for both.
+- **A coefficient on a repeated-measures covariate is a blend of two slopes, and splitting them costs one parameter.** Here the between-bird slope was `{julia} round(bs[3], digits = 3)` and the within-bird slope `{julia} round(bs[2], digits = 3)`, and the split bought more AIC for one parameter than the random slope bought for two. **Fit the decomposition first; then ask whether the within slope varies.**
 - **Standard errors can go either way.** Adding `(1 | g)` stops counting repeated measurements as fresh evidence, which raises the standard error, and removes noise from the residual, which lowers it; here the residual variance fell by a factor of `{julia} round((s_pooled / first(sigma(ri_fit)))^2, digits = 1)` and the standard error fell with it.
-- **The intercept–slope correlation is a statement about where zero is.** Move the origin of *x* and ρ changes, and can change sign, while the likelihood, the AIC, σ, σ_1 and the fixed slope do not move at all. Report ρ with the origin in the same sentence, or do not report it.
+- **Two parameters, not one.** A random slope adds a variance **and** a covariance, and the model comparison must charge for both.
+- **The intercept–slope correlation is a statement about where zero is.** Move the origin of *x* and ρ changes, and can change sign, while the likelihood, the AIC, σ, σ_1 and the fixed slope do not move at all. Report ρ with the origin in the same sentence, or do not report it. A within-group deviation has a natural origin, the group's own average, and that is the one to report at.
 - **Centre a covariate whose zero is outside its range, every time.** With a far-away origin the fit can fail outright — an arithmetic failure in the optimiser, not a boundary — and centring removes it without changing the model.
-- **Shrinkage, now for slopes.** A group's predicted slope is pulled hard towards the population slope when the group has few measurements or little spread in *x*; here groups keep about `{julia} string(round(Int, 100 * std(mod) / std(ols)), "%")` of the slope their own points suggest, and the spread of the predictions is not σ_1.
 - **Testing σ_1 = 0 is a boundary problem, and the mixture matters.** The naive χ²(2) is conservative. Stram and Lee's (1994) result covers exactly this step, *q* random effects against *q* + 1, and gives a fifty-fifty mixture of χ²(1) and χ²(2); read the assumptions of any correction before you take its p-value.
+- **Shrinkage, now for slopes.** A group's predicted slope is pulled hard towards the population slope when the group has few measurements or little spread in *x*; here groups keep about `{julia} string(round(Int, 100 * std(mod) / std(ols)), "%")` of the slope their own points suggest, and the spread of the predictions is not σ_1.
 - **Marginal residuals again.** `fitted` and `residuals` on these fits are population-level, so a quantile residual comes out about `{julia} round(sqrt(mean(marg)) / sigma_e, digits = 1)` times too wide; subtract *both* of the group's own numbers for the conditional residual, and read its worm plot for shape, not for σ, because shrinkage leaves part of each group effect behind.
-- **Never read a worm plot through a standardiser the outliers helped to set.** Find the rows far from their own group first, name them, and divide by a spread they cannot move.
-- **A coefficient on a repeated-measures covariate is a blend of two slopes, and splitting them costs one parameter.** Here the between-bird slope was `{julia} round(bs[3], digits = 3)` and the within-bird slope `{julia} round(bs[2], digits = 3)`, and the split bought more AIC for one parameter than the random slope bought for two.
-- **A random slope on an unsplit covariate does two jobs.** Its variance absorbs the between-versus-within contrast the fixed part refused to separate; separating them cut σ_1 by `{julia} string(round(Int, 100 * (1 - sd1_sep / sd1)), "%")` and the random slope survived. **Fit the decomposition first; then ask whether the within slope varies.**
-- **Maximal or parsimonious.** Barr et al. (2013) argue for the maximal random-effects structure; Bates et al. (2015) argue that over-parameterised structures should be reduced. This chapter is a small worked example: the maximal model wins by AIC, and most of the case for it evaporated when the fixed part was specified properly.
+- **Never read a worm plot through a standardiser the outliers helped to set.** Find the rows far from their own group first, name them, divide by a spread they cannot move, and say in one sentence what moves with them out.
+- **A random slope on an unsplit covariate does two jobs.** Its variance absorbs the between-versus-within contrast the fixed part refused to separate; on the blended column σ_1 would have been `{julia} round(sd1_blend, digits = 3)` rather than `{julia} round(sd1, digits = 3)`, and `{julia} string(round(Int, 100 * (1 - stat / stat_blend)), "%")` of the likelihood-ratio evidence would have been misspecification.
+- **Maximal or parsimonious.** Barr et al. (2013) argue for the maximal random-effects structure; Bates et al. (2015) argue that over-parameterised structures should be reduced. This chapter is a small worked example: the random slope survives by AIC, and most of the case the blended model would have made for it evaporates once the fixed part is specified properly.
 
 ### Julia you used
 
 - **`leftjoin(df, other, on = :BirdID)`.** Attaches the columns of `other` to every row of `df` whose key matches. The join that replaces a hand-built `Dict`.
 - **`nothing` as a cell's last line.** Stops the cell printing a value nobody needs to see.
-- **`Dict{Symbol,Float64}()` and `d[k] = v`.** An empty lookup table with declared key and value types, filled one entry at a time. `argmin(d)` on a Dict returns the *key* of the smallest value.
+- **`Dict{Symbol,Float64}()` and `d[k] = v`.** An empty lookup table with declared key and value types, filled one entry at a time. `argmin(d)` on a Dict returns the *key* of the smallest value. `Dict(zip(a, b))` builds one from two columns side by side.
 - **`:y => (v -> cond ? a : missing) => :sw`.** An anonymous function inside `combine`, and `missing` as a value a later `skipmissing` steps over. `Float64.(col)` converts a column element by element.
 - **`V[1, 2]`.** Row one, column two of a matrix. `B[:, 2]` is the whole second column; `[a b; c d]` writes a small matrix by hand.
 - **`return (; sd0 = s0, ...)` and `map(f, xs)`.** An explicit return of a NamedTuple, and a function applied to each element of a list with the results collected.
 - **`[b for b in ids if k_of[b] >= 3]`.** A comprehension with a filter. `Dict(r.BirdID => r.k for r in eachrow(df))` builds a lookup from a frame walked row by row.
-- **`findall(v)`, `setdiff(1:n, bad)`.** The positions where a true/false vector is true, and one set of positions with another removed.
+- **`findall(v)`, `setdiff(1:n, bad)`, `df[keep, :]`.** The positions where a true/false vector is true, one set of positions with another removed, and the rows at those positions with every column.
 - **`isnan(x) ? "-" : @sprintf("%.4f", x)`.** The one-line `if` again, with `@sprintf`, which is `@printf` returning a string instead of printing it.
 
 ### Calls you used
@@ -720,7 +695,7 @@ lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
 
 1. **Schielzeth, H. & Forstmeier, W. (2009) "Conclusions beyond support: overconfident estimates in mixed models", *Behavioral Ecology* 20:416–420.** doi:10.1093/beheco/arn145. Start here. The ecological case for today's chapter: leaving a random slope out of a model with repeated measures inflates confidence in the fixed effect. Short, concrete, and about animals.
 2. **Barr, D. J., Levy, R., Scheepers, C. & Tily, H. J. (2013) "Random effects structure for confirmatory hypothesis testing: Keep it maximal", *Journal of Memory and Language* 68:255–278.** doi:10.1016/j.jml.2012.11.001. One half of the argument: fit the random-effects structure the design justifies, including the slopes, or your fixed-effect test is anticonservative. Read it with item 3 open beside it.
-3. **Bates, D., Kliegl, R., Vasishth, S. & Baayen, H. (2015) "Parsimonious mixed models", arXiv:1506.04967.** doi:10.48550/arxiv.1506.04967. The other half, and **not** the lme4 paper Class 8 will cite, despite the year and the first author. It argues that maximal models are routinely over-parameterised; this chapter's example is the last section, where a random slope was carrying a fixed effect that had not been specified. A preprint, widely cited, never in a journal.
+3. **Bates, D., Kliegl, R., Vasishth, S. & Baayen, H. (2015) "Parsimonious mixed models", arXiv:1506.04967.** doi:10.48550/arxiv.1506.04967. The other half, and **not** the lme4 paper Class 8 will cite, despite the year and the first author. It argues that maximal models are routinely over-parameterised; this chapter's example is the last section, where a random slope on the unsplit covariate would have been carrying a fixed effect that had not been specified. A preprint, widely cited, never in a journal.
 4. **Matuschek, H., Kliegl, R., Vasishth, S., Baayen, H. & Bates, D. (2017) "Balancing Type I error and power in linear mixed models", *Journal of Memory and Language* 94:305–315.** doi:10.1016/j.jml.2017.01.001. The referee between items 2 and 3, with simulations rather than assertions.
 5. **Stram, D. O. & Lee, J. W. (1994) "Variance components testing in the longitudinal mixed effects model", *Biometrics* 50:1171–1177**, doi:10.2307/2533455, **with its published correction, *Biometrics* (1995) 51:1196**, doi:10.2307/2533038. The direct source for the mixture used in class, stated for exactly this step: *q* random effects against *q* + 1. Read the correction as well as the paper.
 6. **Self, S. G. & Liang, K.-Y. (1987) "Asymptotic properties of maximum likelihood estimators and likelihood ratio tests under nonstandard conditions", *Journal of the American Statistical Association* 82:605–610.** The theory underneath item 5; open it once to see why the mixture has the weights it has.
@@ -734,7 +709,15 @@ lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
 #| label: exercise-checks
 #| echo: false
 #| output: false
-# Numbers the exercise checks quote, computed from the named file.
+# Numbers the exercise checks quote, computed from the named files.
+
+# Exercise 1: tail instead of wing, on the sparrow file the setup cell wrote.
+ex_sp = dropmissing(sparrows, [:Tail])
+ex_sp.Tail = Float64.(ex_sp.Tail)
+ex_t_ri  = drm(bf(@formula(Tail ~ wc + (1|BirdID))),          Gaussian(); data = ex_sp)
+ex_t_sep = drm(bf(@formula(Tail ~ wdev + wbar + (1|BirdID))), Gaussian(); data = ex_sp)
+
+# Exercises 2 to 7: Momo's tadpole file.
 ex_td = CSV.read("../data/ch8/tadpoles.csv", DataFrame)
 ex_J = length(unique(ex_td.pond))
 ex_pm = combine(groupby(ex_td, :pond), :days => mean => :m)
@@ -769,11 +752,20 @@ ex_spread_ratio = std(ex_model_slope) / std(ex_own_slope)
 ex_gi = [findfirst(==(g), ex_groups) for g in ex_td.pond]
 ex_cond = ex_td.length .- fitted(ex_rs) .- ex_B[ex_gi, 1] .- ex_B[ex_gi, 2] .* ex_td.dc
 ex_flagged = count(abs.(ex_cond ./ std(ex_cond)) .> 3)
+
+# Exercise 8: the flagged sparrow rows, all out (keep_rs above) and only the two lowest out.
+ex_W3 = vc(keep_rs)[:BirdID]
+ex_rho3 = ex_W3[1, 2] / sqrt(ex_W3[1, 1] * ex_W3[2, 2])
+ex_keep2 = setdiff(1:n, sortperm(z)[1:2])
+ex_ri2 = drm(bf(@formula(Wing ~ wdev + wbar + (1|BirdID))),        Gaussian(); data = sparrows[ex_keep2, :])
+ex_rs2 = drm(bf(@formula(Wing ~ wdev + wbar + (1 + wdev|BirdID))), Gaussian(); data = sparrows[ex_keep2, :])
+ex_W2 = vc(ex_rs2)[:BirdID]
+ex_rho2 = ex_W2[1, 2] / sqrt(ex_W2[1, 1] * ex_W2[2, 2])
 ```
 
-Graded by depth: the first three take ten minutes each. The exercises run on Momo's tadpole file, `data/ch8/tadpoles.csv`, which Class 8 simulates from a stated seed and says so: `{julia} nrow(ex_td)` tadpoles in `{julia} ex_J` ponds, each with its `days` since hatching and its body `length` — a grouped dataset with a covariate that varies within groups, so that nobody is stopped for want of one. Do every exercise on your own organism as well where you have one. A *check* is a number computed from that file when this page was built. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 7.
+Graded by depth: the first three take ten minutes each. Exercises 1 and 8 run on the sparrow file the setup cell wrote, `data/ch7/sparrows-weight.csv`, which carries `wc`, `wbar` and `wdev` already. Exercises 2 to 7 run on Momo's tadpole file, `data/ch8/tadpoles.csv`, which Class 8 simulates from a stated seed and says so: `{julia} nrow(ex_td)` tadpoles in `{julia} ex_J` ponds, each with its `days` since hatching and its body `length`. On that file the split buys nothing — it costs `{julia} round(aic(ex_sep) - aic(ex_ri), digits = 2)` of AIC — because Class 8's cell drew each tadpole's age without regard to its pond and gave the whole file one slope; so the tadpole exercises put the random slope on centred `days` directly, and the truth they are compared against is a σ₁ of zero. Do every exercise on your own organism as well where you have one. A *check* is a number computed from the named file when this page was built. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 7.
 
-1. **Within and between, in the right order.** Centre `days` on its mean, then split it as the chapter split mass: each pond's own mean, and each tadpole's departure from it (`combine`, `leftjoin`, two subtractions). Fit `length ~ ddev + dmean + (1 | pond)` against `length ~ dc + (1 | pond)`. Report the two fixed slopes with their standard errors and the AIC of both fits. Two sentences: which of the two slopes the unsplit coefficient was closer to, and how much AIC the extra fixed parameter bought. *Check:* within-pond slope `{julia} round(coef(ex_sep, :mu)[2], digits = 3)`, between-pond slope `{julia} round(coef(ex_sep, :mu)[3], digits = 3)`, unsplit `{julia} round(coef(ex_ri, :mu)[2], digits = 3)`; the split changes AIC by `{julia} round(aic(ex_sep) - aic(ex_ri), digits = 2)`.
+1. **Within and between, in the right order.** The chapter split mass for wing; do it for **tail**. Drop the rows with no tail (`dropmissing`), then fit `Tail ~ wdev + wbar + (1 | BirdID)` against `Tail ~ wc + (1 | BirdID)`, using the three mass columns as the file has them. Report the two fixed slopes with their standard errors and the AIC of both fits. Two sentences: which of the two slopes the unsplit coefficient was closer to, and how much AIC the one extra fixed parameter bought. *Check:* within-bird slope `{julia} round(coef(ex_t_sep, :mu)[2], digits = 3)`, between-bird slope `{julia} round(coef(ex_t_sep, :mu)[3], digits = 3)`, unsplit `{julia} round(coef(ex_t_ri, :mu)[2], digits = 3)`; the split buys `{julia} round(aic(ex_t_ri) - aic(ex_t_sep), digits = 2)` of AIC.
 
 2. **Check before you fit.** Compute one minus the repeatability of `days` itself, the share of its variation that lives within ponds, as the chapter's table did for every candidate. Then say in one sentence whether `days` is a thing that happened to each tadpole or a thing that happened to each pond, and why that decides whether a random slope on it is a question with an answer. *Check:* the within share is `{julia} round(ex_days_within, digits = 2)`.
 
@@ -786,3 +778,5 @@ Graded by depth: the first three take ten minutes each. The exercises run on Mom
 6. **The caterpillar, for slopes.** Compute each pond's own least-squares slope from its points alone, and plot them against the model's slopes as the chapter's figure did. Report the ratio of the two spreads. Which pond moved furthest, and is that because it had the fewest tadpoles, the least spread in `days`, or the most extreme own slope? The numbers decide; say which one you checked. *Check:* the model's slopes have `{julia} round(ex_spread_ratio, digits = 2)` of the spread of the ponds' own slopes.
 
 7. **Two rows, or a shape?** Compute the conditional residuals of the random-slope fit and, before you draw anything, count the rows more than three residual SDs from their own pond's line. Draw the worm plot. Then two sentences: what you would do with any flagged rows, and why a file simulated from a Gaussian is the wrong place to expect any. *Check:* `{julia} ex_flagged` rows flagged.
+
+8. **The rows the slope was leaning on.** Back on the sparrow file. Refit the chapter's separated random-slope model and its random-intercept twin without the `{julia} length(bad)` rows the class named, and report σ, σ₁, ρ and the within-bird slope beside the full-file values, with the AIC the random slope buys in each case. One of the four numbers lands on the edge of the values it is allowed to take: say which, and what a Σ with that value says about how many separate things the birds are doing. Then refit with only the two lowest rows out and say, from the AIC, which single row the random-slope evidence was leaning on. *Check:* with all `{julia} length(bad)` rows out, σ is `{julia} round(first(sigma(keep_rs)), digits = 3)`, ρ is `{julia} round(ex_rho3, digits = 2)` and AIC prefers the random slope by `{julia} round(aic(keep_ri) - aic(keep_rs), digits = 2)`; with only the two lowest out, ρ is `{julia} round(ex_rho2, digits = 2)` and AIC prefers it by `{julia} round(aic(ex_ri2) - aic(ex_rs2), digits = 2)`.

@@ -10,9 +10,9 @@ tags: [book, julia, dataframes, plots, errors, seeds, DRM.jl]
 deck: "Before any model there is a file, a data frame, a picture, and a wall of red text. The wall of red is the part that makes people give up, so it is the part we teach first."
 status_tag: Draft
 status_note: "Draft. Every number and figure on this page comes from code that was actually run when the site was built; the prose is still being written."
-provenance: "Everything printed below — tables, figures and the four errors — came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The four errors are real errors, left in on purpose. Every random draw states its seed right where it is made. The single block of R output was run once by hand, in R, on 2026-09-07, on the same data file, and pasted in; the script is at data/ch1/ch1-r-box.R so you can run it yourself."
+provenance: "Everything printed below — tables, figures and the four errors — came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The four errors are real errors, left in on purpose. Every random draw states its seed right where it is made."
 caveat: "The data are real: 171 house sparrows measured on Lundy Island in the author's 2012 course, read directly from data/2012/MBodySize.csv (where the file came from is recorded in data/2012/README.md). Nothing here is simulated except the coin flips, which say so and carry their seeds."
-footer_note: "Stats Hours with Itchy · Class 1 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 1 of twelve rungs (ten in version 1, plus a coda) · draft · code last run 2026-09-07"
 ---
 
 # Class 1: base camp
@@ -24,13 +24,6 @@ footer_note: "Stats Hours with Itchy · Class 1 of a planned 13 (ten in version 
 > the two packages are listed in Julia's public package catalogue and become a one-line `Pkg.add`. Writing that paragraph now
 > means writing it twice, so this chapter does not. Everything from the first cell onward assumes
 > you are already at a prompt.
->
-> **If you are coming from R**, there is one translate box below. It maps `read.csv` and the
-> `dplyr` verbs onto their Julia equivalents, and it exists because of one place where the two
-> languages do not merely differ but *reverse*: an argument order you will get wrong, in an error
-> we meet later in the hour. Its R output was run once by hand, in R, on the same file the Julia
-> code reads, and pasted in; the script is kept at `data/ch1/ch1-r-box.R` so you can run it
-> yourself.
 
 ---
 
@@ -49,13 +42,13 @@ By the end of this class you should be able to:
 
 ## The class
 
-**Itchy's office, 9:00 am on the first morning. Four chairs, one whiteboard, and a laptop belonging to TOTO on which Julia has been installed for eleven minutes. MOMO has arrived from a decade of SPSS and is already suspicious of the absence of menus. EDDIE, who has done this before, is here for the coffee.**
+**Itchy's office, 9:00 am on the first morning. Four chairs, one whiteboard, and a laptop belonging to TOTO on which Julia has been installed for eleven minutes. MOMO has arrived from a little R, used under protest, and is already suspicious of anything that claims to be better. EDDIE, who has done this before, is here for the coffee.**
 
 **Itchy:** Nobody fits anything today. Today you get a file into Julia, look at it, draw it, and break it on purpose four times. That last part is not a joke and it is not filler — it is the reason people give up on this language in week one, and I would rather you met it here, with me, than alone at eleven at night.
 
-**Momo:** In SPSS I opened a file by opening a file.
+**Momo:** In R I opened a file with `read.csv` and never thought about it again.
 
-**Itchy:** And in an hour you will open one with a line you can put in a paper, which somebody else can run, which will give them the same numbers. That is the trade. Toto, type this.
+**Itchy:** And in an hour you will open one here with a line that tells you what every column is before you touch it, and you will have watched it fail four times and known each time why. That is the trade: a little more looking now, a great deal less guessing later. Toto, type this.
 
 ```{julia}
 #| label: setup
@@ -106,9 +99,9 @@ first(sparrows, 5)
 
 **Itchy:** That row is the best thing on this page and R does not print it. `Tarsus` is a `Float64` — a number with a decimal point. `Sex` is a `String1` — text, one character wide. `BirdID` is a `String7`. Julia is telling you the **type** of every column before you have asked, and type is what determines what you are allowed to do next. Half of the errors in this class are a type you did not check.
 
-**Momo:** In SPSS a column had a type too, and it lied to me constantly.
+**Momo:** In R a column had a type too, and it lied to me constantly.
 
-**Itchy:** Here it cannot lie, because it is not a label somebody set in a dialogue box; it is what is actually in memory. If a column you expected to be numeric prints as `String`, you have found a stray comma or the word `NA` in row four hundred, and you have found it in the first five seconds rather than in the middle of a model. Now the summary.
+**Itchy:** Here it cannot lie, because it is not a guess made silently when the file was read; it is what is actually in memory, printed. If a column you expected to be numeric prints as `String`, you have found a stray comma or the word `NA` in row four hundred, and you have found it in the first five seconds rather than in the middle of a model. Now the summary.
 
 ```{julia}
 #| label: look-describe
@@ -193,7 +186,7 @@ n_females = nrow(females)
 
 **Toto:** Two different ways to do the same thing.
 
-**Itchy:** Two ways with different characters. `filter` is base Julia's own verb and it takes a **function first** and the thing to be filtered second — `filter(row -> row.Sex == "M", sparrows)`. That little arrow makes an anonymous function: "given a row, is its `Sex` equal to `M`". `subset` is the DataFrames verb, takes the frame first, and reads closer to `dplyr` once you know two things: `==("F")` is a comparison with one side left open, which makes it a function asking "is this equal to F", and `ByRow` says to ask that of every row in turn. Use either. Do not mix them up in the same script and expect to be able to read it in a year.
+**Itchy:** Two ways with different characters. `filter` is base Julia's own verb and it takes a **function first** and the thing to be filtered second — `filter(row -> row.Sex == "M", sparrows)`. That little arrow makes an anonymous function: "given a row, is its `Sex` equal to `M`". If you have used R's `dplyr`, this is the one place the two languages do not merely differ but *reverse*: `filter(data, condition)` there, function first here. Every R user types it the wrong way round once, and you will do it later in the hour, on purpose. `subset` is the DataFrames verb, takes the frame first, and reads closer to `dplyr` once you know two things: `==("F")` is a comparison with one side left open, which makes it a function asking "is this equal to F", and `ByRow` says to ask that of every row in turn. Use either. Do not mix them up in the same script and expect to be able to read it in a year.
 
 **Momo:** And you get `{julia} n_males` and `{julia} n_females`, which add up.
 
@@ -261,70 +254,11 @@ fig
 
 **Itchy:** Not most birds, no, and that is the whole distinction. A difference between group averages can be clean, real and worth reporting, and still leave most single animals inside a range both groups occupy. Those are two different claims and people run them together constantly. Hold the picture; it is what sits underneath half the arguments in the literature about effect sizes — how big a difference is, as opposed to whether one exists.
 
-<!-- box: translate | id: ch1-dplyr-order | ch: 01 | checked: 2026-09-07 -->
-
-> **↔ TRANSLATE: the same eight lines, in R**
->
-> This is the one box of its kind in this chapter, and it earns its place on a single row of the
-> table below. Most of these lines merely *differ* between the languages, which costs you a
-> lookup. One of them **reverses**, which costs you an error message you will not understand:
-> `dplyr::filter(data, condition)` takes the data first, and Julia's `filter(function, data)`
-> takes the function first. Every R user types it the wrong way round once. You will do it in
-> about five minutes, on purpose.
->
-> | you want | in R | in Julia |
-> |---|---|---|
-> | load the tools | `library(dplyr)` | `using DataFrames` |
-> | read a CSV | `read.csv("f.csv")` | `CSV.read("f.csv", DataFrame)` |
-> | how big is it | `nrow(d)`, `ncol(d)` | `nrow(d)`, `ncol(d)` |
-> | first rows | `head(d, 5)` | `first(d, 5)` |
-> | summarise | `summary(d)` | `describe(d)` |
-> | one column | `d$Wing` | `d.Wing` |
-> | **keep some rows** | **`filter(d, Sex == "M")`** | **`filter(row -> row.Sex == "M", d)`** |
-> | group and average | `group_by(Sex) %>% summarise(m = mean(Wing))` | `combine(groupby(d, :Sex), :Wing => mean => :m)` |
->
-> The R output below was run once by hand, in R, on 2026-09-07, on the same archived file this
-> chapter reads, and pasted in here; it is not re-run when the page is made.
-> The script is kept at `data/ch1/ch1-r-box.R`; its captured output is at
-> `data/ch1/ch1-r-box.txt`. Compare its numbers with the Julia numbers above: they are the same
-> birds, so they are the same numbers.
-
-```r
-# Run once in R on 2026-09-07 and pasted in; not re-run with the page. Command:
-#   Rscript data/ch1/ch1-r-box.R
-#   R 4.6.0, dplyr 1.2.1, reading data/2012/MBodySize.csv
-
-nrow: 171   ncol: 8
-
-   BirdID Sex   Tarsus    BillL    BillW     Tail     Wing   Weight
-1 TA14502   F 18.43333 13.26667 6.533333 51.76667 71.56667 27.96667
-2 TA14505   F 18.10000 13.00000 6.133333 57.33333 76.50000 27.40000
-3 TA14506   F 18.45000 13.05000 6.200000 55.50000 75.00000 25.15000
-
-     Tarsus           Wing
- Min.   :16.90   Min.   :71.57
- 1st Qu.:18.15   1st Qu.:76.45
- Median :18.63   Median :77.90
- Mean   :18.61   Mean   :77.85
- 3rd Qu.:19.11   3rd Qu.:79.25
- Max.   :20.55   Max.   :84.00
-
-mean wing: 77.85234
-
-males: 82
-
-# A tibble: 2 x 3
-  Sex   mean_wing     n
-  <chr>     <dbl> <int>
-1 F          76.6    89
-2 M          79.2    82
-```
-
 ### Reading the red
 
 **Itchy:** Right. Everybody close whatever else is open. This section is the reason this class exists on the first morning rather than the fifth, and it is the single most cited gap in every book that tries to teach this language: nobody teaches you to read the errors. People do not abandon Julia because the statistics are hard. They abandon it because they hit thirty lines of red text with a word like `MethodError` in it, feel stupid, and go back to R. Nothing in those thirty lines is trying to make you feel stupid. Most of it is Julia telling you, in detail, what it *does* know how to do.
 
-**Momo:** In SPSS an error was one sentence.
+**Momo:** In R an error was one sentence.
 
 **Itchy:** One sentence which told you nothing. Julia gives you a paragraph which tells you everything, and the skill is knowing which line of the paragraph matters. Four failures, in the order you will meet them. Toto, misspell a column.
 
@@ -370,7 +304,7 @@ sparrows.Tarsus[1] + "0.5"
 
 **Toto:** Then what do I read?
 
-**Itchy:** The first line, and then you stop, because the first line is already a complete diagnosis: `::String`. Your second argument is text. And it is text because you wrote `"0.5"` with quotation marks round it, which is a piece of writing that looks like a number and is not one. That is not a contrived error, either — it is exactly what happens the first time you read a spreadsheet with a stray comma in a numeric column, and the type row in `first(sparrows, 5)` is where you would have caught it an hour earlier. **The rule is: when the function is enormous and general, read the first line. When it is small and specific, the candidate list is worth its weight.** Which brings us to the one that is specific to arriving here from R.
+**Itchy:** The first line, and then you stop, because the first line is already a complete diagnosis: `::String`. Your second argument is text. And it is text because you wrote `"0.5"` with quotation marks round it, which is a piece of writing that looks like a number and is not one. That is not a contrived error, either — it is exactly what happens the first time you read a spreadsheet with a stray comma in a numeric column, and the type row in `first(sparrows, 5)` is where you would have caught it an hour earlier. **The rule is: when the function is enormous and general, read the first line. When it is small and specific, the candidate list is worth its weight.** Which brings us to the one I warned you about when you first met `filter`.
 
 ```{julia}
 #| label: err-order
@@ -378,7 +312,7 @@ sparrows.Tarsus[1] + "0.5"
 filter(sparrows, row -> row.Sex == "M")
 ```
 
-**Momo:** That is the line the translate box warned about.
+**Momo:** That is the reversal you warned about.
 
 **Itchy:** It is, and now you have seen the punishment. Same three parts, and this time the candidate list earns its keep, because `filter` is a small specific function rather than `+`. First line: `no method matching filter(::DataFrame, ::var"#...")`, and that unreadable `var"#..."` is simply Julia's internal name for the anonymous function you typed — you never named it, so Julia made a name up. Then the candidates. Now do what you just learned: find the red.
 
@@ -542,7 +476,7 @@ Each of these appeared for the first time in this class, and the book leans on e
 3. **Barik, T., Smith, J., Lubick, K., Holmes, E., Feng, J., Murphy-Hill, E. & Parnin, C. (2017) "Do Developers Read Compiler Error Messages?", *2017 IEEE/ACM 39th International Conference on Software Engineering (ICSE)*, 575–585.** doi:10.1109/ICSE.2017.59. An eye-tracking study of 56 people fixing real defects. Its findings are the reason this class spends an hour of its first morning on red text: participants did read the messages, reading them was about as hard as reading source code, that difficulty predicted whether they solved the task, and it took 13–25% of their total time.
 4. **Becker, B. A., Denny, P., Pettit, R., Bouchard, D., Bouvier, D., Harrington, B., Kamil, A., Karkare, A., McDonald, C., Osera, P.-M., Pearce, J. L. & Prather, J. (2019) "Compiler Error Messages Considered Unhelpful: The Landscape of Text-Based Programming Error Message Research", *ITiCSE-WGR '19*, 177–210.** doi:10.1145/3344429.3372508. Half a century of research on error messages, gathered in one place. Read it if you ever have to teach this to somebody else: it is a survey of what has been tried, including what does not work.
 5. **Danisch, S. & Krumbiegel, J. (2021) "Makie.jl: Flexible high-performance data visualization for Julia", *Journal of Open Source Software* 6(65):3349.** doi:10.21105/joss.03349. The plotting library under every figure in this book. Worth skimming once so that `Figure`, `Axis` and the trailing exclamation marks stop being incantations.
-6. **The Julia manual, "Getting Started" and "Noteworthy Differences from R"** (<https://docs.julialang.org/>). Not a paper, and the single most useful thing on this list for its first week. The differences page is a list of exactly the traps this chapter's translate box has room for only one of.
+6. **The Julia manual, "Getting Started" and "Noteworthy Differences from R"** (<https://docs.julialang.org/>). Not a paper, and the single most useful thing on this list for its first week. The differences page is a list of exactly the traps this chapter had room to show you only one of.
 
 ---
 

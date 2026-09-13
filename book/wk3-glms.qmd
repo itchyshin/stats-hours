@@ -10,9 +10,9 @@ tags: [book, julia, glm, logistic, poisson, DRM.jl]
 deck: "A model that gives a chick a better than hundred per cent chance of surviving is not slightly wrong. It is the wrong shape, and the family is how you fix it."
 status_tag: Draft
 status_note: "All ten classes of version 1 are drafted and their code runs end to end (1–10), with Appendix A, the preface and the coda. Every number and figure on this page was produced when the site was built; the book itself is not written."
-provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded in the cell that makes it, so the page comes out the same every time. The one R block was run once by hand, on the date shown, with R against the same files, and is labelled as such."
+provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded in the cell that makes it, so the page comes out the same every time."
 caveat: "The data are real: the 2012 Lundy Island chick and female records, read directly from data/2012/ChickSurvival.csv and data/2012/FemaleSuccess.csv (provenance in data/2012/README.md). Nothing here is simulated except the one seeded cell that says so."
-footer_note: "Stats Hours with Itchy · Class 3 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 3 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-07"
 ---
 
 # Class 3: the shape of the noise
@@ -129,7 +129,7 @@ fig
 
 **Itchy:** Momo, you have been waiting to say something for ten minutes.
 
-**Momo:** In SPSS this was a menu item called logistic regression. What I never got told is what it actually changes.
+**Momo:** In R this was `glm` with `family = binomial` on the end, and I typed it because I was told to. What I never got told is what it actually changes.
 
 **Itchy:** Then that is the lesson, and it changes exactly two things. First, it puts the straight line somewhere the straight line is allowed to go, and then bends it back. The line lives on the **log-odds** scale, which runs from minus infinity to plus infinity like a proper linear predictor — the straight-line sum of intercept and slopes that every regression builds before anything bends it — and a function called the **link** squashes it back into nought-to-one before it meets a chick. Second, and this is the part almost nobody is taught, it changes what the model claims about the **noise**. Watch both. One word changes in the call.
 
@@ -314,45 +314,7 @@ fig
 
 **Momo:** And for my counts?
 
-**Itchy:** For your counts the variance really is a separate claim, and data can contradict it. Then you are in trouble, quietly, in the standard errors, and you will not see it in the coefficients. That is Class 4, and I am deliberately not teaching it today. What I *will* do is give you the check, at the end of the hour, on Momo's counts, where it fails in front of you. Before that, one glance at R, because R says the decree out loud and we do not.
-
-<!-- box: translate | id: glm-dispersion-line | ch: 03 | checked: 2026-09-07 -->
-
-> **↔ TRANSLATE: a sentence in R's output that ours does not print**
->
-> `glm` in R reproduces this fit to every digit it prints, which is the boring and reassuring
-> part. The interesting part is a line R prints that we do not: **"(Dispersion parameter for
-> binomial family taken to be 1)"**. That is the decree, stated out loud, in the output, every
-> time. It is the assumption this whole section is about, and R puts it on the page where a
-> reader can see it and we leave it implicit in the absent σ table.
->
-> Two things follow. First, when you read somebody else's R output, that line is not
-> boilerplate; it is the model's claim about the noise. For a 0/1 response it is a claim
-> arithmetic already guarantees; for counts, and for proportions out of a denominator, it is a
-> claim the data can contradict, and Class 4 is entirely about those times. Second, "taken to be 1" is phrased as an instruction rather than a finding for a
-> reason: nothing was estimated, and nothing was checked.
->
-> The R block below was **run once, by hand**, with R on 2026-09-07 against the same archived
-> file this chapter reads. It is not run again when the site is built, which is why it carries a
-> date.
-
-```r
-# run once by hand on 2026-09-07; not re-run when the site is built. Produced with:
-#   R 4.6.0, reading data/2012/ChickSurvival.csv
-#   m <- glm(Survival ~ Mass2 + BroodSize, data = d, family = binomial)
-
-Coefficients:
-            Estimate Std. Error z value Pr(>|z|)
-(Intercept) -3.45607    0.30994  -11.15  < 2e-16 ***
-Mass2        0.72040    0.05227   13.78  < 2e-16 ***
-BroodSize    0.14953    0.05457    2.74  0.00614 **
-
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 2159.9  on 1575  degrees of freedom
-Residual deviance: 1930.0  on 1573  degrees of freedom
-AIC: 1936
-```
+**Itchy:** For your counts the variance really is a separate claim, and data can contradict it. Then you are in trouble, quietly, in the standard errors, and you will not see it in the coefficients. That is Class 4, and I am deliberately not teaching it today. What I *will* do is give you the check, at the end of the hour, on Momo's counts, where it fails in front of you. One sentence for whenever you read somebody else's R output: `glm` prints the decree out loud, as the line "(Dispersion parameter for binomial family taken to be 1)", where this engine leaves it implicit in the absent σ table — and that line is not boilerplate, it is the model's claim about the noise, phrased as an instruction because nothing was estimated and nothing was checked.
 
 ### Is it any good?
 

@@ -126,30 +126,31 @@ decided to be here.</p>
 then made me leave it wrong.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>I did, and today we fix it. Load it back.</p></div>
 <div id="setup" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># confint(fit) returns one row per coefficient, each with .estimate, .lower and</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># .upper. This picks a row by block and name, so no table is ever read by column number.</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">ci_row</span>(fit, block, name)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="fu">confint</span>(fit; parm <span class="op">=</span> block)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    rows[<span class="fu">findfirst</span>(r <span class="op">-&gt;</span> r.coef <span class="op">==</span> name, rows)]</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>ratio_raw <span class="op">=</span> v_counts <span class="op">/</span> m_counts</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d   columns: %s</span><span class="sc">\n</span><span class="st">"</span>, n_fem, <span class="fu">join</span>(<span class="fu">names</span>(females), <span class="st">", "</span>))</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, ratio_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/diagnostics.jl includes tools/figures.jl, which includes</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/theme_itchy.jl itself, so one include does all three.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/diagnostics.jl"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># confint(fit) returns one row per coefficient, each with .estimate, .lower and</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># .upper. This picks a row by block and name, so no table is ever read by column number.</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">ci_row</span>(fit, block, name)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="fu">confint</span>(fit; parm <span class="op">=</span> block)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    rows[<span class="fu">findfirst</span>(r <span class="op">-&gt;</span> r.coef <span class="op">==</span> name, rows)]</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>ratio_raw <span class="op">=</span> v_counts <span class="op">/</span> m_counts</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d   columns: %s</span><span class="sc">\n</span><span class="st">"</span>, n_fem, <span class="fu">join</span>(<span class="fu">names</span>(females), <span class="st">", "</span>))</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, ratio_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows: 163   columns: Fledglings, EggNo, Age
 mean of the counts     : 3.2086
@@ -999,34 +1000,31 @@ location-scale model, the range  : 1.3757 to 1.4528 mm</code></pre>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>Females scatter by about 1.38 mm around their line, males by about 1.45
 mm. Males a little <strong>more</strong>, which is not what I would have
-guessed. Now the verdicts. One line in the next cell, the one that
-computes <code>se_g1</code>, is plumbing: it finds the standard error of
-the σ slope by its name rather than by its position in the table, and
-you may skip it.</p></div>
+guessed. Now the verdicts. <code>coef_se</code>, from
+<code>tools/diagnostics.jl</code>, hands back the standard error of one
+named coefficient — the width of its own confidence interval, converted
+back — so the next cell reads it the same way it reads the estimate.</p></div>
 <div id="sparrow-verdicts" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="fu">ci_row</span>(fit_ls, <span class="op">:</span>sigma, <span class="st">"Sex: male"</span>)   <span class="co"># log of the male/female sigma ratio</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co"># By name, not position: same route as ci_row (match the sigma block's own name</span></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="co"># vector), so this keeps working if a parameter is ever added after sigma.</span></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>se_g1 <span class="op">=</span> <span class="fu">stderror</span>(fit_ls)[<span class="fu">only</span>(idx for ((p, r), (_, nms)) <span class="kw">in</span> <span class="fu">zip</span>(fit_ls.blocks, fit_ls.coefnames)</span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                                   if p <span class="op">===</span> <span class="op">:</span>sigma for (idx, nm) <span class="kw">in</span> <span class="fu">zip</span>(r, nms) if nm <span class="op">==</span> <span class="st">"Sex: male"</span>)]</span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>z_sex <span class="op">=</span> g.estimate <span class="op">/</span> se_g1</span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>p_sex <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> Distributions.<span class="fu">ccdf</span>(Distributions.<span class="fu">Normal</span>(), <span class="fu">abs</span>(z_sex))</span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>d_aic_sp <span class="op">=</span> <span class="fu">aic</span>(fit_ls) <span class="op">-</span> <span class="fu">aic</span>(fit_const)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>se_g1 <span class="op">=</span> <span class="fu">coef_se</span>(fit_ls, <span class="op">:</span>sigma, <span class="st">"Sex: male"</span>)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>z_sex <span class="op">=</span> g.estimate <span class="op">/</span> se_g1</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>p_sex <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> Distributions.<span class="fu">ccdf</span>(Distributions.<span class="fu">Normal</span>(), <span class="fu">abs</span>(z_sex))</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>d_aic_sp <span class="op">=</span> <span class="fu">aic</span>(fit_ls) <span class="op">-</span> <span class="fu">aic</span>(fit_const)</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>ratio_sex <span class="op">=</span> <span class="fu">exp</span>(g.estimate)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>ratio_lo, ratio_hi <span class="op">=</span> <span class="fu">exp</span>(g.lower), <span class="fu">exp</span>(g.upper)</span>
 <span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>ratio_sex <span class="op">=</span> <span class="fu">exp</span>(g.estimate)</span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>ratio_lo, ratio_hi <span class="op">=</span> <span class="fu">exp</span>(g.lower), <span class="fu">exp</span>(g.upper)</span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Smallest sigma ratio this design could have detected at 80% power, alpha = 0.05.</span></span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>z_a <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.975</span>)</span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>z_b <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.80</span>)</span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>mdr <span class="op">=</span> <span class="fu">exp</span>((z_a <span class="op">+</span> z_b) <span class="op">*</span> se_g1)</span>
-<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, constant sigma  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_const))</span>
-<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, sigma ~ Sex     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_ls))</span>
-<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"difference           : %.4f  (positive means the extra term did not pay)</span><span class="sc">\n</span><span class="st">"</span>, d_aic_sp)</span>
-<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma: Sex: male   z = %.4f   p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, z_sex, p_sex)</span>
-<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"male/female sigma ratio : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, ratio_sex, ratio_lo, ratio_hi)</span>
-<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest ratio detectable at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mdr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Smallest sigma ratio this design could have detected at 80% power, alpha = 0.05.</span></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>z_a <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.975</span>)</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>z_b <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.80</span>)</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>mdr <span class="op">=</span> <span class="fu">exp</span>((z_a <span class="op">+</span> z_b) <span class="op">*</span> se_g1)</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, constant sigma  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_const))</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, sigma ~ Sex     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_ls))</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"difference           : %.4f  (positive means the extra term did not pay)</span><span class="sc">\n</span><span class="st">"</span>, d_aic_sp)</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma: Sex: male   z = %.4f   p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, z_sex, p_sex)</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"male/female sigma ratio : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, ratio_sex, ratio_lo, ratio_hi)</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest ratio detectable at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mdr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>AIC, constant sigma  : 611.5563
 AIC, sigma ~ Sex     : 613.3026
@@ -1147,7 +1145,7 @@ who is who.</p></div>
 <li><code>drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)</code> and <code>NegBinomial2()</code>: the overdispersed versions, with the second formula in the box. <code>coef(fit, :sigma)</code> is log σ, and φ or θ is <code>exp(-2 * coef(fit, :sigma)[1])</code>.</li>
 <li><code>drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)</code>: a location-scale fit; <code>exp.(coef(fit, :sigma))</code> for millimetres.</li>
 <li><code>sigma(fit)</code>, <code>dof_residual(fit)</code>, <code>stderror(fit)</code>: response-scale σ per observation, residual degrees of freedom for a Pearson statistic, and standard errors in coefficient order.</li>
-<li><code>confint(fit; parm = :sigma)</code>: one row per coefficient of that block, each with <code>.estimate</code>, <code>.lower</code>, <code>.upper</code> on the link scale; <code>ci_row</code> above picks a row by name.</li>
+<li><code>confint(fit; parm = :sigma)</code>: one row per coefficient of that block, each with <code>.estimate</code>, <code>.lower</code>, <code>.upper</code> on the link scale; <code>ci_row</code> above picks a row by name. <code>coef_se(fit, block, name)</code>, from <code>tools/diagnostics.jl</code>, reads that coefficient’s standard error off the same interval’s width.</li>
 <li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: as before. Which <code>rng</code> you pass moves the SD’s second decimal, so do not read its digits.</li>
 <li><code>markersize = 3 .* sqrt.(n)</code> in a binned plot: area, not radius, is what the eye reads.</li>
 <li><strong>The simulation thread.</strong> Ask the negative-binomial fit to invent two hundred new sets of females, refit each, and watch which parameter is well pinned down and which is not.</li>
@@ -1241,7 +1239,7 @@ catalogue of research papers.</p>
   <a class="chapter-nav-link prev" href="wk3-glms.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 3 · The shape of the noise</span></a><a class="chapter-nav-link next" href="wk5-diagnostics.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 5 · Is the model any good?</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 4 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07<br>
+  Stats Hours with Itchy · Class 4 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-07<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

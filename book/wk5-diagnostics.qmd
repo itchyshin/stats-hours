@@ -12,7 +12,7 @@ status_tag: Draft
 status_note: "Draft. Every number and figure on this page was produced when the site was built."
 provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time."
 caveat: "The data are real: the 2012 Lundy Island sparrow and female records, read directly from data/2012/MBodySize.csv and data/2012/FemaleSuccess.csv (where the files came from is recorded in data/2012/README.md). Nothing here is invented; the simulated quantities are drawn from models fitted to those files, from stated seeds."
-footer_note: "Stats Hours with Itchy · Class 5 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 5 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-07"
 ---
 
 # Class 5: is the model any good?
@@ -37,14 +37,15 @@ By the end of this class you should be able to:
 
 **Itchy:** Four classes in, you can fit almost anything. Nobody has yet asked me the only question a referee will ask, which is whether the thing you fitted is any good. Today is that question, and it is a service class: no new rung, no new constant freed, just the machinery you will use in every chapter after this.
 
-**Momo:** In SPSS I would have clicked "save residuals" and plotted them.
+**Momo:** In R I would have called `residuals` on the fit and plotted them.
 
 **Itchy:** And in a Gaussian model you would have been right, which is the trap. Load both files.
 
 ```{julia}
 #| label: setup
-# tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.
-include("../tools/figures.jl")
+# tools/diagnostics.jl includes tools/figures.jl, which includes
+# tools/theme_itchy.jl itself, so one include does all three.
+include("../tools/diagnostics.jl")
 using DRM, DataFrames, CSV, Statistics, Random, Printf, CairoMakie
 import Distributions          # qualified: DRM exports its own Poisson, Binomial, …
 set_theme!(theme_itchy(:light))
@@ -137,27 +138,7 @@ fig
 
 ### The picture, and what its envelope promises
 
-**Itchy:** Now the plot. It is the one `fig_diagnostic` draws, and before anybody looks at it I am going to tell you what is on the axes, because the commonest failure in this room is reading a picture whose meaning you have assumed. The helper cell in between exposes the arithmetic so the picture can be counted; read it or skip it. `worm_parts` hands back a NamedTuple of three fields, `(; theo, dev = ..., se)`, so the counters under it can ask for `w.dev`, and each counter is a one-line function whose body is two statements with a semicolon between them: compute the parts, then count.
-
-```{julia}
-#| label: worm-helpers
-#| output: false
-# The arithmetic fig_diagnostic draws, exposed so the picture can be counted.
-function worm_parts(r)
-    n = length(r)
-    obs = sort(r)
-    p = ((1:n) .- 0.5) ./ n
-    theo = sqrt(2) .* erfinv_approx.(2 .* p .- 1)      # normal quantiles
-    dens = x -> exp(-x^2 / 2) / sqrt(2π)
-    se = sqrt.(p .* (1 .- p) ./ n) ./ dens.(theo)      # SE of the ith order statistic
-    (; theo, dev = obs .- theo, se)
-end
-
-n_outside(r) = (w = worm_parts(r); count(abs.(w.dev) .> 2 .* w.se))
-n_below(r)   = (w = worm_parts(r); count(w.dev .< -2 .* w.se))   # and above = outside - below
-```
-
-**Itchy:** The horizontal axis is the quantile a standard normal would have put at that rank. The vertical axis is **the deviation from it** — sorted residual minus expected quantile. So a correct model does not give you a diagonal line. It gives you a **flat line at zero**. This is a detrended quantile plot, a worm plot, and van Buuren and Fredriks (2001) named it that because a wrong model makes it wriggle. The band is a pointwise two-standard-error envelope on each order statistic under normality.
+**Itchy:** Now the plot. It is the one `fig_diagnostic` draws, and before anybody looks at it I am going to tell you what is on the axes, because the commonest failure in this room is reading a picture whose meaning you have assumed. Counting what the picture shows takes the same arithmetic `fig_diagnostic` draws with, so it lives beside it in `tools/figures.jl`: `worm_parts(r)` returns each sorted residual's deviation from the normal quantile it should sit at, and `n_outside(r)` and `n_below(r)` count how many of those deviations fall outside the pointwise band, and how many of those are on the low side. The horizontal axis is the quantile a standard normal would have put at that rank. The vertical axis is **the deviation from it** — sorted residual minus expected quantile. So a correct model does not give you a diagonal line. It gives you a **flat line at zero**. This is a detrended quantile plot, a worm plot, and van Buuren and Fredriks (2001) named it that because a wrong model makes it wriggle. The band is a pointwise two-standard-error envelope on each order statistic under normality.
 
 **Toto:** So five per cent of the points should fall outside it.
 
@@ -177,22 +158,13 @@ fig_diagnostic(r_quantile; title = "fledglings ~ age, quantile residuals")
 
 **Momo:** `{julia} out_p` out of `{julia} n_fem` are outside. That is more than half.
 
-**Itchy:** It is, and Toto has told you it should be about five per cent, and I have told you not to believe him, and neither of us has done anything but assert. The envelope is **pointwise**: each ribbon is drawn at two standard errors, so the rate per *point* really is the normal's own two-sigma tail and Toto has not invented it. Two things break the step from that rate to a *count*. The points are the same residuals sorted from smallest to largest, one per rank, so they are heavily correlated: when the curve drifts it drifts together and dozens cross at once. And these residuals are not a fresh normal sample: they came out of a model **fitted to these very data**, which is the caveat Dunn and Smyth put in their own abstract — normal apart from the sampling variability in the estimated parameters. Simulate both nulls and find out which one this picture belongs to. Read `null_counters` before you run it. `Int[]` and `Float64[]` are empty vectors that know what they will hold, and `push!` appends one value to the end, so every pass through the loop grows them by one: the loop form of a comprehension, for a body that does several things. `refit` is a function handed in as an argument, like any other value, which is why `refit_age` is defined by name underneath. And `for _ in 1:2000` uses an underscore for a counter whose value is never wanted.
+**Itchy:** It is, and Toto has told you it should be about five per cent, and I have told you not to believe him, and neither of us has done anything but assert. The envelope is **pointwise**: each ribbon is drawn at two standard errors, so the rate per *point* really is the normal's own two-sigma tail and Toto has not invented it. Two things break the step from that rate to a *count*. The points are the same residuals sorted from smallest to largest, one per rank, so they are heavily correlated: when the curve drifts it drifts together and dozens cross at once. And these residuals are not a fresh normal sample: they came out of a model **fitted to these very data**, which is the caveat Dunn and Smyth put in their own abstract — normal apart from the sampling variability in the estimated parameters. Simulate both nulls and find out which one this picture belongs to. `null_counters` lives in `tools/diagnostics.jl`: hand it a fit, a refit function, a draw count and a generator, and it simulates that many worlds, refits each one, and counts. Inside it, `Int[]` and `Float64[]` are empty vectors that know what they will hold, and `push!` appends one value to the end, so every pass through the loop grows them by one: the loop form of a comprehension, for a body that does several things. `refit` is a function handed in as an argument, like any other value, which is why `refit_age` is defined by name underneath. And `for _ in 1:2000` uses an underscore for a counter whose value is never wanted.
 
 ```{julia}
 #| label: null-envelope
 # TWO nulls: (a) plain standard normal samples, no model anywhere;
-# (b) simulate from the fit, REFIT the same formula, recompute the residuals, count.
-function null_counters(fit, refit, ndraw, rng)
-    y = simulate(fit; nsim = ndraw, rng = rng)
-    outs = Int[]; sds = Float64[]
-    for k in 1:ndraw
-        r = residuals(refit(y[:, k]); type = :quantile, rng = rng)
-        push!(outs, n_outside(r)); push!(sds, std(r))
-    end
-    (; outs, sds)
-end
-
+# (b) simulate from the fit, REFIT the same formula, recompute the residuals,
+# count -- null_counters, from tools/diagnostics.jl, does exactly that.
 refit_age(y) = drm(bf(@formula(Fledglings ~ Age)), Poisson();
                    data = DataFrame(Fledglings = y, Age = females.Age))
 
@@ -637,7 +609,7 @@ One thing this page swept under the rug: every model on it treats each female as
 - **`for (nm, r) in (("response", r1), ("Pearson", r2))`.** Looping over a list of pairs, each unpacked into two names. `enumerate(list)` adds a counter: `for (j, (nm, r)) in enumerate(panels)`.
 - **`for _ in 1:2000`.** An underscore for a counter whose value is never used.
 - **`extrema(mu_p)...`.** The splat: spreads a pair into two separate arguments.
-- **`(; theo, dev = obs .- theo, se)`.** Returning a NamedTuple from a function, so the caller can write `w.dev`. `n_outside(r) = (w = worm_parts(r); count(...))` is a one-line function with two statements in it.
+- **The worm-plot arithmetic itself is not on this page.** `worm_parts`, `n_outside` and `n_below` live in `tools/figures.jl`, and `null_counters` in `tools/diagnostics.jl`; the chapter calls them, it does not define them.
 - **`females[1:150, :]`.** Rows one to one hundred and fifty, every column.
 - **`-0.5:1:16.5`.** A range with a step: from, step, to.
 - **`maximum(abs, v)`, `sum(abs2, v)`, `count(==(0), v)`.** A function in the first slot is applied to each element first.
@@ -647,7 +619,7 @@ One thing this page swept under the rug: every model on it treats each female as
 - `residuals(fit; type = :response)` and `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: observed minus fitted, and randomised quantile residuals. **Pass the `rng`.** There is no Pearson type: write `(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))` yourself, with `V` the family's variance function.
 - `simulate(fit; nsim = k, rng = MersenneTwister(seed))`: an `nobs × k` matrix of new responses in the family's own support.
 - `aic(fit)`, `dof(fit)`, `loglik(fit)`, `nobs(fit)`, `lrtest(reduced, full)`: the comparison toolkit. `lrtest` returns `(; statistic, dof, pvalue)`, throws when the order is wrong, and cannot see whether the two fits used the same rows; call `nobs` on both first.
-- `fig_diagnostic(resid)` and `erfinv_approx` from `tools/figures.jl`: the worm plot with its pointwise ±2SE envelope, and the piece of its arithmetic the counters reuse.
+- `fig_diagnostic(resid)`, `worm_parts(r)`, `n_outside(r)`, `n_below(r)` and `erfinv_approx` from `tools/figures.jl`: the worm plot, and the arithmetic that lets you count what it shows rather than just look at it. `null_counters(fit, refit, ndraw, rng)` from `tools/diagnostics.jl`: simulate, refit, count, `ndraw` times over.
 - **The simulation thread.** Every chapter ends by asking the fit to invent data. Here it is on the repaired model, checking the thing a standard error actually claims.
 
 ```{julia}

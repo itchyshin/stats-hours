@@ -126,25 +126,27 @@ the only question a referee will ask, which is whether the thing you
 fitted is any good. Today is that question, and it is a service class:
 no new rung, no new constant freed, just the machinery you will use in
 every chapter after this.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>In SPSS I would have clicked “save residuals” and plotted them.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>In R I would have called <code>residuals</code> on the fit and plotted
+them.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>And in a Gaussian model you would have been right, which is the trap.
 Load both files.</p></div>
 <div id="setup" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>raw.Sex <span class="op">=</span> <span class="fu">ifelse</span>.(raw.Sex <span class="op">.==</span> <span class="st">"F"</span>, <span class="st">"female"</span>, <span class="st">"male"</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Sex, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>n_sp <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sparrows: %d rows   females: %d rows</span><span class="sc">\n</span><span class="st">"</span>, n_sp, n_fem)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/diagnostics.jl includes tools/figures.jl, which includes</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/theme_itchy.jl itself, so one include does all three.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/diagnostics.jl"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>raw.Sex <span class="op">=</span> <span class="fu">ifelse</span>.(raw.Sex <span class="op">.==</span> <span class="st">"F"</span>, <span class="st">"female"</span>, <span class="st">"male"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Sex, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>n_sp <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sparrows: %d rows   females: %d rows</span><span class="sc">\n</span><span class="st">"</span>, n_sp, n_fem)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>sparrows: 171 rows   females: 163 rows</code></pre>
 </div>
@@ -278,52 +280,36 @@ number but an interval, so you draw uniformly inside it — hence
 <div class="line"><span class="who itchy">Itchy</span><p>Now the plot. It is the one <code>fig_diagnostic</code> draws, and
 before anybody looks at it I am going to tell you what is on the axes,
 because the commonest failure in this room is reading a picture whose
-meaning you have assumed. The helper cell in between exposes the
-arithmetic so the picture can be counted; read it or skip it.
-<code>worm_parts</code> hands back a NamedTuple of three fields,
-<code>(; theo, dev = ..., se)</code>, so the counters under it can ask
-for <code>w.dev</code>, and each counter is a one-line function whose
-body is two statements with a semicolon between them: compute the parts,
-then count.</p></div>
-<div id="worm-helpers" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The arithmetic fig_diagnostic draws, exposed so the picture can be counted.</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">worm_parts</span>(r)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">length</span>(r)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    obs <span class="op">=</span> <span class="fu">sort</span>(r)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> ((<span class="fl">1</span><span class="op">:</span>n) <span class="op">.-</span> <span class="fl">0.5</span>) <span class="op">./</span> n</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    theo <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">.*</span> <span class="fu">erfinv_approx</span>.(<span class="fl">2</span> <span class="op">.*</span> p <span class="op">.-</span> <span class="fl">1</span>)      <span class="co"># normal quantiles</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    dens <span class="op">=</span> x <span class="op">-&gt;</span> <span class="fu">exp</span>(<span class="op">-</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">2</span>) <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span>π)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    se <span class="op">=</span> <span class="fu">sqrt</span>.(p <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p) <span class="op">./</span> n) <span class="op">./</span> <span class="fu">dens</span>.(theo)      <span class="co"># SE of the ith order statistic</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    (; theo, dev <span class="op">=</span> obs <span class="op">.-</span> theo, se)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">n_outside</span>(r) <span class="op">=</span> (w <span class="op">=</span> <span class="fu">worm_parts</span>(r); <span class="fu">count</span>(<span class="fu">abs</span>.(w.dev) <span class="op">.&gt;</span> <span class="fl">2</span> <span class="op">.*</span> w.se))</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">n_below</span>(r)   <span class="op">=</span> (w <span class="op">=</span> <span class="fu">worm_parts</span>(r); <span class="fu">count</span>(w.dev <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span> <span class="op">.*</span> w.se))   <span class="co"># and above = outside - below</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="line"><span class="who itchy">Itchy</span><p>The horizontal axis is the quantile a standard normal would have put at
-that rank. The vertical axis is <strong>the deviation from it</strong> —
-sorted residual minus expected quantile. So a correct model does not
-give you a diagonal line. It gives you a <strong>flat line at
-zero</strong>. This is a detrended quantile plot, a worm plot, and van
-Buuren and Fredriks (2001) named it that because a wrong model makes it
-wriggle. The band is a pointwise two-standard-error envelope on each
-order statistic under normality.</p></div>
+meaning you have assumed. Counting what the picture shows takes the same
+arithmetic <code>fig_diagnostic</code> draws with, so it lives beside it
+in <code>tools/figures.jl</code>: <code>worm_parts(r)</code> returns
+each sorted residual’s deviation from the normal quantile it should sit
+at, and <code>n_outside(r)</code> and <code>n_below(r)</code> count how
+many of those deviations fall outside the pointwise band, and how many
+of those are on the low side. The horizontal axis is the quantile a
+standard normal would have put at that rank. The vertical axis is
+<strong>the deviation from it</strong> — sorted residual minus expected
+quantile. So a correct model does not give you a diagonal line. It gives
+you a <strong>flat line at zero</strong>. This is a detrended quantile
+plot, a worm plot, and van Buuren and Fredriks (2001) named it that
+because a wrong model makes it wriggle. The band is a pointwise
+two-standard-error envelope on each order statistic under normality.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>So five per cent of the points should fall outside it.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>That is the sentence I want to kill. Draw it first, then we will find
 out.</p></div>
-<div id="cell-fig-worm-poisson" class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>out_p <span class="op">=</span> <span class="fu">n_outside</span>(r_quantile)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_quantile))</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points outside the +/-2SE envelope : %d of %d  (%d below the band, %d above)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        out_p, n_fem, <span class="fu">n_below</span>(r_quantile), out_p <span class="op">-</span> <span class="fu">n_below</span>(r_quantile))</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_quantile; title <span class="op">=</span> <span class="st">"fledglings ~ age, quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-worm-poisson" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>out_p <span class="op">=</span> <span class="fu">n_outside</span>(r_quantile)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_quantile))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points outside the +/-2SE envelope : %d of %d  (%d below the band, %d above)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        out_p, n_fem, <span class="fu">n_below</span>(r_quantile), out_p <span class="op">-</span> <span class="fu">n_below</span>(r_quantile))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_quantile; title <span class="op">=</span> <span class="st">"fledglings ~ age, quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>quantile residual SD : 1.3067
 points outside the +/-2SE envelope : 107 of 163  (49 below the band, 58 above)</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="9">
 <div id="fig-worm-poisson" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-worm-poisson-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -349,51 +335,44 @@ dozens cross at once. And these residuals are not a fresh normal sample:
 they came out of a model <strong>fitted to these very data</strong>,
 which is the caveat Dunn and Smyth put in their own abstract — normal
 apart from the sampling variability in the estimated parameters.
-Simulate both nulls and find out which one this picture belongs to. Read
-<code>null_counters</code> before you run it. <code>Int[]</code> and
-<code>Float64[]</code> are empty vectors that know what they will hold,
-and <code>push!</code> appends one value to the end, so every pass
-through the loop grows them by one: the loop form of a comprehension,
-for a body that does several things. <code>refit</code> is a function
-handed in as an argument, like any other value, which is why
-<code>refit_age</code> is defined by name underneath. And
-<code>for _ in 1:2000</code> uses an underscore for a counter whose
-value is never wanted.</p></div>
-<div id="null-envelope" class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TWO nulls: (a) plain standard normal samples, no model anywhere;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (b) simulate from the fit, REFIT the same formula, recompute the residuals, count.</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">null_counters</span>(fit, refit, ndraw, rng)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">simulate</span>(fit; nsim <span class="op">=</span> ndraw, rng <span class="op">=</span> rng)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    outs <span class="op">=</span> <span class="dt">Int</span>[]; sds <span class="op">=</span> <span class="dt">Float64</span>[]</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>ndraw</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> <span class="fu">residuals</span>(<span class="fu">refit</span>(y[<span class="op">:</span>, k]); <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> rng)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(outs, <span class="fu">n_outside</span>(r)); <span class="fu">push!</span>(sds, <span class="fu">std</span>(r))</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    (; outs, sds)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="fu">refit_age</span>(y) <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>();</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age))</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>rng_naive <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">10</span>)</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>naive_out <span class="op">=</span> [<span class="fu">n_outside</span>(<span class="fu">randn</span>(rng_naive, n_fem)) for _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2000</span>]</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>rng_null <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">11</span>)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>nullp <span class="op">=</span> <span class="fu">null_counters</span>(pois, refit_age, <span class="fl">2000</span>, rng_null)</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>null_out <span class="op">=</span> nullp.outs</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>q95 <span class="op">=</span> <span class="fu">quantile</span>(null_out, <span class="fl">0.95</span>)</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(a) normal samples, no fit : median %.0f, mean %.2f, 95th pct %.0f  (%.0f%% of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(naive_out), <span class="fu">mean</span>(naive_out), <span class="fu">quantile</span>(naive_out, <span class="fl">0.95</span>),</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> <span class="fu">quantile</span>(naive_out, <span class="fl">0.95</span>) <span class="op">/</span> n_fem, n_fem)</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"    the pointwise two-sigma rate alone predicts a mean of %.2f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        <span class="fl">2</span> <span class="op">*</span> Distributions.<span class="fu">cdf</span>(Distributions.<span class="fu">Normal</span>(), <span class="op">-</span><span class="fl">2</span>) <span class="op">*</span> n_fem)</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(b) simulate -&gt; refit -&gt; residuals, outside : median %.0f, mean %.2f, 95th pct %.0f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(null_out), <span class="fu">mean</span>(null_out), q95)</span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(b) residual SD of a correct fitted model   : mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(nullp.sds), <span class="fu">std</span>(nullp.sds))</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"draws of %d with at least %d points outside : %d of %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        n_fem, out_p, <span class="fu">count</span>(null_out <span class="op">.&gt;=</span> out_p), <span class="fu">length</span>(null_out))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+Simulate both nulls and find out which one this picture belongs to.
+<code>null_counters</code> lives in <code>tools/diagnostics.jl</code>:
+hand it a fit, a refit function, a draw count and a generator, and it
+simulates that many worlds, refits each one, and counts. Inside it,
+<code>Int[]</code> and <code>Float64[]</code> are empty vectors that
+know what they will hold, and <code>push!</code> appends one value to
+the end, so every pass through the loop grows them by one: the loop form
+of a comprehension, for a body that does several things.
+<code>refit</code> is a function handed in as an argument, like any
+other value, which is why <code>refit_age</code> is defined by name
+underneath. And <code>for _ in 1:2000</code> uses an underscore for a
+counter whose value is never wanted.</p></div>
+<div id="null-envelope" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TWO nulls: (a) plain standard normal samples, no model anywhere;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (b) simulate from the fit, REFIT the same formula, recompute the residuals,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># count -- null_counters, from tools/diagnostics.jl, does exactly that.</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">refit_age</span>(y) <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>();</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                   data <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>rng_naive <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">10</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>naive_out <span class="op">=</span> [<span class="fu">n_outside</span>(<span class="fu">randn</span>(rng_naive, n_fem)) for _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2000</span>]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>rng_null <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">11</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>nullp <span class="op">=</span> <span class="fu">null_counters</span>(pois, refit_age, <span class="fl">2000</span>, rng_null)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>null_out <span class="op">=</span> nullp.outs</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>q95 <span class="op">=</span> <span class="fu">quantile</span>(null_out, <span class="fl">0.95</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(a) normal samples, no fit : median %.0f, mean %.2f, 95th pct %.0f  (%.0f%% of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(naive_out), <span class="fu">mean</span>(naive_out), <span class="fu">quantile</span>(naive_out, <span class="fl">0.95</span>),</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> <span class="fu">quantile</span>(naive_out, <span class="fl">0.95</span>) <span class="op">/</span> n_fem, n_fem)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"    the pointwise two-sigma rate alone predicts a mean of %.2f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        <span class="fl">2</span> <span class="op">*</span> Distributions.<span class="fu">cdf</span>(Distributions.<span class="fu">Normal</span>(), <span class="op">-</span><span class="fl">2</span>) <span class="op">*</span> n_fem)</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(b) simulate -&gt; refit -&gt; residuals, outside : median %.0f, mean %.2f, 95th pct %.0f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(null_out), <span class="fu">mean</span>(null_out), q95)</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"(b) residual SD of a correct fitted model   : mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(nullp.sds), <span class="fu">std</span>(nullp.sds))</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"draws of %d with at least %d points outside : %d of %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>        n_fem, out_p, <span class="fu">count</span>(null_out <span class="op">.&gt;=</span> out_p), <span class="fu">length</span>(null_out))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>(a) normal samples, no fit : median 1, mean 7.15, 95th pct 37  (23% of 163)
     the pointwise two-sigma rate alone predicts a mean of 7.42
@@ -402,17 +381,17 @@ value is never wanted.</p></div>
 draws of 163 with at least 107 points outside : 0 of 2000</code></pre>
 </div>
 </div>
-<div id="cell-fig-null-envelope" class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">700</span>, <span class="fl">320</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j, (nm, v)) <span class="kw">in</span> <span class="fu">enumerate</span>(((<span class="st">"no model, normal samples"</span>, naive_out),</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                                (<span class="st">"simulate -&gt; refit -&gt; residuals"</span>, null_out)))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, j]; xlabel <span class="op">=</span> <span class="st">"points outside the ±2SE envelope"</span>,</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        ylabel <span class="op">=</span> j <span class="op">==</span> <span class="fl">1</span> ? <span class="st">"simulated worlds"</span> <span class="op">:</span> <span class="st">""</span>, title <span class="op">=</span> nm)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">hist!</span>(ax, v; bins <span class="op">=</span> <span class="fl">30</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vlines!</span>(ax, [<span class="fu">quantile</span>(v, <span class="fl">0.95</span>)]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="cell-fig-null-envelope" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">700</span>, <span class="fl">320</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j, (nm, v)) <span class="kw">in</span> <span class="fu">enumerate</span>(((<span class="st">"no model, normal samples"</span>, naive_out),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                                (<span class="st">"simulate -&gt; refit -&gt; residuals"</span>, null_out)))</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, j]; xlabel <span class="op">=</span> <span class="st">"points outside the ±2SE envelope"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        ylabel <span class="op">=</span> j <span class="op">==</span> <span class="fl">1</span> ? <span class="st">"simulated worlds"</span> <span class="op">:</span> <span class="st">""</span>, title <span class="op">=</span> nm)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">hist!</span>(ax, v; bins <span class="op">=</span> <span class="fl">30</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vlines!</span>(ax, [<span class="fu">quantile</span>(v, <span class="fl">0.95</span>)]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
 <div id="fig-null-envelope" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-null-envelope-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -461,21 +440,21 @@ you believe any of them, and it is the thing almost nobody checks.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The seed. You handed a random generator to a residual function. Change
 the seed and you get a different residual vector from the same fit. If
 the verdict moves with the seed, the verdict is about your seed.</p></div>
-<div id="seed-stability" class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sds <span class="op">=</span> <span class="dt">Float64</span>[]</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>outs <span class="op">=</span> <span class="dt">Int</span>[]</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">200</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> <span class="fu">residuals</span>(pois; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(k))</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(sds, <span class="fu">std</span>(r))</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(outs, <span class="fu">n_outside</span>(r))</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"over 200 randomisation seeds: SD mean %.4f (SD %.4f), range %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(sds), <span class="fu">std</span>(sds), <span class="fu">minimum</span>(sds), <span class="fu">maximum</span>(sds))</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"over 200 randomisation seeds: points outside, min %d, mean %.1f, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(outs), <span class="fu">mean</span>(outs), <span class="fu">maximum</span>(outs))</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"seeds landing inside the correct-model 95th percentile (%d): %d of 200</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">round</span>(<span class="dt">Int</span>, q95), <span class="fu">count</span>(outs <span class="op">.&lt;=</span> q95))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="seed-stability" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sds <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>outs <span class="op">=</span> <span class="dt">Int</span>[]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">200</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> <span class="fu">residuals</span>(pois; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(k))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(sds, <span class="fu">std</span>(r))</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(outs, <span class="fu">n_outside</span>(r))</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"over 200 randomisation seeds: SD mean %.4f (SD %.4f), range %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(sds), <span class="fu">std</span>(sds), <span class="fu">minimum</span>(sds), <span class="fu">maximum</span>(sds))</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"over 200 randomisation seeds: points outside, min %d, mean %.1f, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">minimum</span>(outs), <span class="fu">mean</span>(outs), <span class="fu">maximum</span>(outs))</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"seeds landing inside the correct-model 95th percentile (%d): %d of 200</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">round</span>(<span class="dt">Int</span>, q95), <span class="fu">count</span>(outs <span class="op">.&lt;=</span> q95))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>over 200 randomisation seeds: SD mean 1.3043 (SD 0.0238), range 1.2575 to 1.3935
 over 200 randomisation seeds: points outside, min 78, mean 98.9, max 119
@@ -508,18 +487,18 @@ right instinct, and it is a superb statistic besides: it is checkable in
 the world, and the model has never been told it is impossible. Your file
 has the eggs in the second column, and the model has never seen that
 column.</p></div>
-<div id="simulate-impossible" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>n_egg_col <span class="op">=</span> <span class="fu">count</span>(females.Fledglings <span class="op">.&gt;</span> females.EggNo)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(pois; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>imposs <span class="op">=</span> [<span class="fu">count</span>(ysim[<span class="op">:</span>, k] <span class="op">.&gt;</span> females.EggNo) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed females fledging more chicks than eggs laid : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_egg_col, n_fem)</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated worlds, count of such females: mean %.2f, min %d, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs), <span class="fu">minimum</span>(imposs), <span class="fu">maximum</span>(imposs))</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of simulated worlds at or below the observed count : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs <span class="op">.&lt;=</span> n_egg_col))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-impossible" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>n_egg_col <span class="op">=</span> <span class="fu">count</span>(females.Fledglings <span class="op">.&gt;</span> females.EggNo)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(pois; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>imposs <span class="op">=</span> [<span class="fu">count</span>(ysim[<span class="op">:</span>, k] <span class="op">.&gt;</span> females.EggNo) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed females fledging more chicks than eggs laid : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_egg_col, n_fem)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated worlds, count of such females: mean %.2f, min %d, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs), <span class="fu">minimum</span>(imposs), <span class="fu">maximum</span>(imposs))</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of simulated worlds at or below the observed count : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs <span class="op">.&lt;=</span> n_egg_col))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>observed females fledging more chicks than eggs laid : 0 of 163
 simulated worlds, count of such females: mean 8.83, min 3, max 16
@@ -548,11 +527,11 @@ longest run.</p></div>
 the repaired one, and because you should never take a fit on trust from
 a previous chapter. Same formula as Class 4, refitted here, printed
 here.</p></div>
-<div id="cell-fit-repaired" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>females.logEgg <span class="op">=</span> <span class="fu">log</span>.(females.EggNo)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>pois2 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>pois2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-repaired" class="cell-output cell-output-display" data-execution_count="19">
+<div id="cell-fit-repaired" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>females.logEgg <span class="op">=</span> <span class="fu">log</span>.(females.EggNo)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>pois2 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>pois2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-repaired" class="cell-output cell-output-display" data-execution_count="18">
 <pre><code>Distributional regression fit (Poisson)
   nobs = 163   logLik = -323.4104   converged = true
 
@@ -564,19 +543,19 @@ Mean model (μ):
   logEgg        0.9503     0.1102   8.6213  6.622e-18</code></pre>
 </div>
 </div>
-<div id="repaired-coefficients" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>b2 <span class="op">=</span> <span class="fu">coef</span>(pois2, <span class="op">:</span>mu)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>se2 <span class="op">=</span> <span class="fu">stderror</span>(pois2)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>lo_egg, hi_egg <span class="op">=</span> b2[<span class="fl">3</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">3</span>], b2[<span class="fl">3</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">3</span>]</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>rr_age2 <span class="op">=</span> <span class="fu">exp</span>(b2[<span class="fl">2</span>])</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>lo_age2, hi_age2 <span class="op">=</span> <span class="fu">exp</span>(b2[<span class="fl">2</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">2</span>]), <span class="fu">exp</span>(b2[<span class="fl">2</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">2</span>])</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>b1 <span class="op">=</span> <span class="fu">coef</span>(pois, <span class="op">:</span>mu); se1 <span class="op">=</span> <span class="fu">stderror</span>(pois)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>rr_age1 <span class="op">=</span> <span class="fu">exp</span>(b1[<span class="fl">2</span>])</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>lo_age1, hi_age1 <span class="op">=</span> <span class="fu">exp</span>(b1[<span class="fl">2</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se1[<span class="fl">2</span>]), <span class="fu">exp</span>(b1[<span class="fl">2</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se1[<span class="fl">2</span>])</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>mde_age <span class="op">=</span> <span class="fu">exp</span>(<span class="fl">2.8016</span> <span class="op">*</span> se2[<span class="fl">2</span>])</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>eggfit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(EggNo <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>be <span class="op">=</span> <span class="fu">coef</span>(eggfit, <span class="op">:</span>mu); see <span class="op">=</span> <span class="fu">stderror</span>(eggfit)</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>rr_egg_age <span class="op">=</span> <span class="fu">exp</span>(be[<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="repaired-coefficients" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>b2 <span class="op">=</span> <span class="fu">coef</span>(pois2, <span class="op">:</span>mu)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>se2 <span class="op">=</span> <span class="fu">stderror</span>(pois2)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>lo_egg, hi_egg <span class="op">=</span> b2[<span class="fl">3</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">3</span>], b2[<span class="fl">3</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">3</span>]</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>rr_age2 <span class="op">=</span> <span class="fu">exp</span>(b2[<span class="fl">2</span>])</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>lo_age2, hi_age2 <span class="op">=</span> <span class="fu">exp</span>(b2[<span class="fl">2</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">2</span>]), <span class="fu">exp</span>(b2[<span class="fl">2</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se2[<span class="fl">2</span>])</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>b1 <span class="op">=</span> <span class="fu">coef</span>(pois, <span class="op">:</span>mu); se1 <span class="op">=</span> <span class="fu">stderror</span>(pois)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>rr_age1 <span class="op">=</span> <span class="fu">exp</span>(b1[<span class="fl">2</span>])</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>lo_age1, hi_age1 <span class="op">=</span> <span class="fu">exp</span>(b1[<span class="fl">2</span>] <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> se1[<span class="fl">2</span>]), <span class="fu">exp</span>(b1[<span class="fl">2</span>] <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> se1[<span class="fl">2</span>])</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>mde_age <span class="op">=</span> <span class="fu">exp</span>(<span class="fl">2.8016</span> <span class="op">*</span> se2[<span class="fl">2</span>])</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>eggfit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(EggNo <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>be <span class="op">=</span> <span class="fu">coef</span>(eggfit, <span class="op">:</span>mu); see <span class="op">=</span> <span class="fu">stderror</span>(eggfit)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>rr_egg_age <span class="op">=</span> <span class="fu">exp</span>(be[<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>Class 4’s numbers to the last digit. The coefficient on log-eggs is
 0.95, interval 0.734 to 1.166, covering one, the value an offset would
@@ -584,30 +563,30 @@ have pinned it at; the engine cannot write an offset (see <a href="appendix-b-en
 coefficient is fitted free. <strong>Today’s question is Eddie’s: is the
 repaired model any good?</strong> Run Momo’s check again on it, and
 change nothing else.</p></div>
-<div id="cell-fig-simcheck" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>rng_sim2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ysim2 <span class="op">=</span> <span class="fu">simulate</span>(pois2; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_sim2)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>imposs2 <span class="op">=</span> [<span class="fu">count</span>(ysim2[<span class="op">:</span>, k] <span class="op">.&gt;</span> females.EggNo) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"with eggs laid in the model: mean %.2f, min %d, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs2), <span class="fu">minimum</span>(imposs2), <span class="fu">maximum</span>(imposs2))</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of simulated worlds at or below the observed count : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs2 <span class="op">.&lt;=</span> n_egg_col))</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">700</span>, <span class="fl">320</span>))</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j, (nm, v)) <span class="kw">in</span> <span class="fu">enumerate</span>(((<span class="st">"fledglings ~ age"</span>, imposs), (<span class="st">"fledglings ~ age + log(eggs)"</span>, imposs2)))</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, j]; xlabel <span class="op">=</span> <span class="st">"impossible females in a simulated world"</span>,</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>        ylabel <span class="op">=</span> j <span class="op">==</span> <span class="fl">1</span> ? <span class="st">"simulated worlds"</span> <span class="op">:</span> <span class="st">""</span>, title <span class="op">=</span> nm)</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">hist!</span>(ax, v; bins <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">:</span><span class="fl">1</span><span class="op">:</span><span class="fl">16.5</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vlines!</span>(ax, [n_egg_col]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax, <span class="op">-</span><span class="fl">1</span>, <span class="fl">17</span>)</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-simcheck" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>rng_sim2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ysim2 <span class="op">=</span> <span class="fu">simulate</span>(pois2; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_sim2)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>imposs2 <span class="op">=</span> [<span class="fu">count</span>(ysim2[<span class="op">:</span>, k] <span class="op">.&gt;</span> females.EggNo) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"with eggs laid in the model: mean %.2f, min %d, max %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs2), <span class="fu">minimum</span>(imposs2), <span class="fu">maximum</span>(imposs2))</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of simulated worlds at or below the observed count : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(imposs2 <span class="op">.&lt;=</span> n_egg_col))</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">700</span>, <span class="fl">320</span>))</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j, (nm, v)) <span class="kw">in</span> <span class="fu">enumerate</span>(((<span class="st">"fledglings ~ age"</span>, imposs), (<span class="st">"fledglings ~ age + log(eggs)"</span>, imposs2)))</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, j]; xlabel <span class="op">=</span> <span class="st">"impossible females in a simulated world"</span>,</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>        ylabel <span class="op">=</span> j <span class="op">==</span> <span class="fl">1</span> ? <span class="st">"simulated worlds"</span> <span class="op">:</span> <span class="st">""</span>, title <span class="op">=</span> nm)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">hist!</span>(ax, v; bins <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">:</span><span class="fl">1</span><span class="op">:</span><span class="fl">16.5</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">vlines!</span>(ax, [n_egg_col]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlims!</span>(ax, <span class="op">-</span><span class="fl">1</span>, <span class="fl">17</span>)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>with eggs laid in the model: mean 0.61, min 0, max 5
 proportion of simulated worlds at or below the observed count : 0.5390</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<div class="cell-output cell-output-display" data-execution_count="21">
 <div id="fig-simcheck" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-simcheck-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -634,21 +613,21 @@ Pearson chi-squared over its degrees of freedom, which is one when the
 family’s variance decree is met. One rule: refit each invented world
 before you score it, so the null spends the same parameters the observed
 statistic spent.</p></div>
-<div id="simcheck-pearson" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">x2_over_df</span>(y, f) <span class="op">=</span> <span class="fu">sum</span>(abs2, (y <span class="op">.-</span> <span class="fu">fitted</span>(f)) <span class="op">./</span> <span class="fu">sqrt</span>.(<span class="fu">fitted</span>(f))) <span class="op">/</span> <span class="fu">dof_residual</span>(f)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">refit_full</span>(y) <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>();</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                    data <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg))</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>obs_x2  <span class="op">=</span> <span class="fu">x2_over_df</span>(females.Fledglings, pois)</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>obs_x22 <span class="op">=</span> <span class="fu">x2_over_df</span>(females.Fledglings, pois2)</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>sim_x2  <span class="op">=</span> [<span class="fu">x2_over_df</span>(ysim[<span class="op">:</span>, k],  <span class="fu">refit_age</span>(ysim[<span class="op">:</span>, k]))  for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>sim_x22 <span class="op">=</span> [<span class="fu">x2_over_df</span>(ysim2[<span class="op">:</span>, k], <span class="fu">refit_full</span>(ysim2[<span class="op">:</span>, k])) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"age only     : observed X2/df %.4f ; simulated mean %.4f, 97.5th pct %.4f ; P(sim &gt;= obs) %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>        obs_x2, <span class="fu">mean</span>(sim_x2), <span class="fu">quantile</span>(sim_x2, <span class="fl">0.975</span>), <span class="fu">mean</span>(sim_x2 <span class="op">.&gt;=</span> obs_x2))</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"with the eggs: observed X2/df %.4f ; simulated mean %.4f, 97.5th pct %.4f ; P(sim &gt;= obs) %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>        obs_x22, <span class="fu">mean</span>(sim_x22), <span class="fu">quantile</span>(sim_x22, <span class="fl">0.975</span>), <span class="fu">mean</span>(sim_x22 <span class="op">.&gt;=</span> obs_x22))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simcheck-pearson" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">x2_over_df</span>(y, f) <span class="op">=</span> <span class="fu">sum</span>(abs2, (y <span class="op">.-</span> <span class="fu">fitted</span>(f)) <span class="op">./</span> <span class="fu">sqrt</span>.(<span class="fu">fitted</span>(f))) <span class="op">/</span> <span class="fu">dof_residual</span>(f)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">refit_full</span>(y) <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>();</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                    data <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg))</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>obs_x2  <span class="op">=</span> <span class="fu">x2_over_df</span>(females.Fledglings, pois)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>obs_x22 <span class="op">=</span> <span class="fu">x2_over_df</span>(females.Fledglings, pois2)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>sim_x2  <span class="op">=</span> [<span class="fu">x2_over_df</span>(ysim[<span class="op">:</span>, k],  <span class="fu">refit_age</span>(ysim[<span class="op">:</span>, k]))  for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>sim_x22 <span class="op">=</span> [<span class="fu">x2_over_df</span>(ysim2[<span class="op">:</span>, k], <span class="fu">refit_full</span>(ysim2[<span class="op">:</span>, k])) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"age only     : observed X2/df %.4f ; simulated mean %.4f, 97.5th pct %.4f ; P(sim &gt;= obs) %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>        obs_x2, <span class="fu">mean</span>(sim_x2), <span class="fu">quantile</span>(sim_x2, <span class="fl">0.975</span>), <span class="fu">mean</span>(sim_x2 <span class="op">.&gt;=</span> obs_x2))</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"with the eggs: observed X2/df %.4f ; simulated mean %.4f, 97.5th pct %.4f ; P(sim &gt;= obs) %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>        obs_x22, <span class="fu">mean</span>(sim_x22), <span class="fu">quantile</span>(sim_x22, <span class="fl">0.975</span>), <span class="fu">mean</span>(sim_x22 <span class="op">.&gt;=</span> obs_x22))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>age only     : observed X2/df 1.5679 ; simulated mean 1.0023, 97.5th pct 1.2254 ; P(sim &gt;= obs) 0.0000
 with the eggs: observed X2/df 1.1064 ; simulated mean 1.0031, 97.5th pct 1.2345 ; P(sim &gt;= obs) 0.1760</code></pre>
@@ -660,28 +639,28 @@ is above the ninety-seventh-and-a-half percentile of its own null and
 not one of the thousand draws reached it. The repaired model’s 1.106 is
 unremarkable: 0.176 of its worlds were at least that far out. On this
 statistic the repaired model passes. Draw its worm plot.</p></div>
-<div id="cell-fig-worm-repaired" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>r_quantile2 <span class="op">=</span> <span class="fu">residuals</span>(pois2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2</span>))</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>out_p2 <span class="op">=</span> <span class="fu">n_outside</span>(r_quantile2)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>w2 <span class="op">=</span> <span class="fu">worm_parts</span>(r_quantile2)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>below_left2 <span class="op">=</span> <span class="fu">count</span>((w2.dev <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span> <span class="op">.*</span> w2.se) <span class="op">.&amp;</span> (w2.theo <span class="op">.&lt;</span> <span class="fl">0</span>))   <span class="co"># below the band AND at a negative quantile</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co"># This model's OWN null: same recipe, the repaired formula refitted each time.</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>rng_null2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">13</span>)</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>nullp2 <span class="op">=</span> <span class="fu">null_counters</span>(pois2, refit_full, <span class="fl">2000</span>, rng_null2)</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_quantile2))</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points outside : %d of %d (%d below the band, %d above)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        out_p2, n_fem, <span class="fu">n_below</span>(r_quantile2), out_p2 <span class="op">-</span> <span class="fu">n_below</span>(r_quantile2))</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"of those below the band, at a negative theoretical quantile : %d</span><span class="sc">\n</span><span class="st">"</span>, below_left2)</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"this model's own null: outside median %.0f, mean %.2f, 95th pct %.0f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(nullp2.outs), <span class="fu">mean</span>(nullp2.outs), <span class="fu">quantile</span>(nullp2.outs, <span class="fl">0.95</span>))</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"draws with at least %d outside : %d of %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>        out_p2, <span class="fu">count</span>(nullp2.outs <span class="op">.&gt;=</span> out_p2), <span class="fu">length</span>(nullp2.outs))</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"for contrast, the WRONG null (plain normal samples) had %d of %d at least this bad</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(naive_out <span class="op">.&gt;=</span> out_p2), <span class="fu">length</span>(naive_out))</span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_quantile2; title <span class="op">=</span> <span class="st">"age + log(eggs), quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-worm-repaired" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>r_quantile2 <span class="op">=</span> <span class="fu">residuals</span>(pois2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2</span>))</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>out_p2 <span class="op">=</span> <span class="fu">n_outside</span>(r_quantile2)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>w2 <span class="op">=</span> <span class="fu">worm_parts</span>(r_quantile2)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>below_left2 <span class="op">=</span> <span class="fu">count</span>((w2.dev <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span> <span class="op">.*</span> w2.se) <span class="op">.&amp;</span> (w2.theo <span class="op">.&lt;</span> <span class="fl">0</span>))   <span class="co"># below the band AND at a negative quantile</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co"># This model's OWN null: same recipe, the repaired formula refitted each time.</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>rng_null2 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">13</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>nullp2 <span class="op">=</span> <span class="fu">null_counters</span>(pois2, refit_full, <span class="fl">2000</span>, rng_null2)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(r_quantile2))</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points outside : %d of %d (%d below the band, %d above)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>        out_p2, n_fem, <span class="fu">n_below</span>(r_quantile2), out_p2 <span class="op">-</span> <span class="fu">n_below</span>(r_quantile2))</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"of those below the band, at a negative theoretical quantile : %d</span><span class="sc">\n</span><span class="st">"</span>, below_left2)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"this model's own null: outside median %.0f, mean %.2f, 95th pct %.0f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(nullp2.outs), <span class="fu">mean</span>(nullp2.outs), <span class="fu">quantile</span>(nullp2.outs, <span class="fl">0.95</span>))</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"draws with at least %d outside : %d of %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>        out_p2, <span class="fu">count</span>(nullp2.outs <span class="op">.&gt;=</span> out_p2), <span class="fu">length</span>(nullp2.outs))</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"for contrast, the WRONG null (plain normal samples) had %d of %d at least this bad</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(naive_out <span class="op">.&gt;=</span> out_p2), <span class="fu">length</span>(naive_out))</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(r_quantile2; title <span class="op">=</span> <span class="st">"age + log(eggs), quantile residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>quantile residual SD : 1.0844
 points outside : 13 of 163 (11 below the band, 2 above)
@@ -690,7 +669,7 @@ this model's own null: outside median 0, mean 1.45, 95th pct 8
 draws with at least 13 outside : 48 of 2000
 for contrast, the WRONG null (plain normal samples) had 344 of 2000 at least this bad</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell-output cell-output-display" data-execution_count="25">
 <div id="fig-worm-repaired" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-worm-repaired-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -717,19 +696,19 @@ those sit at negative theoretical quantiles, the bottom of the
 distribution — which, for a count, is where the zeros live.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Then what is it getting wrong? The worm plot will not tell me.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>No, but the recipe will. Count the zeros.</p></div>
-<div id="simcheck-zeros" class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The same 1000 worlds as the figure above; one line of the recipe changed.</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>z_obs <span class="op">=</span> <span class="fu">count</span>(<span class="op">==</span>(<span class="fl">0</span>), females.Fledglings)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>mu_p2 <span class="op">=</span> <span class="fu">fitted</span>(pois2)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>z_exp <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">exp</span>.(<span class="op">-</span>mu_p2))                 <span class="co"># a Poisson puts exp(-mu) on zero</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>z_sim <span class="op">=</span> [<span class="fu">count</span>(<span class="op">==</span>(<span class="fl">0</span>), ysim2[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"females fledging nothing, observed : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, z_obs, n_fem)</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the repaired model expects         : %.2f</span><span class="sc">\n</span><span class="st">"</span>, z_exp)</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated worlds: mean %.2f, SD %.2f, largest of the %d : %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(z_sim), <span class="fu">std</span>(z_sim), <span class="fu">length</span>(z_sim), <span class="fu">maximum</span>(z_sim))</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"worlds with at least %d zeros : %d of %d   (observed is %.1f simulated SDs out)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>        z_obs, <span class="fu">count</span>(z_sim <span class="op">.&gt;=</span> z_obs), <span class="fu">length</span>(z_sim), (z_obs <span class="op">-</span> <span class="fu">mean</span>(z_sim)) <span class="op">/</span> <span class="fu">std</span>(z_sim))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simcheck-zeros" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The same 1000 worlds as the figure above; one line of the recipe changed.</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>z_obs <span class="op">=</span> <span class="fu">count</span>(<span class="op">==</span>(<span class="fl">0</span>), females.Fledglings)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>mu_p2 <span class="op">=</span> <span class="fu">fitted</span>(pois2)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>z_exp <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">exp</span>.(<span class="op">-</span>mu_p2))                 <span class="co"># a Poisson puts exp(-mu) on zero</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>z_sim <span class="op">=</span> [<span class="fu">count</span>(<span class="op">==</span>(<span class="fl">0</span>), ysim2[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim2, <span class="fl">2</span>)]</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"females fledging nothing, observed : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, z_obs, n_fem)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the repaired model expects         : %.2f</span><span class="sc">\n</span><span class="st">"</span>, z_exp)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated worlds: mean %.2f, SD %.2f, largest of the %d : %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(z_sim), <span class="fu">std</span>(z_sim), <span class="fu">length</span>(z_sim), <span class="fu">maximum</span>(z_sim))</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"worlds with at least %d zeros : %d of %d   (observed is %.1f simulated SDs out)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        z_obs, <span class="fu">count</span>(z_sim <span class="op">.&gt;=</span> z_obs), <span class="fu">length</span>(z_sim), (z_obs <span class="op">-</span> <span class="fu">mean</span>(z_sim)) <span class="op">/</span> <span class="fu">std</span>(z_sim))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>females fledging nothing, observed : 30 of 163
 the repaired model expects         : 15.49
@@ -769,18 +748,18 @@ to the second term is that a fitted model has been tuned to the very
 data you are judging it on, so its likelihood flatters it, and the
 parameter count is the charge for that. Lower is better, and only
 differences mean anything.</p></div>
-<div id="compare-aic" class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>pois_egg <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f) <span class="kw">in</span> ((<span class="st">"Fledglings ~ Age"</span>, pois), (<span class="st">"Fledglings ~ logEgg"</span>, pois_egg),</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>                (<span class="st">"Fledglings ~ Age + logEgg"</span>, pois2))</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-28s  k = %d   logLik %10.4f   AIC %9.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">dof</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>daic_egg <span class="op">=</span> <span class="fu">aic</span>(pois2) <span class="op">-</span> <span class="fu">aic</span>(pois)</span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>daic_age <span class="op">=</span> <span class="fu">aic</span>(pois2) <span class="op">-</span> <span class="fu">aic</span>(pois_egg)</span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">adding log(eggs) to the age model : dAIC %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_egg)</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding age to the egg model       : dAIC %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="compare-aic" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>pois_egg <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f) <span class="kw">in</span> ((<span class="st">"Fledglings ~ Age"</span>, pois), (<span class="st">"Fledglings ~ logEgg"</span>, pois_egg),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>                (<span class="st">"Fledglings ~ Age + logEgg"</span>, pois2))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-28s  k = %d   logLik %10.4f   AIC %9.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">dof</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>daic_egg <span class="op">=</span> <span class="fu">aic</span>(pois2) <span class="op">-</span> <span class="fu">aic</span>(pois)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>daic_age <span class="op">=</span> <span class="fu">aic</span>(pois2) <span class="op">-</span> <span class="fu">aic</span>(pois_egg)</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">adding log(eggs) to the age model : dAIC %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_egg)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding age to the egg model       : dAIC %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Fledglings ~ Age              k = 2   logLik  -367.9932   AIC  739.9864
 Fledglings ~ logEgg           k = 2   logLik  -324.8066   AIC  653.6131
@@ -807,14 +786,14 @@ about to write turns out to <em>be</em> it. The second number is the
 referred to a chi-squared distribution with as many degrees of freedom
 as parameters added. It gives you a reference distribution rather than a
 ranking.</p></div>
-<div id="compare-lrt" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>lr_egg <span class="op">=</span> <span class="fu">lrtest</span>(pois, pois2)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>lr_age <span class="op">=</span> <span class="fu">lrtest</span>(pois_egg, pois2)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding log(eggs) : statistic %9.4f on %d df, p = %.3e</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        lr_egg.statistic, lr_egg.dof, lr_egg.pvalue)</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding age       : statistic %9.4f on %d df, p = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>        lr_age.statistic, lr_age.dof, lr_age.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="compare-lrt" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>lr_egg <span class="op">=</span> <span class="fu">lrtest</span>(pois, pois2)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>lr_age <span class="op">=</span> <span class="fu">lrtest</span>(pois_egg, pois2)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding log(eggs) : statistic %9.4f on %d df, p = %.3e</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>        lr_egg.statistic, lr_egg.dof, lr_egg.pvalue)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"adding age       : statistic %9.4f on %d df, p = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        lr_age.statistic, lr_age.dof, lr_age.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>adding log(eggs) : statistic   89.1656 on 1 df, p = 3.631e-21
 adding age       : statistic    2.7923 on 1 df, p = 0.0947</code></pre>
@@ -825,32 +804,32 @@ degree of freedom. Now simulate, and watch what happens. Draw worlds
 from the model <strong>without</strong> age in it — worlds where age
 genuinely does nothing once eggs are accounted for — and in each one fit
 both models and take the difference in AIC.</p></div>
-<div id="null-daic" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A world in which age is useless: simulate from the reduced fit, then refit</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"># BOTH models to each invented world and watch what AIC does with a parameter</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># that has nothing in it.</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>rng_null_aic <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">777</span>)</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>ynull <span class="op">=</span> <span class="fu">simulate</span>(pois_egg; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_null_aic)</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>null_daic <span class="op">=</span> <span class="dt">Float64</span>[]</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ynull, <span class="fl">2</span>)</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> ynull[<span class="op">:</span>, k], Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg)</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    a_red  <span class="op">=</span> <span class="fu">aic</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> logEgg)),       <span class="fu">Poisson</span>(); data <span class="op">=</span> d))</span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    a_full <span class="op">=</span> <span class="fu">aic</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> d))</span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(null_daic, a_full <span class="op">-</span> a_red)</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"dAIC when the extra parameter is useless: median %+.4f, mean %+.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(null_daic), <span class="fu">mean</span>(null_daic))</span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of useless-parameter worlds where dAIC is negative : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(null_daic <span class="op">.&lt;</span> <span class="fl">0</span>))</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion at or below our observed dAIC of %+.4f : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>        daic_age, <span class="fu">mean</span>(null_daic <span class="op">.&lt;=</span> daic_age))</span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a><span class="co"># For ONE extra parameter on the SAME data, dAIC = 2k_extra - LR = 2 - LR, exactly.</span></span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">our dAIC %+.4f   versus  2 - LR statistic %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_age, <span class="fl">2</span> <span class="op">-</span> lr_age.statistic)</span>
-<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated tail probability %.4f   versus  the chi-squared p above %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(null_daic <span class="op">.&lt;=</span> daic_age), lr_age.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="null-daic" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A world in which age is useless: simulate from the reduced fit, then refit</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co"># BOTH models to each invented world and watch what AIC does with a parameter</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co"># that has nothing in it.</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>rng_null_aic <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">777</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>ynull <span class="op">=</span> <span class="fu">simulate</span>(pois_egg; nsim <span class="op">=</span> <span class="fl">1000</span>, rng <span class="op">=</span> rng_null_aic)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>null_daic <span class="op">=</span> <span class="dt">Float64</span>[]</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ynull, <span class="fl">2</span>)</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> ynull[<span class="op">:</span>, k], Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    a_red  <span class="op">=</span> <span class="fu">aic</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> logEgg)),       <span class="fu">Poisson</span>(); data <span class="op">=</span> d))</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    a_full <span class="op">=</span> <span class="fu">aic</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> d))</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(null_daic, a_full <span class="op">-</span> a_red)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"dAIC when the extra parameter is useless: median %+.4f, mean %+.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">median</span>(null_daic), <span class="fu">mean</span>(null_daic))</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion of useless-parameter worlds where dAIC is negative : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(null_daic <span class="op">.&lt;</span> <span class="fl">0</span>))</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"proportion at or below our observed dAIC of %+.4f : %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>        daic_age, <span class="fu">mean</span>(null_daic <span class="op">.&lt;=</span> daic_age))</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a><span class="co"># For ONE extra parameter on the SAME data, dAIC = 2k_extra - LR = 2 - LR, exactly.</span></span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">our dAIC %+.4f   versus  2 - LR statistic %+.4f</span><span class="sc">\n</span><span class="st">"</span>, daic_age, <span class="fl">2</span> <span class="op">-</span> lr_age.statistic)</span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated tail probability %.4f   versus  the chi-squared p above %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(null_daic <span class="op">.&lt;=</span> daic_age), lr_age.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>dAIC when the extra parameter is useless: median +1.5463, mean +0.9380
 proportion of useless-parameter worlds where dAIC is negative : 0.1620
@@ -860,17 +839,17 @@ our dAIC -0.7923   versus  2 - LR statistic -0.7923
 simulated tail probability 0.1050   versus  the chi-squared p above 0.0947</code></pre>
 </div>
 </div>
-<div id="cell-fig-null-daic" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">600</span>, <span class="fl">320</span>))</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"ΔAIC (age added to eggs-only model)"</span>,</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"simulated worlds"</span>, title <span class="op">=</span> <span class="st">"ΔAIC when the extra parameter is useless"</span>)</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax, null_daic; bins <span class="op">=</span> <span class="fl">40</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"0 = no change"</span>)</span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [daic_age]; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>), label <span class="op">=</span> <span class="st">"observed ΔAIC"</span>)</span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis so it can never hide a group (house rule: tools/figures.jl)</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div id="cell-fig-null-daic" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">600</span>, <span class="fl">320</span>))</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"ΔAIC (age added to eggs-only model)"</span>,</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"simulated worlds"</span>, title <span class="op">=</span> <span class="st">"ΔAIC when the extra parameter is useless"</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax, null_daic; bins <span class="op">=</span> <span class="fl">40</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, linewidth <span class="op">=</span> <span class="fl">2</span>, label <span class="op">=</span> <span class="st">"0 = no change"</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [daic_age]; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>), label <span class="op">=</span> <span class="st">"observed ΔAIC"</span>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co"># legend outside the axis so it can never hide a group (house rule: tools/figures.jl)</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
 <div id="fig-null-daic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-null-daic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -905,13 +884,13 @@ here; not in Class 8, where testing a variance at zero puts the null on
 a boundary.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So age does not matter.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>No.&nbsp;Say what the data say, which is narrower and more useful.</p></div>
-<div id="rate-ratios" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for a year of age, age alone      : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>        rr_age1, lo_age1, hi_age1)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for a year of age, eggs also in   : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>        rr_age2, lo_age2, hi_age2)</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest rate ratio this design could detect at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mde_age)</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for eggs laid per year of age                  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, rr_egg_age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="rate-ratios" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for a year of age, age alone      : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>        rr_age1, lo_age1, hi_age1)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for a year of age, eggs also in   : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>        rr_age2, lo_age2, hi_age2)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest rate ratio this design could detect at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mde_age)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio for eggs laid per year of age                  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, rr_egg_age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rate ratio for a year of age, age alone      : 1.2618  [1.1490, 1.3857]
 rate ratio for a year of age, eggs also in   : 1.0889  [0.9859, 1.2027]
@@ -946,8 +925,8 @@ bar on the difference itself.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Less than you would like, and knowing exactly how much less is the point
 of the next three minutes. Start with what it does stop. Hand it the two
 models the wrong way round, which is the mistake everybody makes once.</p></div>
-<div id="guard-order" class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(pois2, pois)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="guard-order" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(pois2, pois)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <div class="ansi-escaped-output">
 <pre>ArgumentError: lrtest: `full` must have more parameters than `reduced` (dof(full) = 2, dof(reduced) = 3; did you pass the arguments as (reduced, full)?)
@@ -965,19 +944,19 @@ learn why a refusal can be a kindness.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The one that will actually get you. It cannot see your data.
 <code>females[1:150, :]</code> is rows one to one hundred and fifty and
 every column, a colon in the column slot as in Class 3’s matrix slices.</p></div>
-<div id="cell-guard-silence" class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A nested pair fitted to DIFFERENT ROWS: reduced on the first 150 females, full on all.</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>first150 <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">150</span>, <span class="op">:</span>]</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>pois_sub <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> first150)</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the first fit : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois_sub))</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the second    : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois2))</span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(pois_sub, pois2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-guard-silence" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A nested pair fitted to DIFFERENT ROWS: reduced on the first 150 females, full on all.</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>first150 <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">150</span>, <span class="op">:</span>]</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>pois_sub <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> first150)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the first fit : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois_sub))</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the second    : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois2))</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(pois_sub, pois2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows in the first fit : 150
 rows in the second    : 163</code></pre>
 </div>
-<div id="guard-silence" class="cell-output cell-output-display" data-execution_count="40">
+<div id="guard-silence" class="cell-output cell-output-display" data-execution_count="39">
 <pre><code>(statistic = 21.96374053819227, dof = 1, pvalue = 2.778504632397899e-6)</code></pre>
 </div>
 </div>
@@ -994,12 +973,12 @@ all the rows gives 89.2, so dropping thirteen rows understated a real
 effect about four-fold and still returned a decisive answer. You would
 never look twice. Drop ten more rows and the arithmetic stops
 pretending.</p></div>
-<div id="guard-silence-worse" class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>pois_sub2 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">140</span>, <span class="op">:</span>])</span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>bad <span class="op">=</span> <span class="fu">lrtest</span>(pois_sub2, pois2)</span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"reduced fit on %d rows, full on %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois_sub2), <span class="fu">nobs</span>(pois2))</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"statistic %+.4f on %d df, p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, bad.statistic, bad.dof, bad.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="guard-silence-worse" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>pois_sub2 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">140</span>, <span class="op">:</span>])</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>bad <span class="op">=</span> <span class="fu">lrtest</span>(pois_sub2, pois2)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"reduced fit on %d rows, full on %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois_sub2), <span class="fu">nobs</span>(pois2))</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"statistic %+.4f on %d df, p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, bad.statistic, bad.dof, bad.pvalue)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>reduced fit on 140 rows, full on 163
 statistic -28.1070 on 1 df, p = 1.0000</code></pre>
@@ -1052,7 +1031,7 @@ what it believes.</p></div>
 <li><strong><code>for (nm, r) in (("response", r1), ("Pearson", r2))</code>.</strong> Looping over a list of pairs, each unpacked into two names. <code>enumerate(list)</code> adds a counter: <code>for (j, (nm, r)) in enumerate(panels)</code>.</li>
 <li><strong><code>for _ in 1:2000</code>.</strong> An underscore for a counter whose value is never used.</li>
 <li><strong><code>extrema(mu_p)...</code>.</strong> The splat: spreads a pair into two separate arguments.</li>
-<li><strong><code>(; theo, dev = obs .- theo, se)</code>.</strong> Returning a NamedTuple from a function, so the caller can write <code>w.dev</code>. <code>n_outside(r) = (w = worm_parts(r); count(...))</code> is a one-line function with two statements in it.</li>
+<li><strong>The worm-plot arithmetic itself is not on this page.</strong> <code>worm_parts</code>, <code>n_outside</code> and <code>n_below</code> live in <code>tools/figures.jl</code>, and <code>null_counters</code> in <code>tools/diagnostics.jl</code>; the chapter calls them, it does not define them.</li>
 <li><strong><code>females[1:150, :]</code>.</strong> Rows one to one hundred and fifty, every column.</li>
 <li><strong><code>-0.5:1:16.5</code>.</strong> A range with a step: from, step, to.</li>
 <li><strong><code>maximum(abs, v)</code>, <code>sum(abs2, v)</code>, <code>count(==(0), v)</code>.</strong> A function in the first slot is applied to each element first.</li>
@@ -1062,26 +1041,26 @@ what it believes.</p></div>
 <li><code>residuals(fit; type = :response)</code> and <code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: observed minus fitted, and randomised quantile residuals. <strong>Pass the <code>rng</code>.</strong> There is no Pearson type: write <code>(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))</code> yourself, with <code>V</code> the family’s variance function.</li>
 <li><code>simulate(fit; nsim = k, rng = MersenneTwister(seed))</code>: an <code>nobs × k</code> matrix of new responses in the family’s own support.</li>
 <li><code>aic(fit)</code>, <code>dof(fit)</code>, <code>loglik(fit)</code>, <code>nobs(fit)</code>, <code>lrtest(reduced, full)</code>: the comparison toolkit. <code>lrtest</code> returns <code>(; statistic, dof, pvalue)</code>, throws when the order is wrong, and cannot see whether the two fits used the same rows; call <code>nobs</code> on both first.</li>
-<li><code>fig_diagnostic(resid)</code> and <code>erfinv_approx</code> from <code>tools/figures.jl</code>: the worm plot with its pointwise ±2SE envelope, and the piece of its arithmetic the counters reuse.</li>
+<li><code>fig_diagnostic(resid)</code>, <code>worm_parts(r)</code>, <code>n_outside(r)</code>, <code>n_below(r)</code> and <code>erfinv_approx</code> from <code>tools/figures.jl</code>: the worm plot, and the arithmetic that lets you count what it shows rather than just look at it. <code>null_counters(fit, refit, ndraw, rng)</code> from <code>tools/diagnostics.jl</code>: simulate, refit, count, <code>ndraw</code> times over.</li>
 <li><strong>The simulation thread.</strong> Every chapter ends by asking the fit to invent data. Here it is on the repaired model, checking the thing a standard error actually claims.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask the repaired model for 200 invented worlds, refit each, and see whether</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the coefficient wanders as far as its own standard error says it should.</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>rng_sim3 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">5150</span>)</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>ysim3 <span class="op">=</span> <span class="fu">simulate</span>(pois2; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim3)</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_logegg</span>(y)</span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg)</span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> d), <span class="op">:</span>mu)[<span class="fl">3</span>]</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> [<span class="fu">refit_logegg</span>(ysim3[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim3, <span class="fl">2</span>)]</span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the log(eggs) coefficient we fitted : %.4f</span><span class="sc">\n</span><span class="st">"</span>, b2[<span class="fl">3</span>])</span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its reported standard error         : %.4f</span><span class="sc">\n</span><span class="st">"</span>, se2[<span class="fl">3</span>])</span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean over %d refits                : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(sims), <span class="fu">mean</span>(sims))</span>
-<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of those refits                  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(sims))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-refit" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask the repaired model for 200 invented worlds, refit each, and see whether</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the coefficient wanders as far as its own standard error says it should.</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>rng_sim3 <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">5150</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>ysim3 <span class="op">=</span> <span class="fu">simulate</span>(pois2; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim3)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_logegg</span>(y)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age, logEgg <span class="op">=</span> females.logEgg)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coef</span>(<span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg)), <span class="fu">Poisson</span>(); data <span class="op">=</span> d), <span class="op">:</span>mu)[<span class="fl">3</span>]</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> [<span class="fu">refit_logegg</span>(ysim3[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim3, <span class="fl">2</span>)]</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the log(eggs) coefficient we fitted : %.4f</span><span class="sc">\n</span><span class="st">"</span>, b2[<span class="fl">3</span>])</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its reported standard error         : %.4f</span><span class="sc">\n</span><span class="st">"</span>, se2[<span class="fl">3</span>])</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean over %d refits                : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">length</span>(sims), <span class="fu">mean</span>(sims))</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of those refits                  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(sims))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>the log(eggs) coefficient we fitted : 0.9503
 its reported standard error         : 0.1102
@@ -1122,7 +1101,7 @@ catalogue of research papers.</p>
   <a class="chapter-nav-link prev" href="wk4-overdispersion.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 4 · When the family lies about the spread</span></a><a class="chapter-nav-link next" href="wk6-random-intercepts.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 6 · Rows are not strangers</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 5 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07<br>
+  Stats Hours with Itchy · Class 5 of twelve rungs, ten in v1, plus a coda · draft, all code run, 2026-09-07<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

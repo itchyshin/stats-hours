@@ -147,13 +147,13 @@ without a label. Momo did not choose a default. She inherited one.</p></div>
 o’clock.</p></div>
 <h3 id="the-tadpoles-again" class="anchored">The tadpoles, again</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Same notation as Class 6, so nothing new to learn before we start.</p></div>
-<p class="board"><strong>μ_ij = β0 + β1 x_ij + u_j, u_j ~ N(0, σ_u²), y_ij ~ N(μ_ij,
+<p class="board"><strong>μ_ij = β0 + β1 x_ij + u_j, u_j ~ N(0, σ_b²), y_ij ~ N(μ_ij,
 σ²)</strong></p>
 <div class="line"><span class="who itchy">Itchy</span><p>Tadpole <em>i</em> in pond <em>j</em>. β0 the intercept, β1 the slope on
-days since hatching, u_j the pond nudge, σ_u the spread of those nudges,
+days since hatching, u_j the pond nudge, σ_b the spread of those nudges,
 σ the spread within a pond. And repeatability, the thing you actually
 wanted:</p></div>
-<p class="board"><strong>R = σ_u² / (σ_u² + σ²). Not a coefficient of μ, not a p-value: a
+<p class="board"><strong>R = σ_b² / (σ_b² + σ²). Not a coefficient of μ, not a p-value: a
 ratio of two things we are about to argue about, over a sum of the same
 two.</strong></p>
 <div class="line"><span class="who itchy">Itchy</span><p>Load them. And read the caveat at the top of the page: these tadpoles
@@ -175,9 +175,9 @@ padding the number so the pond names sort.</p></div>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""Simulate J ponds of `per` tadpoles each: body length on days since hatching."""</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">simulate_ponds</span>(seed; J <span class="op">=</span> <span class="fl">12</span>, sigma_u <span class="op">=</span> <span class="fl">1.2</span>, sigma <span class="op">=</span> <span class="fl">1.0</span>, per <span class="op">=</span> <span class="fl">8</span><span class="op">:</span><span class="fl">12</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">simulate_ponds</span>(seed; J <span class="op">=</span> <span class="fl">12</span>, sigma_b <span class="op">=</span> <span class="fl">1.2</span>, sigma <span class="op">=</span> <span class="fl">1.0</span>, per <span class="op">=</span> <span class="fl">8</span><span class="op">:</span><span class="fl">12</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(seed)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> sigma_u <span class="op">.*</span> <span class="fu">randn</span>(rng, J)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    u <span class="op">=</span> sigma_b <span class="op">.*</span> <span class="fu">randn</span>(rng, J)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    pond <span class="op">=</span> <span class="dt">String</span>[]; days <span class="op">=</span> <span class="dt">Float64</span>[]; body <span class="op">=</span> <span class="dt">Float64</span>[]</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>J, _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">rand</span>(rng, per)</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> <span class="fu">round</span>(<span class="fl">5</span> <span class="op">+</span> <span class="fl">25</span> <span class="op">*</span> <span class="fu">rand</span>(rng), digits <span class="op">=</span> <span class="fl">2</span>)</span>
@@ -332,7 +332,7 @@ first of them.</p></div>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10s %10s %10s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"ML"</span>, <span class="st">"REML"</span>, <span class="st">"REML/ML"</span>)</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta0"</span>,   b_ml[<span class="fl">1</span>], b_re[<span class="fl">1</span>], b_re[<span class="fl">1</span>] <span class="op">/</span> b_ml[<span class="fl">1</span>])</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"beta1"</span>,   b_ml[<span class="fl">2</span>], b_re[<span class="fl">2</span>], b_re[<span class="fl">2</span>] <span class="op">/</span> b_ml[<span class="fl">2</span>])</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_u"</span>, su_ml,   su_re,   su_re <span class="op">/</span> su_ml)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_b"</span>, su_ml,   su_re,   su_re <span class="op">/</span> su_ml)</span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma"</span>,   s_ml,    s_re,    s_re  <span class="op">/</span> s_ml)</span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %10.4f %10.4f %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"R"</span>,</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">R</span>(su_ml, s_ml), <span class="fu">R</span>(su_re, s_re), <span class="fu">R</span>(su_re, s_re) <span class="op">/</span> <span class="fu">R</span>(su_ml, s_ml))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -340,7 +340,7 @@ first of them.</p></div>
 <pre><code>                   ML       REML    REML/ML
 beta0          8.1895     8.1881     0.9998
 beta1          0.3464     0.3464     1.0002
-sigma_u        0.9694     1.0166     1.0487
+sigma_b        0.9694     1.0166     1.0487
 sigma          1.0043     1.0091     1.0048
 R              0.4823     0.5037     1.0443</code></pre>
 </div>
@@ -392,13 +392,13 @@ divisor each one is heading for.</p></div>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"n = %d, J = %d, p = %d</span><span class="sc">\n\n</span><span class="st">"</span>, n, J, p)</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12s %12s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"observed"</span>, <span class="st">"its divisor"</span>)</span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12.6f %12.6f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma^2   REML / ML"</span>, (s_re <span class="op">/</span> s_ml)<span class="op">^</span><span class="fl">2</span>, n <span class="op">/</span> (n <span class="op">-</span> p))</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12.6f %12.6f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_u^2 REML / ML"</span>, (su_re <span class="op">/</span> su_ml)<span class="op">^</span><span class="fl">2</span>, J <span class="op">/</span> (J <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %12.6f %12.6f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_b^2 REML / ML"</span>, (su_re <span class="op">/</span> su_ml)<span class="op">^</span><span class="fl">2</span>, J <span class="op">/</span> (J <span class="op">-</span> <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>n = 117, J = 12, p = 2
 
                              observed  its divisor
 sigma^2   REML / ML          1.009648     1.017391
-sigma_u^2 REML / ML          1.099680     1.090909</code></pre>
+sigma_b^2 REML / ML          1.099680     1.090909</code></pre>
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>Neither line lands on its divisor — the residual sits below <em>n</em>
@@ -432,7 +432,7 @@ ponds held at twelve, then grow the ponds.</p></div>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %6s %5s %11s %11s %11s</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">""</span>, <span class="st">"n"</span>, <span class="st">"J"</span>, <span class="st">"sigma_u^2"</span>, <span class="st">"sigma^2"</span>, <span class="st">"J/(J-1)"</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">""</span>, <span class="st">"n"</span>, <span class="st">"J"</span>, <span class="st">"sigma_b^2"</span>, <span class="st">"sigma^2"</span>, <span class="st">"J/(J-1)"</span>)</span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> per <span class="kw">in</span> (<span class="fl">8</span><span class="op">:</span><span class="fl">12</span>, <span class="fl">80</span><span class="op">:</span><span class="fl">120</span>, <span class="fl">800</span><span class="op">:</span><span class="fl">1200</span>)</span>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    nn, JJ, su2, s2 <span class="op">=</span> <span class="fu">ratios</span>(<span class="fu">simulate_ponds</span>(<span class="fl">808</span>; J <span class="op">=</span> <span class="fl">12</span>, per <span class="op">=</span> per))</span>
 <span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-28s %6d %5d %11.5f %11.5f %11.5f</span><span class="sc">\n</span><span class="st">"</span>,</span>
@@ -444,7 +444,7 @@ ponds held at twelve, then grow the ponds.</p></div>
 <span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">"more ponds, same pond sizes"</span>, nn, JJ, su2, s2, JJ <span class="op">/</span> (JJ <span class="op">-</span> <span class="fl">1</span>))</span>
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                                  n     J   sigma_u^2     sigma^2     J/(J-1)
+<pre><code>                                  n     J   sigma_b^2     sigma^2     J/(J-1)
 more tadpoles, 12 ponds         117    12     1.09968     1.00965     1.09091
 more tadpoles, 12 ponds        1176    12     1.09178     1.00086     1.09091
 more tadpoles, 12 ponds       11758    12     1.09100     1.00009     1.09091
@@ -480,7 +480,7 @@ matters a great deal. We are going to look at five ponds shortly.</p></div>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>ciu_ml, cis_ml <span class="op">=</span> <span class="fu">sd_intervals</span>(fit_ml)</span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>ciu_re, cis_re <span class="op">=</span> <span class="fu">sd_intervals</span>(fit_reml)</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_varcomp</span>([<span class="st">"sigma_u"</span>, <span class="st">"sigma"</span>],</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_varcomp</span>([<span class="st">"sigma_b"</span>, <span class="st">"sigma"</span>],</span>
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            [su_ml, s_ml], [ciu_ml, cis_ml],</span>
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>            [su_re, s_re], [ciu_re, cis_re];</span>
 <span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>            ylabel <span class="op">=</span> <span class="st">"standard deviation (mm)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -491,7 +491,7 @@ matters a great deal. We are going to look at five ponds shortly.</p></div>
 <img src="wk8-reml-vs-ml_files/figure-html/fig-varcomp-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-varcomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Sigma_u and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_u point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely.
+Figure&nbsp;2: Sigma_b and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_b point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely.
 </figcaption>
 </figure>
 </div>
@@ -521,9 +521,9 @@ writes a one-statement body.</p></div>
 <span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> up</span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"REML sigma_u above ML on %d of 40 fresh datasets</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">reml_above_ml</span>(<span class="fl">40</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"REML sigma_b above ML on %d of 40 fresh datasets</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">reml_above_ml</span>(<span class="fl">40</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>REML sigma_u above ML on 40 of 40 fresh datasets</code></pre>
+<pre><code>REML sigma_b above ML on 40 of 40 fresh datasets</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>All of them.</p></div>
@@ -622,7 +622,7 @@ not be a bug.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>New data. Five ponds this time, fewer tadpoles, and I have switched the
 pond effect off in the simulation. The ponds are genuinely alike.</p></div>
 <div id="boundary-data" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Simulate J small ponds with NO pond effect: sigma_u is truly zero."""</span></span>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Simulate J small ponds with NO pond effect: sigma_b is truly zero."""</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">simulate_flat_ponds</span>(seed; J <span class="op">=</span> <span class="fl">5</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(seed)</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    pond <span class="op">=</span> <span class="dt">String</span>[]; days <span class="op">=</span> <span class="dt">Float64</span>[]; body <span class="op">=</span> <span class="dt">Float64</span>[]</span>
@@ -644,7 +644,7 @@ pond effect off in the simulation. The ponds are genuinely alike.</p></div>
 <span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>fit_b_full <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> puddles)</span>
 <span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>fit_b_red  <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> puddles)</span>
 <span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma_u = "</span>, <span class="fu">re_sd</span>(fit_b_full)[<span class="op">:</span>pond])</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma_b = "</span>, <span class="fu">re_sd</span>(fit_b_full)[<span class="op">:</span>pond])</span>
 <span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(fit_b_full)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows, columns: (35, 3)
@@ -663,7 +663,7 @@ ponds: 5</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-sigma_u = 2.6613536195410055e-9
+sigma_b = 2.6613536195410055e-9
 DrmFit (Gaussian location–scale, 35 obs, NOT converged; logLik = -56.57)
   mu: 8.019, 0.347
   sigma: 0.197
@@ -679,7 +679,7 @@ be trusted. And “NOT converged” in the fit’s first line is the optimiser
 saying it stopped at a wall rather than on a hilltop. Now look at the
 <code>resd</code> line the fit printed. Both that line and the
 <code>sigma:</code> line above it are printed <strong>on the log
-scale</strong>, so <code>resd</code> is log σ_u, and the optimiser has
+scale</strong>, so <code>resd</code> is log σ_b, and the optimiser has
 walked it off to minus something enormous, which is how a computer says
 zero. The estimate is at the edge of the space it is allowed to live in,
 because a standard deviation cannot be negative.</p></div>
@@ -720,7 +720,7 @@ Figure&nbsp;4: The same caterpillar for the five-pond dataset with the pond effe
 <div class="line"><span class="who toto">Toto</span><p>The raw means are all over the place and every diamond is on the line.</p></div>
 <div class="line"><span class="who jaro">Jaro</span><p>Which is the estimator saying, correctly, that it can see no evidence
 the ponds differ, so it predicts every pond to be average. Shrinkage all
-the way to zero is what σ_u = 0 <em>means</em>. The scatter in the raw
+the way to zero is what σ_b = 0 <em>means</em>. The scatter in the raw
 means is what five small ponds of identical tadpoles look like.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Now test it, the obvious way, and read what the engine says back.</p></div>
 <div id="cell-naive-lrt" class="cell" data-execution_count="13">
@@ -768,7 +768,7 @@ identically, there is nothing to test, and both numbers are telling you
 so in different dialects.” Halving 1.0 to 0.5 buys nobody anything.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Then when does it buy something?</p></div>
 <div class="line"><span class="who jaro">Jaro</span><p>When the statistic is positive. Same generator, same five-pond design,
-same true σ_u of zero. A different draw.</p></div>
+same true σ_b of zero. A different draw.</p></div>
 <div id="cell-chibar-positive" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>sunny <span class="op">=</span> <span class="fu">simulate_flat_ponds</span>(<span class="fl">55</span>)</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>CSV.<span class="fu">write</span>(<span class="st">"../data/ch8/sunny.csv"</span>, sunny)</span>
@@ -776,10 +776,10 @@ same true σ_u of zero. A different draw.</p></div>
 <span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>fit_s_full <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>pond))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sunny)</span>
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>fit_s_red  <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(length <span class="op">~</span> days)),            <span class="fu">Gaussian</span>(); data <span class="op">=</span> sunny)</span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"sigma_u = "</span>, <span class="fu">re_sd</span>(fit_s_full)[<span class="op">:</span>pond])</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"sigma_b = "</span>, <span class="fu">re_sd</span>(fit_s_full)[<span class="op">:</span>pond])</span>
 <span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lrt_boundary</span>(fit_s_full, fit_s_red; q <span class="op">=</span> <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>sigma_u = 0.4621340526121805</code></pre>
+<pre><code>sigma_b = 0.4621340526121805</code></pre>
 </div>
 <div id="chibar-positive" class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>(statistic = 3.335598423764992, q = 1, pvalue = 0.0338978703791533, pvalue_naive = 0.0677957407583066)</code></pre>
@@ -797,7 +797,7 @@ right about the pond.</p></div>
 <div class="line"><span class="who jaro">Jaro</span><p>Which is why the next thing we do is count, rather than argue from one
 draw.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Do not take that on my authority or on the package’s. Look at the
-likelihood itself. For each trial value of σ_u, let everything else in
+likelihood itself. For each trial value of σ_b, let everything else in
 the model do its best and write down how well the model fits; that curve
 is called the profile of the likelihood, and where it peaks is the
 estimate. The arithmetic behind the picture is twenty lines of matrix
@@ -810,7 +810,7 @@ algebra you do not need to read; the picture is what you need.</p></div>
 <img src="wk8-reml-vs-ml_files/figure-html/fig-profile-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-profile-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Profile log-likelihood, minus its own maximum, against sigma_u, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one.
+Figure&nbsp;5: Profile log-likelihood, minus its own maximum, against sigma_b, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one.
 </figcaption>
 </figure>
 </div>
@@ -818,7 +818,7 @@ Figure&nbsp;5: Profile log-likelihood, minus its own maximum, against sigma_u, f
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>Two curves, one picture. The tadpole curve has a maximum in the middle
 of the space, with room on both sides, and it peaks at 0.969 mm, where
-the side-by-side table put σ_u under ML (0.969). The puddle curve is
+the side-by-side table put σ_b under ML (0.969). The puddle curve is
 still climbing when it hits the wall, so the maximum <strong>is</strong>
 the wall: its peak sits at 0.0, and the engine’s estimate, to three
 decimals, is 0.0.</p></div>
@@ -874,7 +874,7 @@ warning once above and two thousand copies would teach nothing.
 <code>falses(nsim)</code> is Class 6’s <code>trues</code> the other way
 up.</p></div>
 <div id="boundary-study" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Parametric bootstrap of the likelihood-ratio statistic under the true null sigma_u = 0.</span></span>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="st">"""Parametric bootstrap of the likelihood-ratio statistic under the true null sigma_b = 0.</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="st">The design is held FIXED (same ponds, same group sizes); only the response is</span></span>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="st">redrawn, from the reduced fit. Most of these fits land on the boundary and emit</span></span>
@@ -910,7 +910,7 @@ up.</p></div>
 <span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>rate_chibar <span class="op">=</span> <span class="fu">mean</span>(chibar <span class="op">.&lt;</span> alpha)</span>
 <span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"replicates                             : %d</span><span class="sc">\n</span><span class="st">"</span>, nrep)</span>
-<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fraction with sigma_u at zero          : %.4f  +/- %.4f  (asymptotic claim: 0.5000)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"fraction with sigma_b at zero          : %.4f  +/- %.4f  (asymptotic claim: 0.5000)</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>        pile, <span class="fu">mcse</span>(pile))</span>
 <span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"naive chi-squared rejections at %.2f   : %.4f  +/- %.4f  (nominal: %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>        alpha, rate_naive, <span class="fu">mcse</span>(rate_naive), alpha)</span>
@@ -918,7 +918,7 @@ up.</p></div>
 <span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a>        alpha, rate_chibar, <span class="fu">mcse</span>(rate_chibar), alpha)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>replicates                             : 2000
-fraction with sigma_u at zero          : 0.5625  +/- 0.0111  (asymptotic claim: 0.5000)
+fraction with sigma_b at zero          : 0.5625  +/- 0.0111  (asymptotic claim: 0.5000)
 naive chi-squared rejections at 0.05   : 0.0110  +/- 0.0023  (nominal: 0.0500)
 chi-bar-squared rejections at 0.05     : 0.0220  +/- 0.0033  (nominal: 0.0500)</code></pre>
 </div>
@@ -1151,11 +1151,11 @@ ends up in the same place the software does.</p>
 <h2 id="exercises" class="anchored">Exercises</h2>
 <p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 8.</p>
 <ol type="1">
-<li><p><strong>Do it on real groups.</strong> <code>data/ch9/chicks-broods.csv</code> is one row per sparrow chick with its mass at two days, <code>Mass2</code>, its hatching date, <code>JulianDate</code>, and its nest, <code>BroodNo</code>; drop the rows whose date is missing with <code>dropmissing</code>, as Class 6 did. Fit <code>Mass2 ~ JulianDate + (1 | BroodNo)</code> twice, once with the default and once with <code>method = :REML</code>. Report the two σ_u values, the two σ values and the two fixed-effect vectors. Then write one sentence naming which numbers moved and by how much, and one saying whether the difference would have changed anything you would write in a paper — and say why, using the word “groups”. <em>Check:</em> 481 broods; the REML-to-ML variance ratio for σ_u is 1.0064 against a J/(J − 1) of 1.0021.</p></li>
-<li><p><strong>Predict, then check.</strong> Run <code>simulate_ponds(808; J = 24)</code> and <code>simulate_ponds(808; J = 6)</code> and pass each to the chapter’s <code>ratios</code>. <strong>Before you run either</strong>, write down what you expect the σ_u REML-to-ML variance ratio to be in each case, using J/(J − 1). Report both ratios against your two predictions. <em>Check:</em> 1.049 at 24 ponds and 1.215 at 6.</p></li>
+<li><p><strong>Do it on real groups.</strong> <code>data/ch9/chicks-broods.csv</code> is one row per sparrow chick with its mass at two days, <code>Mass2</code>, its hatching date, <code>JulianDate</code>, and its nest, <code>BroodNo</code>; drop the rows whose date is missing with <code>dropmissing</code>, as Class 6 did. Fit <code>Mass2 ~ JulianDate + (1 | BroodNo)</code> twice, once with the default and once with <code>method = :REML</code>. Report the two σ_b values, the two σ values and the two fixed-effect vectors. Then write one sentence naming which numbers moved and by how much, and one saying whether the difference would have changed anything you would write in a paper — and say why, using the word “groups”. <em>Check:</em> 481 broods; the REML-to-ML variance ratio for σ_b is 1.0064 against a J/(J − 1) of 1.0021.</p></li>
+<li><p><strong>Predict, then check.</strong> Run <code>simulate_ponds(808; J = 24)</code> and <code>simulate_ponds(808; J = 6)</code> and pass each to the chapter’s <code>ratios</code>. <strong>Before you run either</strong>, write down what you expect the σ_b REML-to-ML variance ratio to be in each case, using J/(J − 1). Report both ratios against your two predictions. <em>Check:</em> 1.049 at 24 ponds and 1.215 at 6.</p></li>
 <li><p><strong>Make the effect enormous.</strong> Now run it with <code>J = 4</code>. Report the same ratio and compare it to J/(J − 1). Then answer: at what number of groups would you personally stop trusting either estimate, and what would you do instead? <em>Check:</em> 2.09 at 4 ponds, against a J/(J − 1) of 1.33.</p></li>
 <li><p><strong>Repeatability, both ways.</strong> Using the fits from question 1, compute R from <code>re_sd</code> and <code>sigma</code> by hand for each estimator, then check yourself against <code>repeatability(fit)</code>. Report the two values of R. Write one sentence on which one you would publish and how you would label it. <em>Check:</em> 0.4159 by ML and 0.4175 by REML.</p></li>
-<li><p><strong>The pile-up, on the other flat file.</strong> <code>data/ch8/sunny.csv</code> is the chapter’s second set of five ponds simulated with no pond effect. Fit the reduced model <code>length ~ days</code> to it and call the chapter’s <code>boundary_study</code> on that fit with the file as the design and 2000 replicates, seeded with <code>MersenneTwister(808)</code>, so the design is held fixed and only the response is redrawn. Report the fraction of fits with σ_u estimated at zero, <strong>with its Monte Carlo standard error</strong>, and compare it to 0.5. <em>Check:</em> 0.601 with a Monte Carlo standard error of 0.011.</p></li>
+<li><p><strong>The pile-up, on the other flat file.</strong> <code>data/ch8/sunny.csv</code> is the chapter’s second set of five ponds simulated with no pond effect. Fit the reduced model <code>length ~ days</code> to it and call the chapter’s <code>boundary_study</code> on that fit with the file as the design and 2000 replicates, seeded with <code>MersenneTwister(808)</code>, so the design is held fixed and only the response is redrawn. Report the fraction of fits with σ_b estimated at zero, <strong>with its Monte Carlo standard error</strong>, and compare it to 0.5. <em>Check:</em> 0.601 with a Monte Carlo standard error of 0.011.</p></li>
 <li><p><strong>Buy back the power.</strong> Using the statistics from question 5, report the rejection rate at 0.05 under the naive χ² reference and under <code>chibar_pvalue</code>, each with its Monte Carlo standard error, and say which of the two sits closer to nominal. Then answer in one sentence: how many extra ponds would the naive test need to reach a rate you would accept, and how would you find out rather than guess? <em>Check:</em> naive 0.014, corrected 0.028, both with a Monte Carlo standard error near 0.004.</p></li>
 <li><p><strong>Provoke the refusal on purpose.</strong> On <code>data/ch8/tadpoles.csv</code>, fit two REML models that differ only in the <strong>random</strong> part — <code>length ~ days</code> with and without <code>(1 | pond)</code> — and compare them with <code>lrtest</code>. Then fit two REML models that differ in the <strong>fixed</strong> part and compare those. Paste both results, including the error. Explain in your own words why one comparison is allowed and the other is not, without using the word “restricted”. <em>Check:</em> the random-part comparison returns p = 2.2e-13; the fixed-part comparison returns an error whose message tells you what to refit with.</p></li>
 </ol>
@@ -1167,7 +1167,7 @@ ends up in the same place the software does.</p>
   <a class="chapter-nav-link prev" href="wk7-random-slopes.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 7 · Not everyone shares a slope</span></a><a class="chapter-nav-link next" href="wk9-glmms.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 9 · Both at once</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 8 of a planned 13, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
+  Stats Hours with Itchy · Class 8 of twelve rungs, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>
