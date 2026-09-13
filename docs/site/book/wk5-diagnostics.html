@@ -218,11 +218,14 @@ fitted counts run from 2.5580 to 5.1389</code></pre>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>The first two take only 32 different values each and the third takes
 163.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Which is 163, one per female, and that is the whole point. A count is a
-whole number, so observed minus fitted lands on a lattice: at a given
-fitted value there are only so many residuals available. Dividing by the
-square root of the mean rescales the lattice; it does not dissolve it.
-Look at all three.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Which is 163, one per female, and that is the whole point. (The three
+rows came from one loop over a list of name-and-vector pairs, and the
+<code>...</code> after <code>extrema(mu_p)</code>
+<strong>splats</strong> its two values into <code>@printf</code>’s two
+slots.) A count is a whole number, so observed minus fitted lands on a
+lattice: at a given fitted value there are only so many residuals
+available. Dividing by the square root of the mean rescales the lattice;
+it does not dissolve it. Look at all three.</p></div>
 <div id="cell-fig-three-residuals" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">780</span>, <span class="fl">300</span>))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>panels <span class="op">=</span> ((<span class="st">"response (chicks)"</span>, r_response), (<span class="st">"Pearson"</span>, r_pearson),</span>
@@ -250,16 +253,18 @@ Figure&nbsp;1: The same fit, three definitions of ‘residual’. Response and P
 <div class="line"><span class="who toto">Toto</span><p>All three are four columns, because age only takes four values. But the
 first two columns are a few dots stacked with gaps between them, and the
 third is filled in.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>That is the right way to look at it, and it is not the columns that
-matter — those are the four ages. It is what is inside a column. The
-first two are stripes and there is nothing wrong with them; they are
-telling you the truth about a discrete response. What they cannot do is
-be compared with a normal distribution, because they are not one and
-never will be, however right the model is. Notice also that the response
-residuals have a <strong>floor that moves</strong>: a female cannot
-fledge fewer than none, so her residual cannot be more negative than
-minus her own fitted value, and the most negative one in this file is
--4.073.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is the right way to look at it — and the three panels came from the
+same loop with <code>enumerate</code>, which hands you a counter
+alongside each item so that panel <code>j</code> lands in column
+<code>j</code>. It is not the columns that matter — those are the four
+ages. It is what is inside a column. The first two are stripes and there
+is nothing wrong with them; they are telling you the truth about a
+discrete response. What they cannot do is be compared with a normal
+distribution, because they are not one and never will be, however right
+the model is. Notice also that the response residuals have a
+<strong>floor that moves</strong>: a female cannot fledge fewer than
+none, so her residual cannot be more negative than minus her own fitted
+value, and the most negative one in this file is -4.073.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So the third one is the one I plot.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The third one is the one you plot, in every family in this book.
 <strong>Randomised quantile residuals</strong> are Dunn and Smyth’s idea
@@ -273,7 +278,13 @@ number but an interval, so you draw uniformly inside it — hence
 <div class="line"><span class="who itchy">Itchy</span><p>Now the plot. It is the one <code>fig_diagnostic</code> draws, and
 before anybody looks at it I am going to tell you what is on the axes,
 because the commonest failure in this room is reading a picture whose
-meaning you have assumed.</p></div>
+meaning you have assumed. The helper cell in between exposes the
+arithmetic so the picture can be counted; read it or skip it.
+<code>worm_parts</code> hands back a NamedTuple of three fields,
+<code>(; theo, dev = ..., se)</code>, so the counters under it can ask
+for <code>w.dev</code>, and each counter is a one-line function whose
+body is two statements with a semicolon between them: compute the parts,
+then count.</p></div>
 <div id="worm-helpers" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The arithmetic fig_diagnostic draws, exposed so the picture can be counted.</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">worm_parts</span>(r)</span>
@@ -338,7 +349,16 @@ dozens cross at once. And these residuals are not a fresh normal sample:
 they came out of a model <strong>fitted to these very data</strong>,
 which is the caveat Dunn and Smyth put in their own abstract — normal
 apart from the sampling variability in the estimated parameters.
-Simulate both nulls and find out which one this picture belongs to.</p></div>
+Simulate both nulls and find out which one this picture belongs to. Read
+<code>null_counters</code> before you run it. <code>Int[]</code> and
+<code>Float64[]</code> are empty vectors that know what they will hold,
+and <code>push!</code> appends one value to the end, so every pass
+through the loop grows them by one: the loop form of a comprehension,
+for a body that does several things. <code>refit</code> is a function
+handed in as an argument, like any other value, which is why
+<code>refit_age</code> is defined by name underneath. And
+<code>for _ in 1:2000</code> uses an underscore for a counter whose
+value is never wanted.</p></div>
 <div id="null-envelope" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TWO nulls: (a) plain standard normal samples, no model anywhere;</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (b) simulate from the fit, REFIT the same formula, recompute the residuals, count.</span></span>
@@ -942,11 +962,13 @@ error message is for. There are other refusals in there, all of them
 about models with random effects, and Class 8 is where you meet them and
 learn why a refusal can be a kindness.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And what does it not stop?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>The one that will actually get you. It cannot see your data.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The one that will actually get you. It cannot see your data.
+<code>females[1:150, :]</code> is rows one to one hundred and fifty and
+every column, a colon in the column slot as in Class 3’s matrix slices.</p></div>
 <div id="cell-guard-silence" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A nested pair fitted to DIFFERENT ROWS: reduced on the first 150 females, full on all.</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>subset <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">150</span>, <span class="op">:</span>]</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>pois_sub <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> subset)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>first150 <span class="op">=</span> females[<span class="fl">1</span><span class="op">:</span><span class="fl">150</span>, <span class="op">:</span>]</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>pois_sub <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age)), <span class="fu">Poisson</span>(); data <span class="op">=</span> first150)</span>
 <span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the first fit : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois_sub))</span>
 <span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows in the second    : %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nobs</span>(pois2))</span>
@@ -1023,16 +1045,24 @@ what it believes.</p></div>
 <li><strong>A marginal and a conditional coefficient are different questions, not two estimates of one thing.</strong> Age alone gave a rate ratio clear of one; age at a fixed clutch size gave one that covers it, because older females lay more eggs. Do not report the second as a refutation of the first.</li>
 <li><strong>Never accept a null.</strong> Say what the design could have seen: the smallest rate ratio detectable here at eighty per cent power was 15%. And <strong>an interval that excludes another estimate’s point value is not a test of the difference</strong>, because the two estimates come from the same data and are correlated.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><code>residuals(fit; type = :response)</code>: observed minus fitted, on the response scale. This is also what a bare <code>residuals(fit)</code> returns.</li>
-<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: randomised quantile residuals, standard normal under a correct model for every family. <strong>Pass the <code>rng</code></strong>: omitting it quietly uses the global generator, and nothing on the page then records which draw you looked at.</li>
-<li><strong>The Pearson residual is yours to write</strong>, <code>(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))</code>, with <code>V</code> the family’s variance function — μ for <code>Poisson()</code>, σ² for <code>Gaussian()</code>, p(1 − p) for a Bernoulli response.</li>
-<li><code>sigma(fit)</code>: the residual standard deviation, one value per observation; <code>first(...)</code> when it is constant.</li>
-<li><code>fig_diagnostic(resid)</code> from <code>tools/figures.jl</code>: the worm plot, with a pointwise ±2SE envelope. <code>erfinv_approx</code> from the same file reproduces its arithmetic so the points can be counted.</li>
-<li><code>simulate(fit; nsim = k, rng = MersenneTwister(seed))</code>: an <code>nobs × k</code> matrix of new responses drawn from the fitted model, in the family’s own support.</li>
-<li><code>aic(fit)</code>, <code>dof(fit)</code>, <code>dof_residual(fit)</code>, <code>loglik(fit)</code>, <code>nobs(fit)</code>: the comparison toolkit. Call <code>nobs</code> on both fits before you compare anything.</li>
-<li><code>lrtest(reduced, full)</code>: the nested likelihood-ratio test, returning <code>(; statistic, dof, pvalue)</code>. It <strong>throws</strong> if <code>full</code> has no more parameters than <code>reduced</code>; it cannot check that the two fits used the same rows.</li>
+<li><strong><code>Int[]</code>, <code>Float64[]</code> and <code>push!</code>.</strong> An empty vector that knows its type, grown one value at a time inside a loop. The loop form of a comprehension, for a body that does more than one thing.</li>
+<li><strong>A function as an argument: <code>null_counters(pois, refit_age, ...)</code>.</strong> A function is a value; hand it to another function by name and call it inside.</li>
+<li><strong><code>for (nm, r) in (("response", r1), ("Pearson", r2))</code>.</strong> Looping over a list of pairs, each unpacked into two names. <code>enumerate(list)</code> adds a counter: <code>for (j, (nm, r)) in enumerate(panels)</code>.</li>
+<li><strong><code>for _ in 1:2000</code>.</strong> An underscore for a counter whose value is never used.</li>
+<li><strong><code>extrema(mu_p)...</code>.</strong> The splat: spreads a pair into two separate arguments.</li>
+<li><strong><code>(; theo, dev = obs .- theo, se)</code>.</strong> Returning a NamedTuple from a function, so the caller can write <code>w.dev</code>. <code>n_outside(r) = (w = worm_parts(r); count(...))</code> is a one-line function with two statements in it.</li>
+<li><strong><code>females[1:150, :]</code>.</strong> Rows one to one hundred and fifty, every column.</li>
+<li><strong><code>-0.5:1:16.5</code>.</strong> A range with a step: from, step, to.</li>
+<li><strong><code>maximum(abs, v)</code>, <code>sum(abs2, v)</code>, <code>count(==(0), v)</code>.</strong> A function in the first slot is applied to each element first.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>residuals(fit; type = :response)</code> and <code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: observed minus fitted, and randomised quantile residuals. <strong>Pass the <code>rng</code>.</strong> There is no Pearson type: write <code>(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))</code> yourself, with <code>V</code> the family’s variance function.</li>
+<li><code>simulate(fit; nsim = k, rng = MersenneTwister(seed))</code>: an <code>nobs × k</code> matrix of new responses in the family’s own support.</li>
+<li><code>aic(fit)</code>, <code>dof(fit)</code>, <code>loglik(fit)</code>, <code>nobs(fit)</code>, <code>lrtest(reduced, full)</code>: the comparison toolkit. <code>lrtest</code> returns <code>(; statistic, dof, pvalue)</code>, throws when the order is wrong, and cannot see whether the two fits used the same rows; call <code>nobs</code> on both first.</li>
+<li><code>fig_diagnostic(resid)</code> and <code>erfinv_approx</code> from <code>tools/figures.jl</code>: the worm plot with its pointwise ±2SE envelope, and the piece of its arithmetic the counters reuse.</li>
 <li><strong>The simulation thread.</strong> Every chapter ends by asking the fit to invent data. Here it is on the repaired model, checking the thing a standard error actually claims.</li>
 </ul>
 <div id="simulate-refit" class="cell" data-execution_count="25">
@@ -1074,15 +1104,15 @@ catalogue of research papers.</p>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 4 and not Class 5.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 4 and not Class 5.</p>
 <ol type="1">
-<li><p><strong>Three residuals, twice.</strong> Take any Gaussian model of your own. Compute <code>residuals(fit; type = :response)</code>, divide it by <code>sigma(fit)</code>, and compute <code>residuals(fit; type = :quantile, rng = MersenneTwister(1))</code>. Report the largest absolute difference between the last two and say in one sentence why they agree. Then repeat on a Poisson or negative-binomial model: report the SD, the skewness and the number of distinct values of each of the three, and say which of the three you would put on a normal reference plot and why the other two cannot go there however right the model is.</p></li>
-<li><p><strong>Calibrate the envelope, with the null that applies.</strong> Run this chapter’s <code>n_outside</code> on your own quantile residuals and report the count. Then call <code>null_counters</code> on your fitted model with 200 draws and a refit function of your own, and report the median and ninety-fifth percentile of the count, and the proportion of draws at least as bad as yours. Then draw 200 plain standard normal samples of the same length — no fitting anywhere — and compare the two ninety-fifth percentiles. Say, in one sentence, why they differ.</p></li>
-<li><p><strong>The seed is part of the answer.</strong> Recompute your quantile residuals under 200 seeds. Report the range of the residual SD and the range of the count outside the envelope. Then state your verdict on the model in a form that survives the seed, and say which digits you would refuse to print.</p></li>
-<li><p><strong>Ask the model what it believes.</strong> Choose a statistic that is a fact about your organism the model was never told — an upper limit, a number of zeros, a maximum, a number of ties. Simulate 1000 datasets from your fitted model with an explicit <code>rng</code>, compute your statistic in each, and report the proportion at or beyond the observed value. Then write two sentences: what the model believes that the world does not allow, and what you would change in the model rather than in the data.</p></li>
-<li><p><strong>Two comparisons, one parameter each.</strong> Build a nested pair of models where the extra term is one you expect to matter, and another pair where it is one you do not. Report <code>aic</code>, <code>dof</code> and <code>nobs</code> for all of them and both <code>lrtest</code> results. Then answer: which of your two ΔAIC values is smaller than the cost of a parameter that explains nothing, and what does that let you say and not say?</p></li>
-<li><p><strong>Marginal and conditional, and never accept the null.</strong> Take a predictor that appears in both of your models from question 5 and report its coefficient and interval in each. If they differ, write two sentences describing the two quantities being estimated — the total effect and the effect holding the other predictor fixed — and one naming the path between the predictors that would explain the gap; then test that path by fitting the second predictor on the first. For whichever interval covers no effect, compute the smallest effect your design could have detected at eighty per cent power, <code>exp(2.8016 * se)</code> on a log-link coefficient, and write the sentence you would put in a paper. It must not contain the words “no effect”.</p></li>
-<li><p><strong>Trigger the refusal, and find the hole.</strong> Call <code>lrtest</code> with the arguments the wrong way round and paste the error. Then fit your <strong>reduced</strong> model to one subset of your rows and your <strong>full</strong>, nested model to a <em>different</em> subset, compare the pair with <code>lrtest</code>, and paste the number it returns. Explain why the engine can catch the first and cannot catch the second, and name the one call you should have made first.</p></li>
+<li><p><strong>Three residuals, twice.</strong> On <code>data/2012/MBodySize.csv</code> fit <code>Weight ~ Tarsus + Sex</code> with <code>Gaussian()</code>. Compute <code>residuals(fit; type = :response)</code> divided by <code>sigma(fit)</code>, and <code>residuals(fit; type = :quantile, rng = MersenneTwister(1))</code>. Report the largest absolute difference between the two and say in one sentence why they agree. Then fit <code>EPP ~ Age</code> on <code>data/2012/EPPSuccess.csv</code> with <code>Poisson()</code> and report, for the response, Pearson and quantile residuals, the SD, the skewness and the number of distinct values of each, as the chapter’s table did. Say which of the three you would put on a normal reference plot and why the other two cannot go there however right the model is. <em>Check:</em> the Gaussian gap, rounded to ten decimals, is 0.0; the Poisson response residuals take 20 distinct values and the quantile residuals 76.</p></li>
+<li><p><strong>A check you fail, then one you pass.</strong> Draw the worm plot of the Poisson quantile residuals from question 1 with <code>fig_diagnostic</code>, and count the residuals beyond ±2 with <code>count(abs.(r) .&gt; 2)</code>. Compare the count with what a standard normal sample of the same length would give, <code>2 * Distributions.cdf(Distributions.Normal(), -2) * n</code>. Then refit with <code>NegBinomial2()</code> as in Class 4, recompute both, and write two sentences: what the first model got wrong, and what the second model’s passing the same check does and does not establish. <em>Check:</em> 12 beyond ±2 under the Poisson, against about 3.5 expected; 3 under the negative binomial.</p></li>
+<li><p><strong>The seed is part of the answer.</strong> Recompute the quantile residuals of both fits from question 2 under 200 seeds, <code>MersenneTwister(k)</code> for <code>k in 1:200</code>, with a comprehension, and report the range of the residual SD for each. Then state your verdict on each model in a form that survives the seed, and say which digits you would refuse to print. <em>Check:</em> the Poisson SD runs from 1.42 to 1.63; the negative binomial’s from 0.85 to 1.15.</p></li>
+<li><p><strong>Ask the model what it believes.</strong> The Poisson model of question 1 was never told how many of the 76 males sired no extra-pair young at all. Count the zeros in <code>EPP</code>. Then simulate 1000 datasets from the Poisson fit with <code>MersenneTwister(5)</code>, count the zeros in each column, and report the mean count and the proportion of simulated worlds with at least as many zeros as the real one. Do the same from the negative-binomial fit. Two sentences: what the first model believes that the sparrows do not allow, and what you would change in the model rather than in the data. <em>Check:</em> 50 real zeros; the Poisson worlds average 33.1 and reach the real count in a proportion 0.0 of them; the negative-binomial worlds average 49.9, proportion 0.55.</p></li>
+<li><p><strong>Two comparisons, one parameter each.</strong> On <code>data/2012/ChickSurvival.csv</code>, fit <code>Survival ~ Mass2</code> with <code>Binomial()</code>, then two models that each add one term: <code>JulianDate</code>, which you expect to matter, and <code>Sex</code>, which you may not. Report <code>aic</code>, <code>dof</code> and <code>nobs</code> for all three and both <code>lrtest</code> results. Then answer: which of your two ΔAIC values is smaller than the cost of a parameter that explains nothing, and what does that let you say and not say? <em>Check:</em> adding hatching date changes AIC by -80.7; adding sex by 1.72.</p></li>
+<li><p><strong>Never accept the null.</strong> The sex coefficient from question 5 has an interval that covers zero. Compute the smallest effect this design could have detected at eighty per cent power, <code>exp(2.8016 * se)</code> on the log-odds coefficient, and write the sentence you would put in a paper. It must not contain the words “no effect”. <em>Check:</em> the odds ratio for males runs from 0.76 to 1.17, and the smallest detectable ratio is 1.36 — or its reciprocal.</p></li>
+<li><p><strong>Trigger the refusal, and find the hole.</strong> Call <code>lrtest</code> on the two models of question 5 with the arguments the wrong way round and paste the error. Then fit the <strong>reduced</strong> model to the first 1500 rows only, <code>df[1:1500, :]</code>, compare it with the full model on all the rows using <code>lrtest</code>, and paste the number it returns. Explain why the engine can catch the first and cannot catch the second, and name the one call you should have made first. <em>Check:</em> the second comparison returns a statistic of -17.8 and a p-value of 1.0, on 1500 rows against 1576, and nothing in the output objects to the sign.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

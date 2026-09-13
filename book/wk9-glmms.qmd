@@ -136,7 +136,7 @@ exp_unanimous = sum(p_bar^k + (1 - p_bar)^k for k in per_brood.k)
 
 **Eddie:** More than half the broods went one way entirely.
 
-**Itchy:** More than half, and that is the clustering staring at you out of the raw counts before a model has been fitted. `{julia} n_unanimous` of `{julia} J` broods had no disagreement inside them at all, and independent coin flips at the population rate would have given you about `{julia} round(Int, exp_unanimous)`. Hold the number; it comes back, and when it does it will be the best argument for a random effect you have met.
+**Itchy:** More than half, and that is the clustering staring at you out of the raw counts before a model has been fitted. `{julia} n_unanimous` of `{julia} J` broods had no disagreement inside them at all, and independent coin flips at the population rate would have given you about `{julia} round(Int, exp_unanimous)`. Hold the number; it comes back, and when it does it will be the best argument for a random effect you have met. (Two small things in the cell: `0 .< p .< 1` chains two comparisons, element by element, and the expected count is Class 4's generator handed to `sum`.)
 
 **Momo:** In Class 6 you made us predict what the grouping would do to the standard error before fitting anything.
 
@@ -335,7 +335,7 @@ or_glm  = exp(b_glm[2])
 
 **Momo:** Always smaller. Prove it rather than saying it.
 
-**Itchy:** We will not prove it, we will make the model prove it, which is this book's method. The fit believes a distribution of broods. Draw broods from it, draw chicks in those broods, fit the model that ignores broods, and see what that model recovers.
+**Itchy:** We will not prove it, we will make the model prove it, which is this book's method. The fit believes a distribution of broods. Draw broods from it, draw chicks in those broods, fit the model that ignores broods, and see what that model recovers. The coin flip is one line: `rand(rng_marg, n) .< p` compares a uniform draw with each chick's probability, so it is true with probability `p`, and `Int.(...)` turns the trues and falses into ones and zeros for the formula. `logistic` is a one-line function of our own for the squashing curve, and the loop collects with `push!` as Class 5 did. Further down, `20_000` is twenty thousand with an underscore for the eye.
 
 ```{julia}
 #| label: marginal-by-simulation
@@ -465,7 +465,7 @@ year_fixed = drm(bf(@formula(Survival ~ Mass2 + YearF + (1|BroodNo))), Binomial(
 year_fixed
 ```
 
-**Itchy:** Three more rows in the `mu` table, one per year beyond the first, and nobody had to estimate a distribution from four points. If you want a second *random* grouping in this file, there is a candidate with `{julia} n_mums` levels in the `Mum` column — and two things stand between you and it. One is the engine: it cannot yet fit a second grouping beside the brood on a binomial response, and [Where the engine stops](appendix-b-engine.html) records that. The other is the design, which comes first whatever the engine can do. `{julia} n_split_broods` of the `{julia} J` broods carry more than one mother, and a mother holds up to `{julia} maximum(broods_per_mum.nb)` broods. So `Mum` is not nested above `BroodNo` and it is not cleanly crossed with it either: it is **partially crossed**, and the honest answer to "which is it" is that neither word fits. That is question six.
+**Itchy:** Three more rows in the `mu` table, one per year beyond the first, and nobody had to estimate a distribution from four points. If you want a second *random* grouping in this file, there is a candidate with `{julia} n_mums` levels in the `Mum` column — and two things stand between you and it. One is the engine: on a binomial response it will take a second grouping beside the brood, converge, and hand back an infinite standard error for every level without a word of warning, which is worse than a refusal; [Where the engine stops](appendix-b-engine.html) records it. The other is the design, which comes first whatever the engine can do. `{julia} n_split_broods` of the `{julia} J` broods carry more than one mother, and a mother holds up to `{julia} maximum(broods_per_mum.nb)` broods. So `Mum` is not nested above `BroodNo` and it is not cleanly crossed with it either: it is **partially crossed**, and the honest answer to "which is it" is that neither word fits. That is question six.
 
 ### What a random effect is, when you cannot see it
 
@@ -646,16 +646,26 @@ Mass2         0.9399     0.0812  11.5691
 - **Ask which distribution a residual is judged against.** Randomised quantile residuals are standard normal under a correct model only if each observation is compared with its own correct probability. `fitted` on a GLMM sets every group effect to zero, and on a nonlinear link that is *not* the average over groups: judged against the u = 0 probabilities the spread was `{julia} round(std(r_cond), digits = 3)`, and against the probability averaged over broods it was `{julia} round(std(r_marg), digits = 3)`. A per-observation check cannot see the correlation the model was fitted to handle.
 - **The likelihood has an integral in it, and packages approximate it differently.** `glmer` and `drmTMB` default to **Laplace** (brood SD 1.700, from the box); ours is a fixed thirty-two-node Gauss–Hermite grid (`{julia} round(sigma_b, digits = 4)`); `glmer` at `nAGQ > 1` re-centres that grid at each group's own mode (1.860915 from the box). Name the approximation next to the number, as Class 8 taught you to name the estimator.
 
-### Julia stuff
+### Julia you used
 
-- `CSV.read(path, DataFrame; missingstring = ["NA", ""])`: `missingstring` **replaces** the list of missing markers rather than adding to it, and the empty string is on the default list. A file that uses both conventions needs both spelled out, or every column silently becomes text with nothing missing in it.
-- `drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)`: the whole of a GLMM. The family is Class 3's and the grouping term is Class 6's; nothing else about the call changes.
-- `re_sd(fit)[:g]`: the group SD, here on the **log-odds** scale. `vc(fit)` gives the variance instead. There is no `sigma(fit)` on a binomial fit, and its absence is the family's decree, not an omission.
-- `lrtest(reduced, full)` warns when the added block is a variance component and points at `lrt_boundary(full, reduced; q = k)`, which uses the chi-bar-squared mixture — a blend of chi-squared distributions that is the right reference when a variance is tested at zero. Class 8.
-- `fitted(fit)` on a mixed fit is the prediction with every group effect **set to zero**, which on a nonlinear link is not the average over groups. Average the curve yourself if what you want is marginal.
-- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: as in Class 3, and pass the `rng`. Check what probability it is judging each observation against before you read the spread as a verdict on the model.
-- A grouping or factor variable that is stored as a number should be converted to text first (`string.(df.Year)`), or the formula will treat it as a covariate.
-- **Seeding.** Every random draw on this page — the jitter, both sets of quantile residuals, and the brood draws in every simulation — comes from an explicit `MersenneTwister` handed to the function that needs it. Never the global generator, and never `Random.seed!`.
+- **`Int.(rand(rng, n) .< p)`.** A Bernoulli draw per row: a uniform compared with a probability gives trues and falses, and `Int.` makes them ones and zeros.
+- **`0 .< p .< 1`.** Two comparisons chained, element by element.
+- **`logistic(z) = 1 / (1 + exp(-z))`.** A one-line function of your own for a curve the chapter uses repeatedly; `logistic.(v)` applies it to a vector.
+- **`20_000`.** An underscore inside a number is ignored; it is there for the reader.
+- **`[... for (yi, pi_, ui) in zip(y, p, U)]`.** `zip` over three vectors at once, each triple unpacked into three names, with a one-line `if` inside.
+- **`clamp.(v, lo, hi)`.** Pulls every element inside a range, here to keep a quantile finite.
+- **`string.(df.Year)`.** Converts a numeric column to text. A grouping or factor stored as a number must be converted, or the formula treats it as a covariate.
+- **`:Year => (x -> length(unique(x))) => :nyear`.** Class 7's anonymous function inside `combine`, here counting distinct values per group.
+
+### Calls you used
+
+- `CSV.read(path, DataFrame; missingstring = ["NA", ""])`: `missingstring` **replaces** the list of missing markers rather than adding to it, and the empty string is on the default list. A file using both conventions needs both spelled out.
+- `drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)`: the whole of a GLMM. The family is Class 3's and the grouping term is Class 6's.
+- `re_sd(fit)[:g]`, `vc(fit)`: the group SD, here on the **log-odds** scale, and the variance. There is no `sigma(fit)` on a binomial fit; the family has spent it.
+- `lrtest(reduced, full)` and `lrt_boundary(full, reduced; q = 1)`: the naive test, which warns when the added block is a variance component, and the chi-bar-squared one it points at.
+- `fitted(fit)` on a mixed fit: the prediction with every group effect **set to zero**, which on a nonlinear link is not the average over groups. Average the curve yourself if you want marginal.
+- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: as in Class 3, seeded; check which probability it judges each observation against before reading the spread.
+- **Seeding.** Every random draw on this page comes from an explicit `MersenneTwister` handed to the function that needs it. Never the global generator, and never `Random.seed!`.
 - **The simulation thread.** One cell, and it is the trap Class 6 met, on a new family.
 
 ```{julia}
@@ -700,20 +710,60 @@ into a recovery or coverage study, and how many refits one honestly needs, is
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Classes 3 and 6 and not Class 9.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files.
+ex_wrong = CSV.read("../data/2012/SparrowSurvival.csv", DataFrame; missingstring = "NA")
+ex_right = CSV.read("../data/2012/SparrowSurvival.csv", DataFrame; missingstring = ["NA", ""])
+ex_n_wrong = nrow(dropmissing(ex_wrong, [:Survival, :Mass2, :BroodNo]))
+ex_n_right = nrow(dropmissing(ex_right, [:Survival, :Mass2, :BroodNo]))
+ex_ch = dropmissing(CSV.read("../data/ch9/chicks-broods.csv", DataFrame), [:JulianDate])
+ex_glm = drm(bf(@formula(Survival ~ JulianDate)), Binomial(); data = ex_ch)
+ex_glmm = drm(bf(@formula(Survival ~ JulianDate + (1|BroodNo))), Binomial(); data = ex_ch)
+ex_se_ratio = stderror(ex_glmm)[2] / stderror(ex_glm)[2]
+ex_slope_ratio = coef(ex_glmm, :mu)[2] / coef(ex_glm, :mu)[2]
+ex_date_fit = drm(bf(@formula(JulianDate ~ 1 + (1|BroodNo))), Gaussian(); data = ex_ch)
+ex_date_within = 1 - repeatability(ex_date_fit).estimate
+ex_sb = re_sd(ex_glmm)[:BroodNo]
+ex_icc = ex_sb^2 / (ex_sb^2 + pi^2 / 3)
+ex_or10 = exp(10 * coef(ex_glmm, :mu)[2])
+ex_broods = sort(unique(ex_ch.BroodNo))
+ex_bidx = Dict(bn => i for (i, bn) in enumerate(ex_broods))
+ex_row_brood = [ex_bidx[bn] for bn in ex_ch.BroodNo]
+ex_eta = coef(ex_glmm, :mu)[1] .+ coef(ex_glmm, :mu)[2] .* ex_ch.JulianDate
+ex_rng = MersenneTwister(1)
+ex_marg = Float64[]
+for _ in 1:1000
+    u = ex_sb .* randn(ex_rng, length(ex_broods))
+    p = logistic.(ex_eta .+ u[ex_row_brood])
+    y = Int.(rand(ex_rng, nrow(ex_ch)) .< p)
+    push!(ex_marg, coef(drm(bf(@formula(Survival ~ JulianDate)), Binomial();
+                            data = DataFrame(Survival = y, JulianDate = ex_ch.JulianDate)), :mu)[2])
+end
+ex_or10_marg = exp(10 * mean(ex_marg))
+ex_ch.YearF = string.(ex_ch.Year)
+ex_year_re = drm(bf(@formula(Mass2 ~ JulianDate + (1|BroodNo) + (1|YearF))), Gaussian(); data = ex_ch)
+ex_sd_year = re_sd(ex_year_re)[:YearF]
+ex_by_brood = combine(groupby(ex_ch, :BroodNo), :Survival => mean => :p)
+ex_unanimous = count((ex_by_brood.p .== 0) .| (ex_by_brood.p .== 1))
+```
 
-1. **Find the grouping, then break the file.** Take a binary response of your own with a grouping column. Report the number of rows, the number of groups, and the distribution of observations per group. Then read the file once with the wrong `missingstring` and once with the right one, and report how many rows each version gives you. One sentence on what would have happened if you had never checked.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Classes 3 and 6 and not Class 9.
 
-2. **Both fits, both standard errors, one dataset.** Fit your response with and without `(1 | group)`, on the same rows. Report both slopes and both standard errors and the two ratios. Before you look, predict the direction of the standard-error change from how much your predictor varies within groups versus between them — **compute** that split with a Gaussian random-intercept model on the predictor itself, do not eyeball it. Afterwards say whether you were right, and which part of the change your prediction could not have covered.
+1. **Break the file, then find the grouping.** Read `data/2012/SparrowSurvival.csv` once with `missingstring = "NA"` and once with `missingstring = ["NA", ""]`, drop the rows missing `Survival`, `Mass2` or `BroodNo` from each, and report how many rows each version keeps and what type `Survival` has in each. One sentence on what would have happened if you had never checked. *Check:* `{julia} ex_n_wrong` rows and `{julia} ex_n_right` rows; in the first version `Survival` is text.
 
-3. **Name the scale.** Compute the latent-scale ICC from `re_sd(fit)` and π²/3. Then write the single sentence you would put in a paper, containing the word "latent" and the name of your link function. Now refit with a probit link if your engine offers one, recompute, and say in one sentence why the two numbers differ although the birds did not.
+2. **Both fits, both standard errors, one dataset.** On `data/ch9/chicks-broods.csv`, with the rows missing `JulianDate` dropped, fit `Survival ~ JulianDate` with and without `(1 | BroodNo)`. Before you look, predict the direction of the standard-error change from how much hatching date varies within broods versus between them — **compute** that split with a Gaussian random-intercept model on `JulianDate` itself, do not eyeball it. Report both slopes, both standard errors and the two ratios. Afterwards say whether you were right, and which part of the change your prediction could not have covered. *Check:* the within-brood share of `JulianDate` is `{julia} round(ex_date_within, digits = 2)`; the standard error changes by a factor of `{julia} round(ex_se_ratio, digits = 2)` and the slope by `{julia} round(ex_slope_ratio, digits = 2)`.
 
-4. **Conditional or marginal?** Report your fit's odds ratio. Then adapt the chapter's thousand-worlds simulation — your own seed — to get the marginal one. Report both. Then find a sentence in a paper in your field that reports an odds ratio from a mixed model and decide which of the two the sentence is claiming. If you cannot tell, that is the answer, and say so.
+3. **Name the scale.** Compute the latent-scale ICC from `re_sd(fit)` and π²/3 for the mixed fit of question 2. Then write the single sentence you would put in a paper, containing the word "latent" and the name of your link function, and say in one sentence what would change in that sentence, and what would not, under a probit link. *Check:* σ_b = `{julia} round(ex_sb, digits = 2)` on the log-odds scale, ICC = `{julia} round(ex_icc, digits = 2)`.
 
-5. **Too few levels.** Add a random intercept for a factor in your data with four or fewer levels, and report the variance component it prints and its standard error. Then refit with the same factor as a fixed effect instead. In three sentences: what did the random version claim to estimate, why would you not report it, and what does the fixed version report in its place?
+4. **Conditional or marginal?** Report the odds ratio per ten days of hatching date from the mixed fit. Then adapt the chapter's thousand-worlds loop to this fit, with `MersenneTwister(1)`, to get the marginal slope, and report the marginal odds ratio per ten days beside the conditional one. Two sentences: which of the two a reader comparing early and late broods across the whole island wants, and which one compares two chicks in the same nest. *Check:* conditional `{julia} round(ex_or10, digits = 2)`, marginal `{julia} round(ex_or10_marg, digits = 2)`.
 
-6. **Count the design before you trust the formula.** `data/2012/SparrowSurvival.csv` carries a `Mum` column with `{julia} n_mums` levels. Count how many of the `{julia} J` broods carry more than one `Mum`, and how many broods a mother holds; the chapter makes it `{julia} n_split_broods` and up to `{julia} maximum(broods_per_mum.nb)`. Say which of "nested", "crossed" and "neither" describes `Mum` against `BroodNo`, and why the formula could never have told you. Then fit `(1|BroodNo)` and `(1|MumF)` **separately** on the same rows and say which grouping the chicks share more of their fate through.
+5. **Too few levels.** The file's `Year` has `{julia} length(unique(ex_ch.Year))` levels. Convert it to text with `string.(df.Year)`, add `(1 | YearF)` to a Gaussian model of `Mass2 ~ JulianDate + (1 | BroodNo)`, and report the year standard deviation it prints. Then refit with `YearF` as a fixed effect instead. In three sentences: what did the random version claim to estimate, why would you not report it, and what does the fixed version report in its place? *Check:* the year SD is `{julia} round(ex_sd_year, digits = 3)` g, from four numbers.
 
-7. **The broods with no answer.** For your own grouped binary data, count the groups in which the response is unanimous. Report the number and the fraction. Then explain in two sentences why a fixed-effect-per-group model cannot give those groups a finite estimate, and what the mixed model used instead.
+6. **Count the design before you trust the formula.** `data/2012/SparrowSurvival.csv` carries a `Mum` column with `{julia} n_mums` levels. Count how many of the `{julia} J` broods carry more than one `Mum`, and how many broods a mother holds; the chapter makes it `{julia} n_split_broods` and up to `{julia} maximum(broods_per_mum.nb)`. Say which of "nested", "crossed" and "neither" describes `Mum` against `BroodNo`, and why the formula could never have told you. Then fit `(1|BroodNo)` and `(1|Mum)` **separately** on the same rows and say which grouping the chicks share more of their fate through.
 
-**If you have R.** Fit the same model with `glmer` at `nAGQ = 1`, `nAGQ = 9` and `nAGQ = 25`, and report all three group standard deviations and all three log-likelihoods. Then write the methods sentence you would use, containing both the estimator and the integral approximation. In the chapter's box the log-likelihood at nine is higher than at twenty-five, and twenty-five is the converged answer, so "believe the higher log-likelihood" is not available to you: say in two sentences what evidence you would use instead.
+7. **The broods with no answer.** Count the broods in `data/ch9/chicks-broods.csv` in which survival is unanimous, using `combine(groupby(df, :BroodNo), :Survival => mean => :p)`. Report the number and the fraction. Then explain in two sentences why a fixed-effect-per-brood model cannot give those broods a finite estimate, and what the mixed model used instead. *Check:* `{julia} ex_unanimous` of `{julia} nrow(ex_by_brood)` broods.
+
+**If you have R.** Fit the chapter's model with `glmer` at `nAGQ = 1`, `nAGQ = 9` and `nAGQ = 25`, and report all three group standard deviations and all three log-likelihoods. Then write the methods sentence you would use, containing both the estimator and the integral approximation. In the chapter's box the log-likelihood at nine is higher than at twenty-five, and twenty-five is the converged answer, so "believe the higher log-likelihood" is not available to you: say in two sentences what evidence you would use instead.

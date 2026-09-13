@@ -110,7 +110,7 @@ end
 
 **Momo:** The first two take only `{julia} length(unique(round.(r_pearson, digits = 8)))` different values each and the third takes `{julia} length(unique(round.(r_quantile, digits = 8)))`.
 
-**Itchy:** Which is `{julia} n_fem`, one per female, and that is the whole point. A count is a whole number, so observed minus fitted lands on a lattice: at a given fitted value there are only so many residuals available. Dividing by the square root of the mean rescales the lattice; it does not dissolve it. Look at all three.
+**Itchy:** Which is `{julia} n_fem`, one per female, and that is the whole point. (The three rows came from one loop over a list of name-and-vector pairs, and the `...` after `extrema(mu_p)` **splats** its two values into `@printf`'s two slots.) A count is a whole number, so observed minus fitted lands on a lattice: at a given fitted value there are only so many residuals available. Dividing by the square root of the mean rescales the lattice; it does not dissolve it. Look at all three.
 
 ```{julia}
 #| label: fig-three-residuals
@@ -129,7 +129,7 @@ fig
 
 **Toto:** All three are four columns, because age only takes four values. But the first two columns are a few dots stacked with gaps between them, and the third is filled in.
 
-**Itchy:** That is the right way to look at it, and it is not the columns that matter — those are the four ages. It is what is inside a column. The first two are stripes and there is nothing wrong with them; they are telling you the truth about a discrete response. What they cannot do is be compared with a normal distribution, because they are not one and never will be, however right the model is. Notice also that the response residuals have a **floor that moves**: a female cannot fledge fewer than none, so her residual cannot be more negative than minus her own fitted value, and the most negative one in this file is `{julia} round(minimum(r_response), digits = 3)`.
+**Itchy:** That is the right way to look at it — and the three panels came from the same loop with `enumerate`, which hands you a counter alongside each item so that panel `j` lands in column `j`. It is not the columns that matter — those are the four ages. It is what is inside a column. The first two are stripes and there is nothing wrong with them; they are telling you the truth about a discrete response. What they cannot do is be compared with a normal distribution, because they are not one and never will be, however right the model is. Notice also that the response residuals have a **floor that moves**: a female cannot fledge fewer than none, so her residual cannot be more negative than minus her own fitted value, and the most negative one in this file is `{julia} round(minimum(r_response), digits = 3)`.
 
 **Momo:** So the third one is the one I plot.
 
@@ -137,7 +137,7 @@ fig
 
 ### The picture, and what its envelope promises
 
-**Itchy:** Now the plot. It is the one `fig_diagnostic` draws, and before anybody looks at it I am going to tell you what is on the axes, because the commonest failure in this room is reading a picture whose meaning you have assumed.
+**Itchy:** Now the plot. It is the one `fig_diagnostic` draws, and before anybody looks at it I am going to tell you what is on the axes, because the commonest failure in this room is reading a picture whose meaning you have assumed. The helper cell in between exposes the arithmetic so the picture can be counted; read it or skip it. `worm_parts` hands back a NamedTuple of three fields, `(; theo, dev = ..., se)`, so the counters under it can ask for `w.dev`, and each counter is a one-line function whose body is two statements with a semicolon between them: compute the parts, then count.
 
 ```{julia}
 #| label: worm-helpers
@@ -177,7 +177,7 @@ fig_diagnostic(r_quantile; title = "fledglings ~ age, quantile residuals")
 
 **Momo:** `{julia} out_p` out of `{julia} n_fem` are outside. That is more than half.
 
-**Itchy:** It is, and Toto has told you it should be about five per cent, and I have told you not to believe him, and neither of us has done anything but assert. The envelope is **pointwise**: each ribbon is drawn at two standard errors, so the rate per *point* really is the normal's own two-sigma tail and Toto has not invented it. Two things break the step from that rate to a *count*. The points are the same residuals sorted from smallest to largest, one per rank, so they are heavily correlated: when the curve drifts it drifts together and dozens cross at once. And these residuals are not a fresh normal sample: they came out of a model **fitted to these very data**, which is the caveat Dunn and Smyth put in their own abstract — normal apart from the sampling variability in the estimated parameters. Simulate both nulls and find out which one this picture belongs to.
+**Itchy:** It is, and Toto has told you it should be about five per cent, and I have told you not to believe him, and neither of us has done anything but assert. The envelope is **pointwise**: each ribbon is drawn at two standard errors, so the rate per *point* really is the normal's own two-sigma tail and Toto has not invented it. Two things break the step from that rate to a *count*. The points are the same residuals sorted from smallest to largest, one per rank, so they are heavily correlated: when the curve drifts it drifts together and dozens cross at once. And these residuals are not a fresh normal sample: they came out of a model **fitted to these very data**, which is the caveat Dunn and Smyth put in their own abstract — normal apart from the sampling variability in the estimated parameters. Simulate both nulls and find out which one this picture belongs to. Read `null_counters` before you run it. `Int[]` and `Float64[]` are empty vectors that know what they will hold, and `push!` appends one value to the end, so every pass through the loop grows them by one: the loop form of a comprehension, for a body that does several things. `refit` is a function handed in as an argument, like any other value, which is why `refit_age` is defined by name underneath. And `for _ in 1:2000` uses an underscore for a counter whose value is never wanted.
 
 ```{julia}
 #| label: null-envelope
@@ -574,13 +574,13 @@ lrtest(pois2, pois)
 
 **Momo:** And what does it not stop?
 
-**Itchy:** The one that will actually get you. It cannot see your data.
+**Itchy:** The one that will actually get you. It cannot see your data. `females[1:150, :]` is rows one to one hundred and fifty and every column, a colon in the column slot as in Class 3's matrix slices.
 
 ```{julia}
 #| label: guard-silence
 # A nested pair fitted to DIFFERENT ROWS: reduced on the first 150 females, full on all.
-subset = females[1:150, :]
-pois_sub = drm(bf(@formula(Fledglings ~ Age)), Poisson(); data = subset)
+first150 = females[1:150, :]
+pois_sub = drm(bf(@formula(Fledglings ~ Age)), Poisson(); data = first150)
 
 @printf("rows in the first fit : %d\n", nobs(pois_sub))
 @printf("rows in the second    : %d\n", nobs(pois2))
@@ -630,16 +630,24 @@ One thing this page swept under the rug: every model on it treats each female as
 - **A marginal and a conditional coefficient are different questions, not two estimates of one thing.** Age alone gave a rate ratio clear of one; age at a fixed clutch size gave one that covers it, because older females lay more eggs. Do not report the second as a refutation of the first.
 - **Never accept a null.** Say what the design could have seen: the smallest rate ratio detectable here at eighty per cent power was `{julia} string(round(Int, 100 * (mde_age - 1)), "%")`. And **an interval that excludes another estimate's point value is not a test of the difference**, because the two estimates come from the same data and are correlated.
 
-### Julia stuff
+### Julia you used
 
-- `residuals(fit; type = :response)`: observed minus fitted, on the response scale. This is also what a bare `residuals(fit)` returns.
-- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: randomised quantile residuals, standard normal under a correct model for every family. **Pass the `rng`**: omitting it quietly uses the global generator, and nothing on the page then records which draw you looked at.
-- **The Pearson residual is yours to write**, `(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))`, with `V` the family's variance function — μ for `Poisson()`, σ² for `Gaussian()`, p(1 − p) for a Bernoulli response.
-- `sigma(fit)`: the residual standard deviation, one value per observation; `first(...)` when it is constant.
-- `fig_diagnostic(resid)` from `tools/figures.jl`: the worm plot, with a pointwise ±2SE envelope. `erfinv_approx` from the same file reproduces its arithmetic so the points can be counted.
-- `simulate(fit; nsim = k, rng = MersenneTwister(seed))`: an `nobs × k` matrix of new responses drawn from the fitted model, in the family's own support.
-- `aic(fit)`, `dof(fit)`, `dof_residual(fit)`, `loglik(fit)`, `nobs(fit)`: the comparison toolkit. Call `nobs` on both fits before you compare anything.
-- `lrtest(reduced, full)`: the nested likelihood-ratio test, returning `(; statistic, dof, pvalue)`. It **throws** if `full` has no more parameters than `reduced`; it cannot check that the two fits used the same rows.
+- **`Int[]`, `Float64[]` and `push!`.** An empty vector that knows its type, grown one value at a time inside a loop. The loop form of a comprehension, for a body that does more than one thing.
+- **A function as an argument: `null_counters(pois, refit_age, ...)`.** A function is a value; hand it to another function by name and call it inside.
+- **`for (nm, r) in (("response", r1), ("Pearson", r2))`.** Looping over a list of pairs, each unpacked into two names. `enumerate(list)` adds a counter: `for (j, (nm, r)) in enumerate(panels)`.
+- **`for _ in 1:2000`.** An underscore for a counter whose value is never used.
+- **`extrema(mu_p)...`.** The splat: spreads a pair into two separate arguments.
+- **`(; theo, dev = obs .- theo, se)`.** Returning a NamedTuple from a function, so the caller can write `w.dev`. `n_outside(r) = (w = worm_parts(r); count(...))` is a one-line function with two statements in it.
+- **`females[1:150, :]`.** Rows one to one hundred and fifty, every column.
+- **`-0.5:1:16.5`.** A range with a step: from, step, to.
+- **`maximum(abs, v)`, `sum(abs2, v)`, `count(==(0), v)`.** A function in the first slot is applied to each element first.
+
+### Calls you used
+
+- `residuals(fit; type = :response)` and `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: observed minus fitted, and randomised quantile residuals. **Pass the `rng`.** There is no Pearson type: write `(y .- fitted(fit)) ./ sqrt.(V.(fitted(fit)))` yourself, with `V` the family's variance function.
+- `simulate(fit; nsim = k, rng = MersenneTwister(seed))`: an `nobs × k` matrix of new responses in the family's own support.
+- `aic(fit)`, `dof(fit)`, `loglik(fit)`, `nobs(fit)`, `lrtest(reduced, full)`: the comparison toolkit. `lrtest` returns `(; statistic, dof, pvalue)`, throws when the order is wrong, and cannot see whether the two fits used the same rows; call `nobs` on both first.
+- `fig_diagnostic(resid)` and `erfinv_approx` from `tools/figures.jl`: the worm plot with its pointwise ±2SE envelope, and the piece of its arithmetic the counters reuse.
 - **The simulation thread.** Every chapter ends by asking the fit to invent data. Here it is on the repaired model, checking the thing a standard error actually claims.
 
 ```{julia}
@@ -681,18 +689,59 @@ The spread of the refitted coefficients is what the reported standard error is a
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 4 and not Class 5.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 4 and not Class 5.
 
-1. **Three residuals, twice.** Take any Gaussian model of your own. Compute `residuals(fit; type = :response)`, divide it by `sigma(fit)`, and compute `residuals(fit; type = :quantile, rng = MersenneTwister(1))`. Report the largest absolute difference between the last two and say in one sentence why they agree. Then repeat on a Poisson or negative-binomial model: report the SD, the skewness and the number of distinct values of each of the three, and say which of the three you would put on a normal reference plot and why the other two cannot go there however right the model is.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files.
+ex_sp = CSV.read("../data/2012/MBodySize.csv", DataFrame)
+ex_g = drm(bf(@formula(Weight ~ Tarsus + Sex)), Gaussian(); data = ex_sp)
+ex_g_pearson = residuals(ex_g; type = :response) ./ sigma(ex_g)
+ex_g_quantile = residuals(ex_g; type = :quantile, rng = MersenneTwister(1))
+ex_g_gap = maximum(abs.(ex_g_pearson .- ex_g_quantile))
+ex_epp = CSV.read("../data/2012/EPPSuccess.csv", DataFrame)
+ex_pois = drm(bf(@formula(EPP ~ Age)), Poisson(); data = ex_epp)
+ex_nb = drm(bf(@formula(EPP ~ Age), @formula(sigma ~ 1)), NegBinomial2(); data = ex_epp)
+ex_r_resp = residuals(ex_pois; type = :response)
+ex_r_q = residuals(ex_pois; type = :quantile, rng = MersenneTwister(1))
+ex_distinct_resp = length(unique(round.(ex_r_resp, digits = 8)))
+ex_distinct_q = length(unique(round.(ex_r_q, digits = 8)))
+ex_out_pois = count(abs.(ex_r_q) .> 2)
+ex_out_expected = 2 * Distributions.cdf(Distributions.Normal(), -2) * nrow(ex_epp)
+ex_r_qnb = residuals(ex_nb; type = :quantile, rng = MersenneTwister(1))
+ex_out_nb = count(abs.(ex_r_qnb) .> 2)
+ex_sds_pois = [std(residuals(ex_pois; type = :quantile, rng = MersenneTwister(k))) for k in 1:200]
+ex_sds_nb = [std(residuals(ex_nb; type = :quantile, rng = MersenneTwister(k))) for k in 1:200]
+ex_z_obs = count(==(0), ex_epp.EPP)
+ex_ysim = simulate(ex_pois; nsim = 1000, rng = MersenneTwister(5))
+ex_z_sim = [count(==(0), ex_ysim[:, k]) for k in 1:size(ex_ysim, 2)]
+ex_ysim_nb = simulate(ex_nb; nsim = 1000, rng = MersenneTwister(5))
+ex_z_sim_nb = [count(==(0), ex_ysim_nb[:, k]) for k in 1:size(ex_ysim_nb, 2)]
+ex_ch = CSV.read("../data/2012/ChickSurvival.csv", DataFrame)
+ex_f0 = drm(bf(@formula(Survival ~ Mass2)), Binomial(); data = ex_ch)
+ex_fd = drm(bf(@formula(Survival ~ Mass2 + JulianDate)), Binomial(); data = ex_ch)
+ex_fs = drm(bf(@formula(Survival ~ Mass2 + Sex)), Binomial(); data = ex_ch)
+ex_daic_date = aic(ex_fd) - aic(ex_f0)
+ex_daic_sex = aic(ex_fs) - aic(ex_f0)
+ex_sex_ci = confint(ex_fs)[3]
+ex_sex_se = stderror(ex_fs)[3]
+ex_mde_sex = exp(2.8016 * ex_sex_se)
+ex_sub = drm(bf(@formula(Survival ~ Mass2)), Binomial(); data = ex_ch[1:1500, :])
+ex_hole = lrtest(ex_sub, ex_fd)
+```
 
-2. **Calibrate the envelope, with the null that applies.** Run this chapter's `n_outside` on your own quantile residuals and report the count. Then call `null_counters` on your fitted model with 200 draws and a refit function of your own, and report the median and ninety-fifth percentile of the count, and the proportion of draws at least as bad as yours. Then draw 200 plain standard normal samples of the same length — no fitting anywhere — and compare the two ninety-fifth percentiles. Say, in one sentence, why they differ.
+1. **Three residuals, twice.** On `data/2012/MBodySize.csv` fit `Weight ~ Tarsus + Sex` with `Gaussian()`. Compute `residuals(fit; type = :response)` divided by `sigma(fit)`, and `residuals(fit; type = :quantile, rng = MersenneTwister(1))`. Report the largest absolute difference between the two and say in one sentence why they agree. Then fit `EPP ~ Age` on `data/2012/EPPSuccess.csv` with `Poisson()` and report, for the response, Pearson and quantile residuals, the SD, the skewness and the number of distinct values of each, as the chapter's table did. Say which of the three you would put on a normal reference plot and why the other two cannot go there however right the model is. *Check:* the Gaussian gap, rounded to ten decimals, is `{julia} round(ex_g_gap, digits = 10)`; the Poisson response residuals take `{julia} ex_distinct_resp` distinct values and the quantile residuals `{julia} ex_distinct_q`.
 
-3. **The seed is part of the answer.** Recompute your quantile residuals under 200 seeds. Report the range of the residual SD and the range of the count outside the envelope. Then state your verdict on the model in a form that survives the seed, and say which digits you would refuse to print.
+2. **A check you fail, then one you pass.** Draw the worm plot of the Poisson quantile residuals from question 1 with `fig_diagnostic`, and count the residuals beyond ±2 with `count(abs.(r) .> 2)`. Compare the count with what a standard normal sample of the same length would give, `2 * Distributions.cdf(Distributions.Normal(), -2) * n`. Then refit with `NegBinomial2()` as in Class 4, recompute both, and write two sentences: what the first model got wrong, and what the second model's passing the same check does and does not establish. *Check:* `{julia} ex_out_pois` beyond ±2 under the Poisson, against about `{julia} round(ex_out_expected, digits = 1)` expected; `{julia} ex_out_nb` under the negative binomial.
 
-4. **Ask the model what it believes.** Choose a statistic that is a fact about your organism the model was never told — an upper limit, a number of zeros, a maximum, a number of ties. Simulate 1000 datasets from your fitted model with an explicit `rng`, compute your statistic in each, and report the proportion at or beyond the observed value. Then write two sentences: what the model believes that the world does not allow, and what you would change in the model rather than in the data.
+3. **The seed is part of the answer.** Recompute the quantile residuals of both fits from question 2 under 200 seeds, `MersenneTwister(k)` for `k in 1:200`, with a comprehension, and report the range of the residual SD for each. Then state your verdict on each model in a form that survives the seed, and say which digits you would refuse to print. *Check:* the Poisson SD runs from `{julia} round(minimum(ex_sds_pois), digits = 2)` to `{julia} round(maximum(ex_sds_pois), digits = 2)`; the negative binomial's from `{julia} round(minimum(ex_sds_nb), digits = 2)` to `{julia} round(maximum(ex_sds_nb), digits = 2)`.
 
-5. **Two comparisons, one parameter each.** Build a nested pair of models where the extra term is one you expect to matter, and another pair where it is one you do not. Report `aic`, `dof` and `nobs` for all of them and both `lrtest` results. Then answer: which of your two ΔAIC values is smaller than the cost of a parameter that explains nothing, and what does that let you say and not say?
+4. **Ask the model what it believes.** The Poisson model of question 1 was never told how many of the `{julia} nrow(ex_epp)` males sired no extra-pair young at all. Count the zeros in `EPP`. Then simulate 1000 datasets from the Poisson fit with `MersenneTwister(5)`, count the zeros in each column, and report the mean count and the proportion of simulated worlds with at least as many zeros as the real one. Do the same from the negative-binomial fit. Two sentences: what the first model believes that the sparrows do not allow, and what you would change in the model rather than in the data. *Check:* `{julia} ex_z_obs` real zeros; the Poisson worlds average `{julia} round(mean(ex_z_sim), digits = 1)` and reach the real count in a proportion `{julia} round(mean(ex_z_sim .>= ex_z_obs), digits = 3)` of them; the negative-binomial worlds average `{julia} round(mean(ex_z_sim_nb), digits = 1)`, proportion `{julia} round(mean(ex_z_sim_nb .>= ex_z_obs), digits = 2)`.
 
-6. **Marginal and conditional, and never accept the null.** Take a predictor that appears in both of your models from question 5 and report its coefficient and interval in each. If they differ, write two sentences describing the two quantities being estimated — the total effect and the effect holding the other predictor fixed — and one naming the path between the predictors that would explain the gap; then test that path by fitting the second predictor on the first. For whichever interval covers no effect, compute the smallest effect your design could have detected at eighty per cent power, `exp(2.8016 * se)` on a log-link coefficient, and write the sentence you would put in a paper. It must not contain the words "no effect".
+5. **Two comparisons, one parameter each.** On `data/2012/ChickSurvival.csv`, fit `Survival ~ Mass2` with `Binomial()`, then two models that each add one term: `JulianDate`, which you expect to matter, and `Sex`, which you may not. Report `aic`, `dof` and `nobs` for all three and both `lrtest` results. Then answer: which of your two ΔAIC values is smaller than the cost of a parameter that explains nothing, and what does that let you say and not say? *Check:* adding hatching date changes AIC by `{julia} round(ex_daic_date, digits = 1)`; adding sex by `{julia} round(ex_daic_sex, digits = 2)`.
 
-7. **Trigger the refusal, and find the hole.** Call `lrtest` with the arguments the wrong way round and paste the error. Then fit your **reduced** model to one subset of your rows and your **full**, nested model to a *different* subset, compare the pair with `lrtest`, and paste the number it returns. Explain why the engine can catch the first and cannot catch the second, and name the one call you should have made first.
+6. **Never accept the null.** The sex coefficient from question 5 has an interval that covers zero. Compute the smallest effect this design could have detected at eighty per cent power, `exp(2.8016 * se)` on the log-odds coefficient, and write the sentence you would put in a paper. It must not contain the words "no effect". *Check:* the odds ratio for males runs from `{julia} round(exp(ex_sex_ci.lower), digits = 2)` to `{julia} round(exp(ex_sex_ci.upper), digits = 2)`, and the smallest detectable ratio is `{julia} round(ex_mde_sex, digits = 2)` — or its reciprocal.
+
+7. **Trigger the refusal, and find the hole.** Call `lrtest` on the two models of question 5 with the arguments the wrong way round and paste the error. Then fit the **reduced** model to the first 1500 rows only, `df[1:1500, :]`, compare it with the full model on all the rows using `lrtest`, and paste the number it returns. Explain why the engine can catch the first and cannot catch the second, and name the one call you should have made first. *Check:* the second comparison returns a statistic of `{julia} round(ex_hole.statistic, digits = 1)` and a p-value of `{julia} round(ex_hole.pvalue, sigdigits = 2)`, on `{julia} nobs(ex_sub)` rows against `{julia} nobs(ex_fd)`, and nothing in the output objects to the sign.

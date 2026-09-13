@@ -169,7 +169,7 @@ plainly (Barik et al. 2017, cited in that chapter).
 The first is Julia itself. Basic Julia is not an appendix and not a prerequisite — it is Class 1,
 taught with the same data you model in Class 2.
 
-The second is **simulation**. From Class 2 onward, most chapters end their "Julia stuff" with one
+The second is **simulation**. From Class 2 onward, most chapters end their Julia summary with one
 short block of code that acts out what the model claims: draw new data from the fitted model, refit it, and watch
 the estimate wander (Class 8 carries its own in the body of the hour instead, and Class 7 hands the job to Class 8). It is not a rung, because a rung frees a constant and this is a way of
 thinking rather than a model; **Appendix A — simulation as a way of thinking** gathers the whole

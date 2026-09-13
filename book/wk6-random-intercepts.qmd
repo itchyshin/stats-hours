@@ -116,7 +116,7 @@ mean_k = mean(per_bird.k)
 
 **Toto:** So some birds are in the file twice and some four times.
 
-**Itchy:** Which means that if you treat rows as individuals, some sparrows get four votes and some get two. Look at what that actually looks like. A handful of birds, picked at even intervals through the range so I am not choosing my evidence, with each bird's own measurements joined up.
+**Itchy:** Which means that if you treat rows as individuals, some sparrows get four votes and some get two. Look at what that actually looks like. A handful of birds, picked at even intervals through the range so I am not choosing my evidence, with each bird's own measurements joined up. Two idioms in the cell do the picking: `sortperm(bird_mean)` returns the *order* that would sort the means, so indexing the names by it sorts the names; and `1:14:length(bird_ids)` is a range with a step, every fourteenth. The title has `$(length(shown))` inside its quotes: a dollar sign in a string pastes a value into it.
 
 ```{julia}
 #| label: fig-by-bird
@@ -323,31 +323,28 @@ sigma_e = first(sigma(ri_fit))       # within-bird SD; also the fit's printed
 #| label: repeatability
 R_manual = sigma_u^2 / (sigma_u^2 + sigma_e^2)
 
-# repeatability() defaults to method = :delta: the estimate plus or minus about two
-# standard errors, pushed back inside [0, 1]. Name the method: it is not the only one on offer.
-R = repeatability(ri_fit)                          # method = :delta, the default
-R_prof = repeatability(ri_fit; method = :profile)  # re-maximises the likelihood
+R = repeatability(ri_fit)                          # Wald interval, by the delta method
+R_prof = repeatability(ri_fit; method = :profile)  # profile-likelihood interval
 
-@printf("by hand                   : R = %.4f\n", R_manual)
-@printf("delta (the default)       : R = %.4f   SE %.4f   95%% CI %.4f to %.4f\n",
+@printf("by hand            : R = %.4f\n", R_manual)
+@printf("delta method       : R = %.4f   SE %.4f   95%% CI %.4f to %.4f\n",
         R.estimate, R.se, R.ci.lower, R.ci.upper)
-@printf("  bias estimate %.5f, bias-corrected point estimate %.4f\n",
-        R.bias, R.corrected)
-@printf("profile likelihood        : R = %.4f   %-11s95%% CI %.4f to %.4f\n",
+@printf("profile likelihood : R = %.4f   %-11s95%% CI %.4f to %.4f\n",
         R_prof.estimate, "", R_prof.ci.lower, R_prof.ci.upper)
+@printf("  bias %.5f, bias-corrected point estimate %.4f\n", R.bias, R.corrected)
 ```
 
-**Momo:** Two intervals, and you did not tell us which one you were reporting until just now.
+**Momo:** Two intervals.
 
-**Itchy:** Which is the sin this whole book is about, committed by me, in a cell, on purpose. `repeatability` hands you one of two intervals and does not say which. The default is the quick one: take the ratio, take a standard error for it, go about two standard errors either way, and then push the ends back inside nought and one if they fall outside. Statisticians call an estimate-plus-or-minus-two-standard-errors interval a **Wald** interval, and the approximation that gets a standard error for a ratio out of two variances is the **delta method**. It is fast and it is the weaker of the two.
+**Itchy:** Two ways of asking one question, and you should know both by name. The first takes the ratio, gets a standard error for it, goes about two standard errors either way, and pushes the ends back inside nought and one if they stray. An estimate plus or minus two standard errors is a **Wald** interval, and the approximation that gets a standard error for a ratio out of two variances is the **delta method**. It is fast and it is the weaker of the two.
 
 **Toto:** And the other one?
 
-**Itchy:** `method = :profile` re-fits the model at each trial value of R and keeps the values the data cannot rule out. That takes longer, and it is the one documented to do what it says: ask for a 95 percent interval and you get one that contains the truth 95 times in 100, which is what **coverage** means. They differ here in the third decimal place at both ends, which is small, and they will not always be small: near zero or near one the pushing-back-inside does real damage. Report the one you asked for, by name.
+**Itchy:** **Profile likelihood** re-fits the model at each trial value of R and keeps the values the data cannot rule out. It is slower, and it does what a 95 percent interval claims to do: contain the truth 95 times in 100, which is what **coverage** means. Here the two differ from the third decimal place at the lower end and the second at the upper, a small gap because this R sits well inside the unit interval; near zero or near one the pushing-back-inside does real damage. This chapter reports the profile interval, and says so. Report the one you asked for, by name.
 
 **Toto:** And the bias line?
 
-**Itchy:** A ratio of estimates is not the estimate of the ratio, so the point estimate is slightly off and the engine will tell you by how much if you look. It is tiny here. It will not be tiny in Class 10, on six families.
+**Itchy:** A ratio of estimates is not the estimate of the ratio, so the point estimate is slightly off and the fit will tell you by how much. It is tiny here. It will not be tiny in Class 10.
 
 **Itchy:** Now the substance. That is **repeatability**, and it is the first quantity in this book that is not a coefficient and not a *p*-value. It is a **ratio of variance components**: the between-bird variance over the total. Toto, read it as a sentence about birds.
 
@@ -374,7 +371,7 @@ R_unadjusted = repeatability(plain_fit).estimate
 
 > **R = σ_u² / (σ_u² + σ²). Two estimated quantities, over the sum of the same two estimated quantities, and not one coefficient of μ anywhere in it.**
 
-**Itchy:** Every number in that ratio is an estimate of a variance, and Class 2 already showed you that different people divide sums of squares by different things. In Class 8 you will find out that two correct implementations of *this exact model* disagree about σ_u, and therefore about R. Today I only want you to notice that the denominator is contested. Do not take the third decimal place of a repeatability seriously until Class 8.
+**Itchy:** Every number in that ratio is an estimate of a variance, and Class 2 already showed you that different people divide sums of squares by different things. In Class 8 you will find out that two correct implementations of *this exact model* disagree about σ_u, and therefore about R. Today I only want you to notice that the denominator is contested.
 
 ### Eddie's question
 
@@ -439,15 +436,15 @@ fig
 
 ### Is the model any good?
 
-**Itchy:** Before anybody writes this down, look at the residuals. And be careful which residuals, because there are two kinds now and the software will hand you one of them without asking. The marginal residual is the distance from the population line, so it still has the bird's own shift inside it. The conditional residual subtracts that shift out, and it is the one σ is a claim about. The worm plot is the picture Class 2 showed you and Class 5 taught you to read: residuals against what a normal distribution would give, straight along the middle if all is well. Read it for shape only — Class 5 showed that the naive count of points outside the ±2SE band is too generous by about a factor of five, so it is not calibrated by eye.
+**Itchy:** Before anybody writes this down, look at the residuals. And be careful which residuals, because there are two kinds now and the software will hand you one of them without asking. The marginal residual is the distance from the population line, so it still has the bird's own shift inside it. The conditional residual subtracts that shift out, and it is the one σ is a claim about. The worm plot is the picture Class 2 showed you and Class 5 taught you to read: residuals against what a normal distribution would give, straight along the middle if all is well. Read it for shape only — Class 5 showed that the naive count of points outside the ±2SE band is too generous by about a factor of five, so it is not calibrated by eye. One piece of Julia before the cell: `idx` is a `Dict`, a lookup table from bird name to a position, built once so that every row can find its own bird's prediction.
 
 ```{julia}
 #| label: fig-diagnostic
-#| fig-cap: "Worm plot of the conditional residuals — the marginal residual with the model's own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat through the middle; a scatter of points sit outside the ±2SE band on both sides, which is the naive count the prose above already warned not to read as a defect tally. The single worst deviation in the whole file, not merely the nearest to the edge, is named in the text below."
+#| fig-cap: "Worm plot of the conditional residuals — the marginal residual with the model's own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat through the middle, with a scatter of points outside the band at both ends that the prose above has already said not to count. The single largest standardised residual in the file is named in the text below."
 # residuals(fit) is MARGINAL: it still contains the bird effect, so it is NOT the
 # thing sigma describes. Subtract each bird's own BLUP to get the CONDITIONAL
 # residual, which is what the within-bird spread is a claim about.
-idx = Dict(b => i for (i, b) in enumerate(bird_ids))
+idx = Dict(b => i for (i, b) in enumerate(bird_ids))   # bird name => position in bird_ids
 cond_resid = residuals(ri_fit) .- [blups[idx[b]] for b in sparrows.BirdID]
 
 @printf("SD of marginal residuals    : %.4f  (should be near %.4f)\n",
@@ -455,86 +452,34 @@ cond_resid = residuals(ri_fit) .- [blups[idx[b]] for b in sparrows.BirdID]
 @printf("SD of conditional residuals : %.4f  (sigma_e is %.4f)\n",
         std(cond_resid), sigma_e)
 
-# Standardise by the spread the residuals ACTUALLY have, not by sigma_e. Dividing
-# by sigma_e would guarantee an under-dispersed plot and hide the shape we came
+# Standardise by the spread the residuals ACTUALLY have, not by sigma_e: each
+# bird's own mean was estimated from its own few rows, so these sit a little
+# narrower than sigma_e, and dividing by sigma_e would hide the shape we came
 # to look at behind an error of scale we already know about.
 fig_diagnostic(cond_resid ./ std(cond_resid); title = "within-bird residuals")
 ```
 
-**Itchy:** Read the shape, but do not let your eye average away the single worst row, the one that does not belong in an average even among the points already outside the band. Name it before we go on.
+**Momo:** The conditional one is smaller than σ. Is that the shrinkage?
+
+**Itchy:** It is not, and the guess is the common one. Each bird's own mean was estimated from its own few rows before these residuals were taken from it, and Class 2 told you what subtracting an estimated mean does to a spread: it comes up short, by the divisor. Shrinkage pulls a little the other way, since a shrunk mean removes slightly less than the bird's real effect and leaves the rest in the residual, but the divisor wins. So this plot cannot tell you whether σ is right; it can tell you whether the within-bird wobble is symmetric, normal-ish and free of trend, which is the assumption the model actually makes. That is why the cell standardises by the spread the residuals have and you read the shape. But do not let your eye average away the single worst row. Name it before we go on.
 
 ```{julia}
 #| label: named-outlier
 z = cond_resid ./ std(cond_resid)
-
-# fig_diagnostic does not plot z itself: it sorts z into order statistics and
-# subtracts the theoretical normal quantile each one is expected to sit at
-# (obs .- theo), which is what a worm plot actually shows on its y-axis, and
-# what the ±2SE band above is drawn around. Counting z past a fixed +-2, as
-# this cell used to, answers a different question than the one on the page.
-# Mirror fig_diagnostic's own detrending exactly (same erfinv_approx, same
-# order statistics) so the two report the same quantity.
-ordp = sortperm(z)
-p_os = ((1:length(z)) .- 0.5) ./ length(z)
-theo = sqrt(2) .* erfinv_approx.(2 .* p_os .- 1)
-dev = z[ordp] .- theo
-φ = x -> exp(-x^2 / 2) / sqrt(2π)
-se = sqrt.(p_os .* (1 .- p_os) ./ length(z)) ./ φ.(theo)
-
-worst_sorted = argmax(abs.(dev))
-worst = ordp[worst_sorted]
+worst = argmax(abs.(z))
 bad_bird = sparrows.BirdID[worst]
 own_wings = sparrows.Wing[sparrows.BirdID .== bad_bird]
 
-@printf("points beyond +-2SE band: %d below, %d above (of %d)\n",
-        count(dev .< -2 .* se), count(dev .> 2 .* se), length(z))
-@printf("furthest point: bird %s, deviation %.2f\n", bad_bird, dev[worst_sorted])
+@printf("largest standardised residual: bird %s, z = %.2f\n", bad_bird, z[worst])
 @printf("its own wing measurements: %s\n", string(own_wings))
 
-keep = trues(n); keep[worst] = false
+keep = trues(n); keep[worst] = false     # a mask: true for every row but that one
 refit_drop = drm(bf(@formula(Wing ~ Tarsus + (1|BirdID))), Gaussian(); data = sparrows[keep, :])
 @printf("sigma_e, row in vs out    : %.4f vs %.4f\n", sigma_e, first(sigma(refit_drop)))
 @printf("R,       row in vs out    : %.4f vs %.4f\n", R.estimate, repeatability(refit_drop).estimate)
 ```
 
-**Itchy:** `{julia} bad_bird`. Read the line above rather than take my word for it: three wings within a couple of millimetres of each other, and a fourth well short of them. It survived the missing-data filter because tarsus was recorded on all four captures, so it is sitting inside this fit whether we discuss it or not. Drop that one row and σ moves from `{julia} round(sigma_e, digits = 4)` to `{julia} round(first(sigma(refit_drop)), digits = 4)`, and R from `{julia} round(R.estimate, digits = 4)` to `{julia} round(repeatability(refit_drop).estimate, digits = 4)` — one row out of `{julia} n`, and not a small move. This bird, and a second one like it, get the full treatment next week: Class 7 names them both and sends them to an exercise. Here I am only asking you to read a worm plot honestly: flat through the middle, a scatter of points beyond the band on both sides exactly as the naive count above predicts, and this one sitting furthest out of all of them.
-
-**Momo:** The conditional one is smaller than σ. Is that the shrinkage?
-
-**Itchy:** It is not, and I am glad you guessed, because the guess is the common one and it points the wrong way. Work out where the shortfall comes from instead of attributing it.
-
-```{julia}
-#| label: residual-accounting
-k_of = Dict(b => count(==(b), sparrows.BirdID) for b in bird_ids)
-ks = sort(unique(values(k_of)))
-
-# lambda_k is the Spearman-Brown weight: the share of its own signal a bird with
-# k measurements keeps. It is also the shrinkage factor in the caterpillar.
-lambda(k) = k * sigma_u^2 / (k * sigma_u^2 + sigma_e^2)
-
-own_mean_only = sqrt(sum(count(==(k), values(k_of)) * k * sigma_e^2 * (1 - 1/k)
-                         for k in ks) / n)
-with_shrinkage = sqrt(sum(count(==(k), values(k_of)) * k *
-                          (sigma_e^2 * (1 - 1/k) + (1 - lambda(k))^2 * (sigma_u^2 + sigma_e^2/k))
-                          for k in ks) / n)
-
-@printf("%-42s %.4f\n", "sigma_e, and what you would see if each", sigma_e)
-@printf("%-42s %s\n",   "  bird's own mean were known exactly:", "(the same number)")
-@printf("%-42s %.4f\n", "after paying for each bird's own mean:", own_mean_only)
-@printf("%-42s %.4f\n", "that, plus what shrinkage adds back:", with_shrinkage)
-@printf("%-42s %.4f\n", "observed:", std(cond_resid))
-println()
-for k in ks
-    @printf("  k = %d: lambda = %.4f, sqrt(sigma_e^2 (1 - 1/k)) = %.4f\n",
-            k, lambda(k), sqrt(sigma_e^2 * (1 - 1/k)))
-end
-```
-
-**Itchy:** Read the ladder. The big step is the third line, and it is nothing to do with random effects: it is Class 2's divisor, wearing its oldest hat. Subtracting an estimated mean from `{julia} minimum(ks)` numbers leaves you residuals whose spread is short by a factor of the square root of one minus one over *k*, because one degree of freedom went into the mean. With `{julia} minimum(ks)` measurements that is a `{julia} string(round(Int, 100 * (1 - sqrt(1 - 1/minimum(ks)))), "%")` shortfall on its own. Shrinkage then pushes the number **back up**, not down, because a shrunk BLUP removes slightly *less* than the bird's real effect and leaves a little of it behind in the residual.
-
-**Momo:** So my guess was not just wrong, it had the sign wrong.
-
-**Itchy:** The sign wrong, which is the useful kind of wrong. And it tells you what this plot can and cannot do. It **cannot** tell you whether σ is right, because the residuals it is drawn from are short of σ by an amount we have just computed rather than measured. It **can** tell you whether the within-bird wobble is symmetric and normal-ish and free of trend, which is the assumption the model actually makes. So the cell standardises by the spread the residuals have, not by σ, and you read the shape.
+**Itchy:** `{julia} bad_bird`. Read the line above rather than take my word for it: three wings within a couple of millimetres of each other, and a fourth well short of them. It survived the missing-data filter because tarsus was recorded on all four captures, so it is sitting inside this fit whether we discuss it or not. Drop that one row and σ moves from `{julia} round(sigma_e, digits = 4)` to `{julia} round(first(sigma(refit_drop)), digits = 4)`, and R from `{julia} round(R.estimate, digits = 4)` to `{julia} round(repeatability(refit_drop).estimate, digits = 4)` — one row out of `{julia} n`, and not a small move. What to do about it is a decision about a bird, not about a model: a wing is out by far more than a ruler slips, so either the feathers were worn that day or somebody wrote the wrong number down, and the field notebook settles that, not the residual. Report the fit with the row in, say in one sentence how much moves with it out, and never drop a row because it is inconvenient.
 
 ### What repeatability is for
 
@@ -615,59 +560,23 @@ R_anova = s2_among / (s2_among + ms_within)
 @printf("MS among birds %.4f   MS within %.4f   n0 %.4f  (mean k %.4f)\n\n",
         ms_among, ms_within, n0, mean_k)
 
-# There is a third answer, and pretending there are only two is how the gap gets
-# blamed on the wrong thing. What REML is, and why it moves the number, is Class
-# 8's whole hour; today we only need to see where it lands.
-reml_fit = drm(bf(@formula(Wing ~ 1 + (1|BirdID))), Gaussian();
-               data = sparrows, method = :REML)
-R_reml = repeatability(reml_fit).estimate
-
 @printf("%-28s %10s\n", "repeatability, unadjusted", "R")
 @printf("%-28s %10.4f\n", "  maximum likelihood", R_unadjusted)
-@printf("%-28s %10.4f\n", "  REML", R_reml)
-@printf("%-28s %10.4f\n\n", "  analysis of variance", R_anova)
-
-# Split the gap on the variance scale, where the factors multiply.
-v_ml   = re_sd(plain_fit)[:BirdID]^2
-v_reml = re_sd(reml_fit)[:BirdID]^2
-
-@printf("between-bird VARIANCE, ratio to the ML estimate\n")
-@printf("  REML  / ML   : %.6f     <- the divisor step, Class 8's business\n", v_reml / v_ml)
-@printf("  ANOVA / REML : %.6f     <- moments against likelihood, unequal k\n", s2_among / v_reml)
-@printf("  ANOVA / ML   : %.6f     = the product of the two above\n", s2_among / v_ml)
-@printf("  J/(J-1)      : %.6f     (J = %d birds)\n", birds / (birds - 1), birds)
+@printf("%-28s %10.4f\n", "  analysis of variance", R_anova)
 ```
 
-> **⚠ DISAGREE: three correct repeatabilities from one file, and the gap has two parts**
+> **⚠ DISAGREE: two correct repeatabilities from one file**
 >
-> Three routes to one number on these `{julia} n` measurements, and they disagree in the
-> third decimal place. None of them is a bug, and the gap is **not** one effect but two,
-> which the cell above separates on the variance scale, where the factors multiply.
->
-> The **first** part is the step from maximum likelihood to REML, a factor of
-> `{julia} round(v_reml / v_ml, digits = 6)` here against *J*/(*J* − 1) =
-> `{julia} round(birds / (birds - 1), digits = 6)`. That is Class 2's divisor argument
-> arriving at the between-bird level, and it is Class 8's subject: a maximum-likelihood
-> variance is estimated without paying for the fixed effects that were estimated first,
-> and REML makes it pay. Note which denominator it is. Class 2 met *n* against *n − p* at
-> the **residual** level; this is the same argument one level up, with *J* birds in place
-> of *n* rows, and Class 8 shows that a mixed model carries **one divisor per level**.
->
-> The **second** part is larger here, a factor of `{julia} round(s2_among / v_reml, digits = 6)`,
-> and it is not a divisor at all. The analysis-of-variance estimator matches expected mean
+> Two routes to one number on these `{julia} n` measurements, and they disagree in the
+> third decimal place. Neither is a bug. The classical route matches expected mean
 > squares — the textbook formula for how much variance each level of the design should
-> contribute — which is a method of moments: set that formula equal to what you actually
-> observed and solve. And with an unequal number of measurements per
-> bird a method of moments is not REML: Lessells and Boag's `n0` is the best single number
-> to stand in for a *k* that is `{julia} minimum(counts)`, `{julia} counts[2]` or
-> `{julia} maximum(counts)` depending on the bird, and no single number can do that job
-> exactly. Had every bird been caught the same number of times, this second factor would
-> collapse and the two estimators would agree.
->
-> So: the ordering ML < REML < ANOVA is not luck, and the divisor explains about a third of
-> it. It is tempting to blame the whole gap on the divisor, because the divisor is the part
-> with a formula; the larger part is the unequal number of captures, and it only shows itself
-> when you split the gap on the variance scale as the cell did.
+> contribute — which is a **method of moments**: set that formula equal to what you
+> observed and solve. Two things separate it from the likelihood. With `{julia} minimum(counts)`,
+> `{julia} counts[2]` or `{julia} maximum(counts)` captures depending on the bird, Lessells
+> and Boag's `n0` is the best single number that can stand in for *k*, and no single number
+> does that job exactly. And a maximum-likelihood variance has not paid for the fixed effects
+> estimated before it, which is Class 2's divisor argument arriving one level up, with *J*
+> birds in place of *n* rows; that is Class 8's hour.
 >
 > The R output below was run once, by hand, on 2026-09-06, on the same data file this
 > chapter reads, and pasted here as it came out; it is not re-run when the page is made. It
@@ -707,50 +616,53 @@ Lessells & Boag ANOVA repeatability = 0.7597694
 
 - **Non-independence.** Every model in Classes 2 to 5 assumed rows were independent draws. Repeated measurements on the same individual are not, and the assumption is not visible in any diagnostic plot; it is visible in the *data file*. Look at your identifier columns before you look at your residuals.
 - **Random intercept.** `(1 | group)` gives every group its own shift up or down, drawn from a normal distribution with spread σ_u. You do not estimate one intercept per group; you estimate the spread of the intercepts, which costs you one parameter rather than one per group.
-- **What it does to standard errors.** With a predictor that varies mostly *between* groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope's standard error was understated by nearly a quarter. With a predictor that varies mostly *within* groups the neglect can go the other way, which is Class 7.
+- **What it does to standard errors.** With a predictor that varies mostly *between* groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope's standard error was understated by `{julia} string(round(100 * se_shortfall, digits = 1), "%")`. With a predictor that varies mostly *within* groups the neglect can go the other way, which is Class 7.
 - **Two spreads, not one.** σ_u is how much individuals differ from each other; σ is how much one individual varies from itself. The single-level model reports something between the two and calls it "the" residual standard deviation, which answers neither question.
 - **Repeatability, R = σ_u² / (σ_u² + σ²).** A ratio of variance components. Also called the intraclass correlation, because it *is* the correlation between two measurements on the same individual. Not a coefficient, not a *p*-value, and much more informative than either.
 - **Adjusted versus unadjusted R.** With a fixed effect in the model, R is conditional on it. State which one you computed (Nakagawa & Schielzeth 2010). The two answer different biological questions.
-- **The denominator is contested, and for two reasons.** Both terms in the ratio are estimated variances. Moving from maximum likelihood to REML is Class 2's divisor argument arriving one level up, with *J* groups in place of *n* rows, and Class 8 shows that a mixed model carries one divisor per level. Moving from REML to the analysis-of-variance estimator is a different thing again: a method of moments needs one effective *k* where the design has several, so the two part company whenever groups have unequal sizes. On this file the second effect is the larger. Name your estimator.
+- **The denominator is contested.** Both terms in the ratio are estimated variances, and different estimators of a variance divide by different things, so a likelihood and the classical analysis-of-variance route give different numbers from one file. Class 8 is the hour on why. Name your estimator.
 - **Shrinkage.** Predicted group effects are pulled towards the population mean by the Spearman-Brown weight λ_k = kσ_u²/(kσ_u² + σ²), so a group with less data is pulled harder. That is not a defect of the estimate; it is the entire content of the phrase "draws from a population".
 - **Marginal versus conditional residuals.** `residuals` here is marginal, so it still contains the group effect and its spread is close to sqrt(σ_u² + σ²). Subtract the group's own predicted effect to get the conditional residual. R users should note that `lme4` hands them the conditional one by default.
-- **A conditional residual is not a draw from σ, and the shortfall is not shrinkage.** Removing an estimated group mean costs a degree of freedom, so the spread falls short of σ by a factor of sqrt(1 − 1/k) before anything else happens, which at *k* = 2 is a loss of nearly a third. Shrinkage then pushes the spread back **up**, because a shrunk prediction removes slightly less than the group's real effect. Standardise a residual plot by the spread the residuals have, not by σ, or the plot shows you an error of scale you already knew about instead of the shape you came to check.
+- **A conditional residual is not a draw from σ.** Each group's own mean was estimated from its own few rows, so the residuals sit a little narrower than σ; shrinkage pulls slightly the other way, and the divisor wins. Standardise a residual plot by the spread the residuals have, not by σ, and read it for shape.
 - **The effective sample size.** A standard error scales like 1/sqrt(n), so a ratio of standard errors converts back into a count. Here the honest fit behaved as though it had rather more evidence than the number of birds and far less than the number of rows. The truth is between the two counts, and the arithmetic says where.
 - **R is a free upper bound on heritability, h² ≤ R, under the standard partition.** Both are variance ratios over the same total, and if between-individual variance splits into additive genetic plus permanent environment with no covariance between them, the numerator of h² is a *part* of the numerator of R and the inequality is arithmetic. It costs no pedigree, and it is often loose, because permanent environment effects live inside R and outside h² (Nakagawa & Schielzeth 2010; Class 10). It is not unconditional: relax the partition, for instance by letting genetic and permanent environment effects covary, and the bound can fail (Dohm 2002). Match the conditioning: an adjusted R bounds an adjusted h². Separately, and do not confuse the two: a *correlation* with a trait of repeatability R is capped by sqrt(R), because a correlation lives on the standard-deviation scale.
 
-### Julia stuff
+### Julia you used
 
-- `CSV.read(path, DataFrame; missingstring = "NA")`: the keyword that turns a text column back into numbers when the file was written by a human in 2009. Without it, a single `NA` makes the whole column text and the model refuses it.
-- `dropmissing(df, [:a, :b])`: keep only rows complete on the columns you are about to model. Do it in a cell, in front of the reader, never in a spreadsheet.
-- `describe(df, :nmissing)`: how many missing values per column. The first thing to run on a real file.
-- `combine(groupby(df, :g), nrow => :k)`: rows per group. The second thing to run on a real file.
-- `@formula(y ~ x + (1|g))`: the random intercept. Everything else about the call is unchanged from Class 2, including the `bf` box and the positional family.
-- `re_sd(fit)`: a `Dict` of random-effect standard deviations by grouping term. `vc(fit)` gives the covariance blocks instead.
-- `sigma(fit)`: the residual SD, one value per observation; take `first(...)` when σ is constant.
-- `repeatability(fit)`: R with an interval, a standard error and a bias estimate, so you do not build the ratio by hand and lose the uncertainty. **It defaults to `method = :delta`**, the estimate plus or minus about two standard errors, pushed back inside [0, 1] if it strays. `repeatability(fit; method = :profile)` re-fits the model at each trial value of R and keeps the values the data cannot reject; that is the one documented as covering the truth as often as it claims to, and it is the one to report unless you have a reason not to. The `bias` and `corrected` fields exist because a ratio of estimates is not the estimate of a ratio.
-- `ranef(fit)`: the model's prediction for each group's shift, by grouping term. These are the BLUPs of the caterpillar; the documentation also calls them conditional modes, and the two names mean the same thing. Pair with `fitted(fit)`, which is the **marginal** (population-level) prediction, so `y - fitted(fit)` averaged within a group is the unshrunk group effect.
-- `fig_shrinkage(groups, raw, blups)` from `tools/figures.jl`: the caterpillar, circles for each group's own mean and diamonds for the model's prediction, with the legend drawn outside the axis so it never covers a group.
-- `Cycled(i)` and `Makie.wong_colors()`: how to colour by group without inventing a palette.
-- **Reading a `MethodError` from a real file.** Line one says a `Float64` was wanted; the argument type in the signature says a string arrived. When that happens on data you did not simulate, suspect the file before you suspect the model.
-- **The simulation thread.** From Class 2 onward, the last thing you do with a fit is ask it to invent data and see whether the data look like yours. Here is that cell for a random intercept, and it carries a trap worth meeting once.
+- **`Dict(b => i for (i, b) in enumerate(ids))`.** A **Dict** is a lookup table: give it a key, `idx[b]`, and it returns the value stored under it. Built here from a generator of `key => value` pairs, so any row can find its bird's position.
+- **`sortperm(v)`.** The order that would sort `v`; index another vector by it and that vector is sorted the same way.
+- **`1:14:length(ids)`.** A range with a step: every fourteenth position.
+- **`"the same $(length(shown)) birds"`.** String interpolation: `$(...)` pastes a value into a string.
+- **`trues(n)` with one entry set `false`.** A mask; `df[keep, :]` keeps the rows where it is true.
+- **`randn(rng, r, c)` and `M[rows, :]`.** A matrix of standard-normal draws, and rows of a matrix selected by a vector of positions, repeats allowed.
+- **`mean(std(dev[:, k]) for k in 1:nsim)`.** A generator inside `mean`, one column at a time.
+
+### Calls you used
+
+- `CSV.read(path, DataFrame; missingstring = "NA")`: the keyword that keeps a column numeric when a human typed `NA` in it. Without it the whole column is text and the model refuses it.
+- `dropmissing(df, [:a, :b])` and `describe(df, :nmissing)`: keep rows complete on the columns you are about to model, and count the holes first.
+- `@formula(y ~ x + (1|g))`: the random intercept. Everything else about the call is unchanged from Class 2.
+- `re_sd(fit)[:g]`, `sigma(fit)`: the between-group SD, from a `Dict` keyed by grouping term, and the residual SD per observation (`first(...)` when constant).
+- `repeatability(fit)` and `repeatability(fit; method = :profile)`: R with a delta-method or a profile-likelihood interval, plus `bias` and `corrected`, because a ratio of estimates is not the estimate of a ratio. Report the one you asked for, by name.
+- `ranef(fit)[:g]`: the model's prediction for each group's shift, the BLUPs of the caterpillar. `fitted(fit)` is the **marginal** prediction, so `y - fitted(fit)` averaged within a group is the unshrunk group effect.
+- `fig_shrinkage(groups, raw, blups)` from `tools/figures.jl`: the caterpillar, circles for each group's own mean and diamonds for the model's prediction.
+- **Reading a `MethodError` from a real file.** Line one says a `Float64` was wanted; the argument type says a string arrived. On data you did not simulate, suspect the file before the model.
+- **The simulation thread.** From Class 2 onward, the last thing you do with a fit is ask it to invent data and see whether the data look like yours. For a fit with a random intercept there is one thing to know first: `simulate` draws with every bird's effect set to zero ([Appendix B](appendix-b-engine.html)), so add the bird effects yourself, from the same seeded generator, before you compare spreads.
 
 ```{julia}
 #| label: simulate-refit
-# simulate() draws new responses from the fit. Read what it promises: for a
-# random-effect model the draw is conditional on the random effects being ZERO,
-# so it gives population-level birds with no individual identity at all.
 rng_sim = MersenneTwister(600)   # a seed is a promise: anyone who runs this line gets the same draw
-ysim = simulate(ri_fit; nsim = 100, rng = rng_sim)
+nsim = 100
+row_bird = [idx[b] for b in sparrows.BirdID]        # which bird each row belongs to
+u_sim = sigma_u .* randn(rng_sim, birds, nsim)       # a fresh nudge per bird, per world
+ysim = simulate(ri_fit; nsim = nsim, rng = rng_sim) .+ u_sim[row_bird, :]
 dev = ysim .- fitted(ri_fit)
 
 @printf("observed SD about the fixed line : %.4f\n", std(sparrows.Wing .- fitted(ri_fit)))
-@printf("simulated SD about the fixed line: %.4f\n",
-        mean(std(dev[:, k]) for k in 1:size(dev, 2)))
-@printf("sigma alone                      : %.4f\n", sigma_e)
+@printf("simulated SD about the fixed line: %.4f\n", mean(std(dev[:, k]) for k in 1:nsim))
 @printf("sqrt(sigma_u^2 + sigma_e^2)      : %.4f\n", sqrt(sigma_u^2 + sigma_e^2))
 
-# Refit one replicate and look at what the estimator concludes about birds when
-# the truth is that birds do not differ at all.
+# Refit one replicate: does the estimator get back what it was given?
 one_rep = DataFrame(BirdID = sparrows.BirdID, Tarsus = sparrows.Tarsus, Wing = ysim[:, 1])
 refit = drm(bf(@formula(Wing ~ Tarsus + (1|BirdID))), Gaussian(); data = one_rep)
 
@@ -760,7 +672,7 @@ refit = drm(bf(@formula(Wing ~ Tarsus + (1|BirdID))), Gaussian(); data = one_rep
         sigma_u, sigma_e, R.estimate)
 ```
 
-The simulated spread matches σ and not sqrt(σ_u² + σ²), and the refit recovers a repeatability near zero rather than the one we started with, because the draws were made with every bird effect set to zero. The warning printed above the refit is the engine noticing that the refit has put σ_u at zero, the same edge Class 8 is about, and telling you not to trust the standard errors it would print for that number; the word Hessian names the curvature of the likelihood at its peak, and at an edge there is no peak. If a line at the bottom of the warning names a file inside the engine, that line is for the engine's authors, not for you. That is `simulate` doing exactly what it documents and nothing else. It makes this call the right way to generate a null in which individuals do not differ, and the wrong way to check whether a mixed model reproduces the spread of your data. Read what a function promises before you trust a hundred draws from it.
+In the cell, `randn(rng_sim, birds, nsim)` draws a whole matrix of standard-normal noise, one row per bird and one column per world, and `u_sim[row_bird, :]` picks each row's own bird out of it — a vector in the row slot selects those rows, in that order, with repeats — so that every row of a bird gets the same nudge. With the bird effects put back, the simulated spread about the fixed line sits where the data sit, at sqrt(σ_u² + σ²), and one refit gets back a σ_u, a σ and an R close to the ones it was given: the model can reproduce its own data, which is the smaller claim Appendix A says this check makes. Leave the bird effects out and the same call gives you something else that is also useful, a world in which birds do not differ at all, which is the null Class 8 needs. Read what a function promises before you trust a hundred draws from it.
 
 ---
 
@@ -780,20 +692,46 @@ The simulated spread matches σ and not sqrt(σ_u² + σ²), and the refit recov
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 2 and not Class 6.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 2 and not Class 6.
 
-1. **Find the identifier.** Take a dataset of your own with repeated measurements. Report the number of rows, the number of individuals, and the distribution of measurements per individual, using `combine(groupby(...), nrow => :k)`. Then write one sentence naming what would have been counted as independent evidence if you had not looked.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files.
+ex_raw = CSV.read("../data/ch9/chicks-broods.csv", DataFrame)
+ex_ch = dropmissing(ex_raw, [:JulianDate])
+ex_dropped = nrow(ex_raw) - nrow(ex_ch)
+ex_per = combine(groupby(ex_ch, :BroodNo), nrow => :k)
+ex_J = nrow(ex_per)
+ex_lm = drm(bf(@formula(Mass2 ~ JulianDate)), Gaussian(); data = ex_ch)
+ex_ri = drm(bf(@formula(Mass2 ~ JulianDate + (1|BroodNo))), Gaussian(); data = ex_ch)
+ex_se_ratio = stderror(ex_ri)[2] / stderror(ex_lm)[2]
+ex_date_fit = drm(bf(@formula(JulianDate ~ 1 + (1|BroodNo))), Gaussian(); data = ex_ch)
+ex_date_between = repeatability(ex_date_fit).estimate
+ex_R = repeatability(ex_ri)
+ex_plain = drm(bf(@formula(Mass2 ~ 1 + (1|BroodNo))), Gaussian(); data = ex_ch)
+ex_R_plain = repeatability(ex_plain)
+ex_blups = ranef(ex_plain)[:BroodNo]
+ex_groups = sort(unique(ex_ch.BroodNo))
+ex_resid_fixed = ex_ch.Mass2 .- fitted(ex_plain)
+ex_raw_effect = [mean(ex_resid_fixed[ex_ch.BroodNo .== g]) for g in ex_groups]
+ex_kept = ex_blups ./ ex_raw_effect
+ex_k = [count(==(g), ex_ch.BroodNo) for g in ex_groups]
+ex_avg = combine(groupby(sparrows, :BirdID), :Tarsus => mean => :Tarsus, :Wing => mean => :Wing)
+ex_avg_fit = drm(bf(@formula(Wing ~ Tarsus)), Gaussian(); data = ex_avg)
+```
 
-2. **Both fits, both standard errors.** Fit your response on one predictor with and without `(1 | id)`. Report both slopes and both standard errors. Before you look, predict whether the standard error will go up or down, using the between-versus-within argument from class, and say afterwards whether you were right and why.
+1. **Find the identifier, and the holes.** `data/ch9/chicks-broods.csv` is one row per sparrow chick with its mass at two days, `Mass2`, its hatching date, `JulianDate`, and the nest it came from, `BroodNo`. Read it and run `describe(df, :nmissing)`: one column you will need has holes, so drop those rows with `dropmissing` as the chapter did. Then report the number of rows, the number of broods, and the distribution of chicks per brood, using `combine(groupby(df, :BroodNo), nrow => :k)`. One sentence naming what would have been counted as independent evidence if you had not looked. *Check:* `{julia} ex_dropped` rows dropped, `{julia} nrow(ex_ch)` kept, in `{julia} ex_J` broods of `{julia} minimum(ex_per.k)` to `{julia} maximum(ex_per.k)` chicks.
 
-3. **Repeatability, by hand and from the fit.** Compute R from `re_sd` and `sigma` yourself, then check against `repeatability(fit)`. Report the interval too. Then write the one sentence you would put in a paper, including the words "estimated by".
+2. **Both fits, both standard errors.** Fit `Mass2 ~ JulianDate` with and without `(1 | BroodNo)`. Before you look, predict whether the standard error on the date slope will go up or down, using the between-versus-within argument from class — and note that every chick in a brood hatched on the same day. Report both slopes and both standard errors, then say whether you were right and why. *Check:* the standard error changes by a factor of `{julia} round(ex_se_ratio, digits = 2)`, and a random-intercept model of `JulianDate` itself puts a fraction `{julia} round(ex_date_between, digits = 2)` of its variation between broods.
 
-4. **Adjusted or not.** Fit the same random intercept with and without your fixed effect. Report both repeatabilities. Which of the two answers the question you actually care about? Two sentences.
+3. **Repeatability, by hand and from the fit.** From the with-brood fit of question 2, compute R from `re_sd` and `sigma` yourself, then check against `repeatability(fit)`. Report the interval too. Then write the one sentence you would put in a paper, including the words "estimated by", and say what R means when the group is a nest rather than an individual. *Check:* R = `{julia} round(ex_R.estimate, digits = 3)`, interval `{julia} round(ex_R.ci.lower, digits = 3)` to `{julia} round(ex_R.ci.upper, digits = 3)`.
 
-5. **Draw the shrinkage.** Produce the caterpillar for your own data, with a stated rule for choosing which groups to show if you have too many to plot. Then answer: which group moved furthest, and is that because it had the least data or because it started furthest from the middle? Both are legitimate answers; the numbers decide.
+4. **Adjusted or not.** Fit the same random intercept with and without `JulianDate`. Report both repeatabilities. Which of the two answers the question you actually care about? Two sentences. *Check:* without the date, R = `{julia} round(ex_R_plain.estimate, digits = 3)`; the gap between the two is what hatching date explained.
 
-6. **Toto's water fleas.** *(Daphnia)* If you have clonal lines, R is a heritability in disguise. Compute it, then say in one sentence why the same arithmetic gets a different name when the groups are genotypes rather than individuals, and what would have to be true of the design for that name to be earned.
+5. **Draw the shrinkage.** Produce the caterpillar for the broods, as the chapter's cell did, with a stated rule for choosing which of the `{julia} ex_J` broods to show. Then answer: which brood moved furthest, and is that because it had the least data or because it started furthest from the middle? Both are legitimate answers; the numbers decide. *Check:* a brood with `{julia} minimum(ex_k)` chick keeps a fraction `{julia} round(mean(ex_kept[ex_k .== minimum(ex_k)]), digits = 2)` of its own signal, a brood with `{julia} maximum(ex_k)` keeps `{julia} round(mean(ex_kept[ex_k .== maximum(ex_k)]), digits = 2)`.
 
-7. **Break the pretence deliberately.** Take the chapter's file and collapse it to one row per bird by averaging. Fit the single-level model to the averages. Compare its slope and standard error to both of today's fits. Explain in two sentences why averaging is not the same as modelling the individual, and name one thing you threw away.
+6. **Break the pretence deliberately.** Take the chapter's file and collapse it to one row per bird by averaging `Tarsus` and `Wing` with `combine(groupby(sparrows, :BirdID), ...)`. Fit `Wing ~ Tarsus` to the averages. Compare its slope and standard error to both of today's fits. Explain in two sentences why averaging is not the same as modelling the individual, and name one thing you threw away. *Check:* on the `{julia} nrow(ex_avg)` averages the slope is `{julia} round(coef(ex_avg_fit, :mu)[2], digits = 3)` with standard error `{julia} round(stderror(ex_avg_fit)[2], digits = 3)`, against `{julia} round(se_ri[2], digits = 3)` from the random-intercept fit.
 
-8. **The free upper bound.** Your repeatability from question 3 caps the narrow-sense heritability of that trait. State the cap, name the estimator that produced it and say whether it is adjusted or unadjusted, then write two sentences: one explaining why h² cannot exceed R, in terms of what is on top of each ratio, and one naming something permanent about your individuals that would sit inside R and outside h². Finally, find a paper in your field reporting a heritability for a trait like yours and check it against any repeatability the same paper reports. If it reports no repeatability, say what you would have to measure to get one.
+7. **The free upper bound.** The chapter's wing repeatability caps the narrow-sense heritability of wing length in these sparrows. State the cap, name the estimator that produced it and say whether it is adjusted or unadjusted, then write two sentences: one explaining why h² cannot exceed R, in terms of what is on top of each ratio, and one naming something permanent about a sparrow that would sit inside R and outside h². *Check:* the cap is on this page, and Class 10 comes back for it.

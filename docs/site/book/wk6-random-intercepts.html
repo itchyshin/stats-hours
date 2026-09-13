@@ -380,7 +380,13 @@ mean measurements per bird: 2.6842</code></pre>
 <div class="line"><span class="who itchy">Itchy</span><p>Which means that if you treat rows as individuals, some sparrows get
 four votes and some get two. Look at what that actually looks like. A
 handful of birds, picked at even intervals through the range so I am not
-choosing my evidence, with each bird’s own measurements joined up.</p></div>
+choosing my evidence, with each bird’s own measurements joined up. Two
+idioms in the cell do the picking: <code>sortperm(bird_mean)</code>
+returns the <em>order</em> that would sort the means, so indexing the
+names by it sorts the names; and <code>1:14:length(bird_ids)</code> is a
+range with a step, every fourteenth. The title has
+<code>$(length(shown))</code> inside its quotes: a dollar sign in a
+string pastes a value into it.</p></div>
 <div id="cell-fig-by-bird" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Birds at even intervals through the ordering by mean wing length, so the</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># choice of which to show is a rule and not a preference.</span></span>
@@ -689,50 +695,44 @@ sum has told you neither. Now divide.</p></div>
 <div id="repeatability" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>R_manual <span class="op">=</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> (sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># repeatability() defaults to method = :delta: the estimate plus or minus about two</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># standard errors, pushed back inside [0, 1]. Name the method: it is not the only one on offer.</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit)                          <span class="co"># method = :delta, the default</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>R_prof <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit; method <span class="op">=</span> <span class="op">:</span>profile)  <span class="co"># re-maximises the likelihood</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand                   : R = %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_manual)</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"delta (the default)       : R = %.4f   SE %.4f   95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>        R.estimate, R.se, R.ci.lower, R.ci.upper)</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  bias estimate %.5f, bias-corrected point estimate %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>        R.bias, R.corrected)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"profile likelihood        : R = %.4f   %-11s95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>        R_prof.estimate, <span class="st">""</span>, R_prof.ci.lower, R_prof.ci.upper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit)                          <span class="co"># Wald interval, by the delta method</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>R_prof <span class="op">=</span> <span class="fu">repeatability</span>(ri_fit; method <span class="op">=</span> <span class="op">:</span>profile)  <span class="co"># profile-likelihood interval</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"by hand            : R = %.4f</span><span class="sc">\n</span><span class="st">"</span>, R_manual)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"delta method       : R = %.4f   SE %.4f   95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>        R.estimate, R.se, R.ci.lower, R.ci.upper)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"profile likelihood : R = %.4f   %-11s95%% CI %.4f to %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>        R_prof.estimate, <span class="st">""</span>, R_prof.ci.lower, R_prof.ci.upper)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  bias %.5f, bias-corrected point estimate %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.bias, R.corrected)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>by hand                   : R = 0.7189
-delta (the default)       : R = 0.7189   SE 0.0317   95% CI 0.6556 to 0.7800
-  bias estimate -0.00109, bias-corrected point estimate 0.7178
-profile likelihood        : R = 0.7189              95% CI 0.6520 to 0.7764</code></pre>
+<pre><code>by hand            : R = 0.7189
+delta method       : R = 0.7189   SE 0.0317   95% CI 0.6556 to 0.7800
+profile likelihood : R = 0.7189              95% CI 0.6520 to 0.7764
+  bias -0.00109, bias-corrected point estimate 0.7178</code></pre>
 </div>
 </div>
-<div class="line"><span class="who momo">Momo</span><p>Two intervals, and you did not tell us which one you were reporting
-until just now.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Which is the sin this whole book is about, committed by me, in a cell,
-on purpose. <code>repeatability</code> hands you one of two intervals
-and does not say which. The default is the quick one: take the ratio,
-take a standard error for it, go about two standard errors either way,
-and then push the ends back inside nought and one if they fall outside.
-Statisticians call an estimate-plus-or-minus-two-standard-errors
-interval a <strong>Wald</strong> interval, and the approximation that
-gets a standard error for a ratio out of two variances is the
-<strong>delta method</strong>. It is fast and it is the weaker of the
-two.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Two intervals.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two ways of asking one question, and you should know both by name. The
+first takes the ratio, gets a standard error for it, goes about two
+standard errors either way, and pushes the ends back inside nought and
+one if they stray. An estimate plus or minus two standard errors is a
+<strong>Wald</strong> interval, and the approximation that gets a
+standard error for a ratio out of two variances is the <strong>delta
+method</strong>. It is fast and it is the weaker of the two.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>And the other one?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p><code>method = :profile</code> re-fits the model at each trial value of
-R and keeps the values the data cannot rule out. That takes longer, and
-it is the one documented to do what it says: ask for a 95 percent
-interval and you get one that contains the truth 95 times in 100, which
-is what <strong>coverage</strong> means. They differ here in the third
-decimal place at both ends, which is small, and they will not always be
-small: near zero or near one the pushing-back-inside does real damage.
-Report the one you asked for, by name.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><strong>Profile likelihood</strong> re-fits the model at each trial
+value of R and keeps the values the data cannot rule out. It is slower,
+and it does what a 95 percent interval claims to do: contain the truth
+95 times in 100, which is what <strong>coverage</strong> means. Here the
+two differ from the third decimal place at the lower end and the second
+at the upper, a small gap because this R sits well inside the unit
+interval; near zero or near one the pushing-back-inside does real
+damage. This chapter reports the profile interval, and says so. Report
+the one you asked for, by name.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>And the bias line?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>A ratio of estimates is not the estimate of the ratio, so the point
-estimate is slightly off and the engine will tell you by how much if you
-look. It is tiny here. It will not be tiny in Class 10, on six families.</p></div>
+estimate is slightly off and the fit will tell you by how much. It is
+tiny here. It will not be tiny in Class 10.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Now the substance. That is <strong>repeatability</strong>, and it is the
 first quantity in this book that is not a coefficient and not a
 <em>p</em>-value. It is a <strong>ratio of variance components</strong>:
@@ -777,8 +777,7 @@ already showed you that different people divide sums of squares by
 different things. In Class 8 you will find out that two correct
 implementations of <em>this exact model</em> disagree about σ_u, and
 therefore about R. Today I only want you to notice that the denominator
-is contested. Do not take the third decimal place of a repeatability
-seriously until Class 8.</p></div>
+is contested.</p></div>
 <h3 id="eddies-question" class="anchored">Eddie’s question</h3>
 <div class="line"><span class="who eddie">Eddie</span><p>Here is the thing I have never had answered. You say we do not estimate
 171 intercepts, we estimate their spread. But the model clearly knows
@@ -895,12 +894,15 @@ you and Class 5 taught you to read: residuals against what a normal
 distribution would give, straight along the middle if all is well. Read
 it for shape only — Class 5 showed that the naive count of points
 outside the ±2SE band is too generous by about a factor of five, so it
-is not calibrated by eye.</p></div>
+is not calibrated by eye. One piece of Julia before the cell:
+<code>idx</code> is a <code>Dict</code>, a lookup table from bird name
+to a position, built once so that every row can find its own bird’s
+prediction.</p></div>
 <div id="cell-fig-diagnostic" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals(fit) is MARGINAL: it still contains the bird effect, so it is NOT the</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># thing sigma describes. Subtract each bird's own BLUP to get the CONDITIONAL</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># residual, which is what the within-bird spread is a claim about.</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(bird_ids))</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(bird_ids))   <span class="co"># bird name =&gt; position in bird_ids</span></span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>cond_resid <span class="op">=</span> <span class="fu">residuals</span>(ri_fit) <span class="op">.-</span> [blups[idx[b]] for b <span class="kw">in</span> sparrows.BirdID]</span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of marginal residuals    : %.4f  (should be near %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
@@ -908,10 +910,11 @@ is not calibrated by eye.</p></div>
 <span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of conditional residuals : %.4f  (sigma_e is %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(cond_resid), sigma_e)</span>
 <span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardise by the spread the residuals ACTUALLY have, not by sigma_e. Dividing</span></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="co"># by sigma_e would guarantee an under-dispersed plot and hide the shape we came</span></span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># to look at behind an error of scale we already know about.</span></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid); title <span class="op">=</span> <span class="st">"within-bird residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardise by the spread the residuals ACTUALLY have, not by sigma_e: each</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="co"># bird's own mean was estimated from its own few rows, so these sit a little</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># narrower than sigma_e, and dividing by sigma_e would hide the shape we came</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="co"># to look at behind an error of scale we already know about.</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid); title <span class="op">=</span> <span class="st">"within-bird residuals"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>SD of marginal residuals    : 2.0880  (should be near 2.0689)
 SD of conditional residuals : 0.9039  (sigma_e is 1.0969)</code></pre>
@@ -923,49 +926,40 @@ SD of conditional residuals : 0.9039  (sigma_e is 1.0969)</code></pre>
 <img src="wk6-random-intercepts_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Worm plot of the conditional residuals — the marginal residual with the model’s own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat through the middle; a scatter of points sit outside the ±2SE band on both sides, which is the naive count the prose above already warned not to read as a defect tally. The single worst deviation in the whole file, not merely the nearest to the edge, is named in the text below.
+Figure&nbsp;5: Worm plot of the conditional residuals — the marginal residual with the model’s own prediction for that bird subtracted out, standardised by their own spread rather than by sigma_e. Flat through the middle, with a scatter of points outside the band at both ends that the prose above has already said not to count. The single largest standardised residual in the file is named in the text below.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>Read the shape, but do not let your eye average away the single worst
-row, the one that does not belong in an average even among the points
-already outside the band. Name it before we go on.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>The conditional one is smaller than σ. Is that the shrinkage?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is not, and the guess is the common one. Each bird’s own mean was
+estimated from its own few rows before these residuals were taken from
+it, and Class 2 told you what subtracting an estimated mean does to a
+spread: it comes up short, by the divisor. Shrinkage pulls a little the
+other way, since a shrunk mean removes slightly less than the bird’s
+real effect and leaves the rest in the residual, but the divisor wins.
+So this plot cannot tell you whether σ is right; it can tell you whether
+the within-bird wobble is symmetric, normal-ish and free of trend, which
+is the assumption the model actually makes. That is why the cell
+standardises by the spread the residuals have and you read the shape.
+But do not let your eye average away the single worst row. Name it
+before we go on.</p></div>
 <div id="named-outlier" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> cond_resid <span class="op">./</span> <span class="fu">std</span>(cond_resid)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># fig_diagnostic does not plot z itself: it sorts z into order statistics and</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"># subtracts the theoretical normal quantile each one is expected to sit at</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (obs .- theo), which is what a worm plot actually shows on its y-axis, and</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"># what the ±2SE band above is drawn around. Counting z past a fixed +-2, as</span></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># this cell used to, answers a different question than the one on the page.</span></span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Mirror fig_diagnostic's own detrending exactly (same erfinv_approx, same</span></span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="co"># order statistics) so the two report the same quantity.</span></span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>ordp <span class="op">=</span> <span class="fu">sortperm</span>(z)</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>p_os <span class="op">=</span> ((<span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(z)) <span class="op">.-</span> <span class="fl">0.5</span>) <span class="op">./</span> <span class="fu">length</span>(z)</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>theo <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">.*</span> <span class="fu">erfinv_approx</span>.(<span class="fl">2</span> <span class="op">.*</span> p_os <span class="op">.-</span> <span class="fl">1</span>)</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> z[ordp] <span class="op">.-</span> theo</span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="cn">φ</span> <span class="op">=</span> x <span class="op">-&gt;</span> <span class="fu">exp</span>(<span class="op">-</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">2</span>) <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span>π)</span>
-<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>se <span class="op">=</span> <span class="fu">sqrt</span>.(p_os <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_os) <span class="op">./</span> <span class="fu">length</span>(z)) <span class="op">./</span> <span class="fu">φ</span>.(theo)</span>
-<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>worst_sorted <span class="op">=</span> <span class="fu">argmax</span>(<span class="fu">abs</span>.(dev))</span>
-<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> ordp[worst_sorted]</span>
-<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>bad_bird <span class="op">=</span> sparrows.BirdID[worst]</span>
-<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>own_wings <span class="op">=</span> sparrows.Wing[sparrows.BirdID <span class="op">.==</span> bad_bird]</span>
-<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points beyond +-2SE band: %d below, %d above (of %d)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">count</span>(dev <span class="op">.&lt;</span> <span class="op">-</span><span class="fl">2</span> <span class="op">.*</span> se), <span class="fu">count</span>(dev <span class="op">.&gt;</span> <span class="fl">2</span> <span class="op">.*</span> se), <span class="fu">length</span>(z))</span>
-<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"furthest point: bird %s, deviation %.2f</span><span class="sc">\n</span><span class="st">"</span>, bad_bird, dev[worst_sorted])</span>
-<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its own wing measurements: %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">string</span>(own_wings))</span>
-<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">trues</span>(n); keep[worst] <span class="op">=</span> <span class="cn">false</span></span>
-<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>refit_drop <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
-<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e, row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(refit_drop)))</span>
-<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R,       row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate, <span class="fu">repeatability</span>(refit_drop).estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> <span class="fu">argmax</span>(<span class="fu">abs</span>.(z))</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>bad_bird <span class="op">=</span> sparrows.BirdID[worst]</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>own_wings <span class="op">=</span> sparrows.Wing[sparrows.BirdID <span class="op">.==</span> bad_bird]</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"largest standardised residual: bird %s, z = %.2f</span><span class="sc">\n</span><span class="st">"</span>, bad_bird, z[worst])</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its own wing measurements: %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">string</span>(own_wings))</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">trues</span>(n); keep[worst] <span class="op">=</span> <span class="cn">false</span>     <span class="co"># a mask: true for every row but that one</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>refit_drop <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma_e, row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(refit_drop)))</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R,       row in vs out    : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, R.estimate, <span class="fu">repeatability</span>(refit_drop).estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>points beyond +-2SE band: 45 below, 44 above (of 459)
-furthest point: bird TA14548, deviation -4.81
+<pre><code>largest standardised residual: bird TA14548, z = -7.87
 its own wing measurements: [75.5, 75.0, 76.5, 67.0]
 sigma_e, row in vs out    : 1.0969 vs 1.0002
 R,       row in vs out    : 0.7189 vs 0.7531</code></pre>
@@ -977,70 +971,12 @@ short of them. It survived the missing-data filter because tarsus was
 recorded on all four captures, so it is sitting inside this fit whether
 we discuss it or not. Drop that one row and σ moves from 1.0969 to
 1.0002, and R from 0.7189 to 0.7531 — one row out of 459, and not a
-small move. This bird, and a second one like it, get the full treatment
-next week: Class 7 names them both and sends them to an exercise. Here I
-am only asking you to read a worm plot honestly: flat through the
-middle, a scatter of points beyond the band on both sides exactly as the
-naive count above predicts, and this one sitting furthest out of all of
-them.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>The conditional one is smaller than σ. Is that the shrinkage?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It is not, and I am glad you guessed, because the guess is the common
-one and it points the wrong way. Work out where the shortfall comes from
-instead of attributing it.</p></div>
-<div id="residual-accounting" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>k_of <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> <span class="fu">count</span>(<span class="op">==</span>(b), sparrows.BirdID) <span class="cf">for</span> b <span class="kw">in</span> bird_ids)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>ks <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(<span class="fu">values</span>(k_of)))</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># lambda_k is the Spearman-Brown weight: the share of its own signal a bird with</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="co"># k measurements keeps. It is also the shrinkage factor in the caterpillar.</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lambda</span>(k) <span class="op">=</span> k <span class="op">*</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> (k <span class="op">*</span> sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>own_mean_only <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">count</span>(<span class="op">==</span>(k), <span class="fu">values</span>(k_of)) <span class="op">*</span> k <span class="op">*</span> sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k)</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>                         <span class="cf">for</span> k <span class="kw">in</span> ks) <span class="op">/</span> n)</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>with_shrinkage <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">count</span>(<span class="op">==</span>(k), <span class="fu">values</span>(k_of)) <span class="op">*</span> k <span class="op">*</span></span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>                          (sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k) <span class="op">+</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fu">lambda</span>(k))<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span><span class="op">/</span>k))</span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> k <span class="kw">in</span> ks) <span class="op">/</span> n)</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_e, and what you would see if each"</span>, sigma_e)</span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %s</span><span class="sc">\n</span><span class="st">"</span>,   <span class="st">"  bird's own mean were known exactly:"</span>, <span class="st">"(the same number)"</span>)</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"after paying for each bird's own mean:"</span>, own_mean_only)</span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"that, plus what shrinkage adds back:"</span>, with_shrinkage)</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-42s %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"observed:"</span>, <span class="fu">std</span>(cond_resid))</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>()</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> ks</span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"  k = %d: lambda = %.4f, sqrt(sigma_e^2 (1 - 1/k)) = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>            k, <span class="fu">lambda</span>(k), <span class="fu">sqrt</span>(sigma_e<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span>k)))</span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>sigma_e, and what you would see if each    1.0969
-  bird's own mean were known exactly:      (the same number)
-after paying for each bird's own mean:     0.8689
-that, plus what shrinkage adds back:       0.9029
-observed:                                  0.9039
-
-  k = 2: lambda = 0.8365, sqrt(sigma_e^2 (1 - 1/k)) = 0.7756
-  k = 3: lambda = 0.8847, sqrt(sigma_e^2 (1 - 1/k)) = 0.8956
-  k = 4: lambda = 0.9109, sqrt(sigma_e^2 (1 - 1/k)) = 0.9499</code></pre>
-</div>
-</div>
-<div class="line"><span class="who itchy">Itchy</span><p>Read the ladder. The big step is the third line, and it is nothing to do
-with random effects: it is Class 2’s divisor, wearing its oldest hat.
-Subtracting an estimated mean from 2 numbers leaves you residuals whose
-spread is short by a factor of the square root of one minus one over
-<em>k</em>, because one degree of freedom went into the mean. With 2
-measurements that is a 29% shortfall on its own. Shrinkage then pushes
-the number <strong>back up</strong>, not down, because a shrunk BLUP
-removes slightly <em>less</em> than the bird’s real effect and leaves a
-little of it behind in the residual.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>So my guess was not just wrong, it had the sign wrong.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>The sign wrong, which is the useful kind of wrong. And it tells you what
-this plot can and cannot do. It <strong>cannot</strong> tell you whether
-σ is right, because the residuals it is drawn from are short of σ by an
-amount we have just computed rather than measured. It
-<strong>can</strong> tell you whether the within-bird wobble is
-symmetric and normal-ish and free of trend, which is the assumption the
-model actually makes. So the cell standardises by the spread the
-residuals have, not by σ, and you read the shape.</p></div>
+small move. What to do about it is a decision about a bird, not about a
+model: a wing is out by far more than a ruler slips, so either the
+feathers were worn that day or somebody wrote the wrong number down, and
+the field notebook settles that, not the residual. Report the fit with
+the row in, say in one sentence how much moves with it out, and never
+drop a row because it is inconvenient.</p></div>
 <h3 id="what-repeatability-is-for" class="anchored">What repeatability is for</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Last piece, and it is biology rather than arithmetic. Why would anyone
 want R at all?</p></div>
@@ -1050,23 +986,23 @@ answers, R tells me how bad my ruler is.</p></div>
 repeatability puts a ceiling on any correlation you will ever measure
 with that trait, and I want you to get the ceiling right, because almost
 everybody gets it wrong the first time. Compute it.</p></div>
-<div id="ceiling" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R and h2 are both variance ratios over the SAME total. Under the STANDARD</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># PARTITION -- between-individual variance = additive genetic + permanent</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># environment, with no covariance between the two -- the additive part is a</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># share of the between-bird variance, never more than all of it, so h2 &lt;= R.</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Relax that partition and the bound can fail (Dohm 2002).</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>V_between <span class="op">=</span> sigma_u<span class="op">^</span><span class="fl">2</span>      <span class="co"># genes AND every other permanent thing about a bird</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>V_within  <span class="op">=</span> sigma_e<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>V_total   <span class="op">=</span> V_between <span class="op">+</span> V_within</span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird variance (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between)</span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"within-bird variance  (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_within)</span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"total                 (mm^2)  : %.4f</span><span class="sc">\n\n</span><span class="st">"</span>, V_total)</span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R  = V_between / total        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between <span class="op">/</span> V_total)</span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 = V_additive / total, and V_additive &lt;= V_between, so h2 &lt;= %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        V_between <span class="op">/</span> V_total)</span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">estimator: maximum likelihood, adjusted for tarsus (the fit above)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="ceiling" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R and h2 are both variance ratios over the SAME total. Under the STANDARD</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"># PARTITION -- between-individual variance = additive genetic + permanent</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># environment, with no covariance between the two -- the additive part is a</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># share of the between-bird variance, never more than all of it, so h2 &lt;= R.</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Relax that partition and the bound can fail (Dohm 2002).</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>V_between <span class="op">=</span> sigma_u<span class="op">^</span><span class="fl">2</span>      <span class="co"># genes AND every other permanent thing about a bird</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>V_within  <span class="op">=</span> sigma_e<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>V_total   <span class="op">=</span> V_between <span class="op">+</span> V_within</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird variance (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"within-bird variance  (mm^2)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_within)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"total                 (mm^2)  : %.4f</span><span class="sc">\n\n</span><span class="st">"</span>, V_total)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"R  = V_between / total        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, V_between <span class="op">/</span> V_total)</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"h2 = V_additive / total, and V_additive &lt;= V_between, so h2 &lt;= %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>        V_between <span class="op">/</span> V_total)</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">estimator: maximum likelihood, adjusted for tarsus (the fit above)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>between-bird variance (mm^2)  : 3.0770
 within-bird variance  (mm^2)  : 1.2032
@@ -1155,113 +1091,71 @@ repeatability. They reach for <code>aov</code>, and a formula out of
 Lessells and Boag. That route is not wrong and it does not give our
 number. Compute it here first, by hand, so the comparison is between two
 methods and not between two languages.</p></div>
-<div id="anova-repeatability" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), <span class="op">:</span>Wing <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m, nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>gidx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(grp.BirdID))   <span class="co"># groupby order, not sorted</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>grand <span class="op">=</span> <span class="fu">mean</span>(sparrows.Wing)</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> <span class="fu">nrow</span>(grp)</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>ss_among  <span class="op">=</span> <span class="fu">sum</span>(grp.k <span class="op">.*</span> (grp.m <span class="op">.-</span> grand) <span class="op">.^</span> <span class="fl">2</span>)</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>ss_within <span class="op">=</span> <span class="fu">sum</span>((sparrows.Wing <span class="op">.-</span> [grp.m[gidx[b]] for b <span class="kw">in</span> sparrows.BirdID]) <span class="op">.^</span> <span class="fl">2</span>)</span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>ms_among, ms_within <span class="op">=</span> ss_among <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>), ss_within <span class="op">/</span> (n <span class="op">-</span> a)</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Lessells &amp; Boag's n0: the "effective" measurements per bird when the numbers differ.</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>n0 <span class="op">=</span> (n <span class="op">-</span> <span class="fu">sum</span>(grp.k <span class="op">.^</span> <span class="fl">2</span>) <span class="op">/</span> n) <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>)</span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>s2_among <span class="op">=</span> (ms_among <span class="op">-</span> ms_within) <span class="op">/</span> n0</span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>R_anova <span class="op">=</span> s2_among <span class="op">/</span> (s2_among <span class="op">+</span> ms_within)</span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"MS among birds %.4f   MS within %.4f   n0 %.4f  (mean k %.4f)</span><span class="sc">\n\n</span><span class="st">"</span>,</span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>        ms_among, ms_within, n0, mean_k)</span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a><span class="co"># There is a third answer, and pretending there are only two is how the gap gets</span></span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a><span class="co"># blamed on the wrong thing. What REML is, and why it moves the number, is Class</span></span>
-<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 8's whole hour; today we only need to see where it lands.</span></span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>reml_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>();</span>
-<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>               data <span class="op">=</span> sparrows, method <span class="op">=</span> <span class="op">:</span>REML)</span>
-<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>R_reml <span class="op">=</span> <span class="fu">repeatability</span>(reml_fit).estimate</span>
-<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"repeatability, unadjusted"</span>, <span class="st">"R"</span>)</span>
-<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  maximum likelihood"</span>, R_unadjusted)</span>
-<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  REML"</span>, R_reml)</span>
-<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="st">"  analysis of variance"</span>, R_anova)</span>
-<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the gap on the variance scale, where the factors multiply.</span></span>
-<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>v_ml   <span class="op">=</span> <span class="fu">re_sd</span>(plain_fit)[<span class="op">:</span>BirdID]<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>v_reml <span class="op">=</span> <span class="fu">re_sd</span>(reml_fit)[<span class="op">:</span>BirdID]<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird VARIANCE, ratio to the ML estimate</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb37-35"><a href="#cb37-35" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  REML  / ML   : %.6f     &lt;- the divisor step, Class 8's business</span><span class="sc">\n</span><span class="st">"</span>, v_reml <span class="op">/</span> v_ml)</span>
-<span id="cb37-36"><a href="#cb37-36" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ANOVA / REML : %.6f     &lt;- moments against likelihood, unequal k</span><span class="sc">\n</span><span class="st">"</span>, s2_among <span class="op">/</span> v_reml)</span>
-<span id="cb37-37"><a href="#cb37-37" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  ANOVA / ML   : %.6f     = the product of the two above</span><span class="sc">\n</span><span class="st">"</span>, s2_among <span class="op">/</span> v_ml)</span>
-<span id="cb37-38"><a href="#cb37-38" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"  J/(J-1)      : %.6f     (J = %d birds)</span><span class="sc">\n</span><span class="st">"</span>, birds <span class="op">/</span> (birds <span class="op">-</span> <span class="fl">1</span>), birds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="anova-repeatability" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>grp <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), <span class="op">:</span>Wing <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m, nrow <span class="op">=&gt;</span> <span class="op">:</span>k)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>gidx <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(grp.BirdID))   <span class="co"># groupby order, not sorted</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>grand <span class="op">=</span> <span class="fu">mean</span>(sparrows.Wing)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> <span class="fu">nrow</span>(grp)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>ss_among  <span class="op">=</span> <span class="fu">sum</span>(grp.k <span class="op">.*</span> (grp.m <span class="op">.-</span> grand) <span class="op">.^</span> <span class="fl">2</span>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>ss_within <span class="op">=</span> <span class="fu">sum</span>((sparrows.Wing <span class="op">.-</span> [grp.m[gidx[b]] for b <span class="kw">in</span> sparrows.BirdID]) <span class="op">.^</span> <span class="fl">2</span>)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>ms_among, ms_within <span class="op">=</span> ss_among <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>), ss_within <span class="op">/</span> (n <span class="op">-</span> a)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Lessells &amp; Boag's n0: the "effective" measurements per bird when the numbers differ.</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>n0 <span class="op">=</span> (n <span class="op">-</span> <span class="fu">sum</span>(grp.k <span class="op">.^</span> <span class="fl">2</span>) <span class="op">/</span> n) <span class="op">/</span> (a <span class="op">-</span> <span class="fl">1</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>s2_among <span class="op">=</span> (ms_among <span class="op">-</span> ms_within) <span class="op">/</span> n0</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>R_anova <span class="op">=</span> s2_among <span class="op">/</span> (s2_among <span class="op">+</span> ms_within)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"MS among birds %.4f   MS within %.4f   n0 %.4f  (mean k %.4f)</span><span class="sc">\n\n</span><span class="st">"</span>,</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        ms_among, ms_within, n0, mean_k)</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"repeatability, unadjusted"</span>, <span class="st">"R"</span>)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  maximum likelihood"</span>, R_unadjusted)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-28s %10.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"  analysis of variance"</span>, R_anova)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>MS among birds 11.8260   MS within 1.2468   n0 2.6829  (mean k 2.6842)
 
 repeatability, unadjusted             R
   maximum likelihood             0.7565
-  REML                           0.7577
-  analysis of variance           0.7598
-
-between-bird VARIANCE, ratio to the ML estimate
-  REML  / ML   : 1.006614     &lt;- the divisor step, Class 8's business
-  ANOVA / REML : 1.012226     &lt;- moments against likelihood, unequal k
-  ANOVA / ML   : 1.018921     = the product of the two above
-  J/(J-1)      : 1.005882     (J = 171 birds)</code></pre>
+  analysis of variance           0.7598</code></pre>
 </div>
 </div>
 <div class="disagree">
-<p><strong>⚠ DISAGREE: three correct repeatabilities from one file, and
-the gap has two parts</strong></p>
-<p>Three routes to one number on these 459 measurements, and they
-disagree in the third decimal place. None of them is a bug, and the gap
-is <strong>not</strong> one effect but two, which the cell above
-separates on the variance scale, where the factors multiply.</p>
-<p>The <strong>first</strong> part is the step from maximum likelihood
-to REML, a factor of 1.006614 here against <em>J</em>/(<em>J</em> − 1) =
-1.005882. That is Class 2’s divisor argument arriving at the
-between-bird level, and it is Class 8’s subject: a maximum-likelihood
-variance is estimated without paying for the fixed effects that were
-estimated first, and REML makes it pay. Note which denominator it is.
-Class 2 met <em>n</em> against <em>n − p</em> at the
-<strong>residual</strong> level; this is the same argument one level up,
-with <em>J</em> birds in place of <em>n</em> rows, and Class 8 shows
-that a mixed model carries <strong>one divisor per level</strong>.</p>
-<p>The <strong>second</strong> part is larger here, a factor of
-1.012226, and it is not a divisor at all. The analysis-of-variance
-estimator matches expected mean squares — the textbook formula for how
-much variance each level of the design should contribute — which is a
-method of moments: set that formula equal to what you actually observed
-and solve. And with an unequal number of measurements per bird a method
-of moments is not REML: Lessells and Boag’s <code>n0</code> is the best
-single number to stand in for a <em>k</em> that is 2, 3 or 4 depending
-on the bird, and no single number can do that job exactly. Had every
-bird been caught the same number of times, this second factor would
-collapse and the two estimators would agree.</p>
-<p>So: the ordering ML &lt; REML &lt; ANOVA is not luck, and the divisor
-explains about a third of it. It is tempting to blame the whole gap on
-the divisor, because the divisor is the part with a formula; the larger
-part is the unequal number of captures, and it only shows itself when
-you split the gap on the variance scale as the cell did.</p>
+<p><strong>⚠ DISAGREE: two correct repeatabilities from one
+file</strong></p>
+<p>Two routes to one number on these 459 measurements, and they disagree
+in the third decimal place. Neither is a bug. The classical route
+matches expected mean squares — the textbook formula for how much
+variance each level of the design should contribute — which is a
+<strong>method of moments</strong>: set that formula equal to what you
+observed and solve. Two things separate it from the likelihood. With 2,
+3 or 4 captures depending on the bird, Lessells and Boag’s
+<code>n0</code> is the best single number that can stand in for
+<em>k</em>, and no single number does that job exactly. And a
+maximum-likelihood variance has not paid for the fixed effects estimated
+before it, which is Class 2’s divisor argument arriving one level up,
+with <em>J</em> birds in place of <em>n</em> rows; that is Class 8’s
+hour.</p>
 <p>The R output below was run once, by hand, on 2026-09-06, on the same
 data file this chapter reads, and pasted here as it came out; it is not
 re-run when the page is made. It is here to show that the classical
 route an R user would take gives the ANOVA number above, so the gap is
 between two methods and not between two languages.</p>
 </div>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/BodySize.csv, rows with a missing</span></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Wing or Tarsus dropped (459 rows, 171 birds)</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   a &lt;- anova(aov(Wing ~ factor(BirdID), data = d))</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>Analysis of Variance Table</span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>Response<span class="sc">:</span> Wing</span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>           Df  Sum Sq Mean Sq F value    <span class="fu">Pr</span>(<span class="sc">&gt;</span>F)</span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>BirdID    <span class="dv">170</span> <span class="fl">2010.42</span> <span class="fl">11.8260</span>  <span class="fl">9.4853</span> <span class="sc">&lt;</span> <span class="fl">2.2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>Residuals <span class="dv">288</span>  <span class="fl">359.07</span>  <span class="fl">1.2468</span></span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>n0 <span class="ot">=</span> <span class="fl">2.682942</span>   MSa <span class="ot">=</span> <span class="fl">11.82599</span>   MSw <span class="ot">=</span> <span class="fl">1.246777</span></span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>Lessells <span class="sc">&amp;</span> Boag ANOVA repeatability <span class="ot">=</span> <span class="fl">0.7597694</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-06 and pasted here. Run with:</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   R 4.6.0, reading data/2012/BodySize.csv, rows with a missing</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   Wing or Tarsus dropped (459 rows, 171 birds)</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   a &lt;- anova(aov(Wing ~ factor(BirdID), data = d))</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>Analysis of Variance Table</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>Response<span class="sc">:</span> Wing</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>           Df  Sum Sq Mean Sq F value    <span class="fu">Pr</span>(<span class="sc">&gt;</span>F)</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>BirdID    <span class="dv">170</span> <span class="fl">2010.42</span> <span class="fl">11.8260</span>  <span class="fl">9.4853</span> <span class="sc">&lt;</span> <span class="fl">2.2e-16</span> <span class="sc">**</span><span class="er">*</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>Residuals <span class="dv">288</span>  <span class="fl">359.07</span>  <span class="fl">1.2468</span></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>n0 <span class="ot">=</span> <span class="fl">2.682942</span>   MSa <span class="ot">=</span> <span class="fl">11.82599</span>   MSw <span class="ot">=</span> <span class="fl">1.246777</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>Lessells <span class="sc">&amp;</span> Boag ANOVA repeatability <span class="ot">=</span> <span class="fl">0.7597694</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="line"><span class="who momo">Momo</span><p>So which one do I report?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Whichever one you name. That is the entire answer, and if it sounds like
 a dodge, wait two weeks. What you may not do is report the third decimal
@@ -1279,80 +1173,69 @@ biology rather than a nuisance.</p></div>
 <ul>
 <li><strong>Non-independence.</strong> Every model in Classes 2 to 5 assumed rows were independent draws. Repeated measurements on the same individual are not, and the assumption is not visible in any diagnostic plot; it is visible in the <em>data file</em>. Look at your identifier columns before you look at your residuals.</li>
 <li><strong>Random intercept.</strong> <code>(1 | group)</code> gives every group its own shift up or down, drawn from a normal distribution with spread σ_u. You do not estimate one intercept per group; you estimate the spread of the intercepts, which costs you one parameter rather than one per group.</li>
-<li><strong>What it does to standard errors.</strong> With a predictor that varies mostly <em>between</em> groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope’s standard error was understated by nearly a quarter. With a predictor that varies mostly <em>within</em> groups the neglect can go the other way, which is Class 7.</li>
+<li><strong>What it does to standard errors.</strong> With a predictor that varies mostly <em>between</em> groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope’s standard error was understated by 22.9%. With a predictor that varies mostly <em>within</em> groups the neglect can go the other way, which is Class 7.</li>
 <li><strong>Two spreads, not one.</strong> σ_u is how much individuals differ from each other; σ is how much one individual varies from itself. The single-level model reports something between the two and calls it “the” residual standard deviation, which answers neither question.</li>
 <li><strong>Repeatability, R = σ_u² / (σ_u² + σ²).</strong> A ratio of variance components. Also called the intraclass correlation, because it <em>is</em> the correlation between two measurements on the same individual. Not a coefficient, not a <em>p</em>-value, and much more informative than either.</li>
 <li><strong>Adjusted versus unadjusted R.</strong> With a fixed effect in the model, R is conditional on it. State which one you computed (Nakagawa &amp; Schielzeth 2010). The two answer different biological questions.</li>
-<li><strong>The denominator is contested, and for two reasons.</strong> Both terms in the ratio are estimated variances. Moving from maximum likelihood to REML is Class 2’s divisor argument arriving one level up, with <em>J</em> groups in place of <em>n</em> rows, and Class 8 shows that a mixed model carries one divisor per level. Moving from REML to the analysis-of-variance estimator is a different thing again: a method of moments needs one effective <em>k</em> where the design has several, so the two part company whenever groups have unequal sizes. On this file the second effect is the larger. Name your estimator.</li>
+<li><strong>The denominator is contested.</strong> Both terms in the ratio are estimated variances, and different estimators of a variance divide by different things, so a likelihood and the classical analysis-of-variance route give different numbers from one file. Class 8 is the hour on why. Name your estimator.</li>
 <li><strong>Shrinkage.</strong> Predicted group effects are pulled towards the population mean by the Spearman-Brown weight λ_k = kσ_u²/(kσ_u² + σ²), so a group with less data is pulled harder. That is not a defect of the estimate; it is the entire content of the phrase “draws from a population”.</li>
 <li><strong>Marginal versus conditional residuals.</strong> <code>residuals</code> here is marginal, so it still contains the group effect and its spread is close to sqrt(σ_u² + σ²). Subtract the group’s own predicted effect to get the conditional residual. R users should note that <code>lme4</code> hands them the conditional one by default.</li>
-<li><strong>A conditional residual is not a draw from σ, and the shortfall is not shrinkage.</strong> Removing an estimated group mean costs a degree of freedom, so the spread falls short of σ by a factor of sqrt(1 − 1/k) before anything else happens, which at <em>k</em> = 2 is a loss of nearly a third. Shrinkage then pushes the spread back <strong>up</strong>, because a shrunk prediction removes slightly less than the group’s real effect. Standardise a residual plot by the spread the residuals have, not by σ, or the plot shows you an error of scale you already knew about instead of the shape you came to check.</li>
+<li><strong>A conditional residual is not a draw from σ.</strong> Each group’s own mean was estimated from its own few rows, so the residuals sit a little narrower than σ; shrinkage pulls slightly the other way, and the divisor wins. Standardise a residual plot by the spread the residuals have, not by σ, and read it for shape.</li>
 <li><strong>The effective sample size.</strong> A standard error scales like 1/sqrt(n), so a ratio of standard errors converts back into a count. Here the honest fit behaved as though it had rather more evidence than the number of birds and far less than the number of rows. The truth is between the two counts, and the arithmetic says where.</li>
 <li><strong>R is a free upper bound on heritability, h² ≤ R, under the standard partition.</strong> Both are variance ratios over the same total, and if between-individual variance splits into additive genetic plus permanent environment with no covariance between them, the numerator of h² is a <em>part</em> of the numerator of R and the inequality is arithmetic. It costs no pedigree, and it is often loose, because permanent environment effects live inside R and outside h² (Nakagawa &amp; Schielzeth 2010; Class 10). It is not unconditional: relax the partition, for instance by letting genetic and permanent environment effects covary, and the bound can fail (Dohm 2002). Match the conditioning: an adjusted R bounds an adjusted h². Separately, and do not confuse the two: a <em>correlation</em> with a trait of repeatability R is capped by sqrt(R), because a correlation lives on the standard-deviation scale.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><code>CSV.read(path, DataFrame; missingstring = "NA")</code>: the keyword that turns a text column back into numbers when the file was written by a human in 2009. Without it, a single <code>NA</code> makes the whole column text and the model refuses it.</li>
-<li><code>dropmissing(df, [:a, :b])</code>: keep only rows complete on the columns you are about to model. Do it in a cell, in front of the reader, never in a spreadsheet.</li>
-<li><code>describe(df, :nmissing)</code>: how many missing values per column. The first thing to run on a real file.</li>
-<li><code>combine(groupby(df, :g), nrow =&gt; :k)</code>: rows per group. The second thing to run on a real file.</li>
-<li><code>@formula(y ~ x + (1|g))</code>: the random intercept. Everything else about the call is unchanged from Class 2, including the <code>bf</code> box and the positional family.</li>
-<li><code>re_sd(fit)</code>: a <code>Dict</code> of random-effect standard deviations by grouping term. <code>vc(fit)</code> gives the covariance blocks instead.</li>
-<li><code>sigma(fit)</code>: the residual SD, one value per observation; take <code>first(...)</code> when σ is constant.</li>
-<li><code>repeatability(fit)</code>: R with an interval, a standard error and a bias estimate, so you do not build the ratio by hand and lose the uncertainty. <strong>It defaults to <code>method = :delta</code></strong>, the estimate plus or minus about two standard errors, pushed back inside [0, 1] if it strays. <code>repeatability(fit; method = :profile)</code> re-fits the model at each trial value of R and keeps the values the data cannot reject; that is the one documented as covering the truth as often as it claims to, and it is the one to report unless you have a reason not to. The <code>bias</code> and <code>corrected</code> fields exist because a ratio of estimates is not the estimate of a ratio.</li>
-<li><code>ranef(fit)</code>: the model’s prediction for each group’s shift, by grouping term. These are the BLUPs of the caterpillar; the documentation also calls them conditional modes, and the two names mean the same thing. Pair with <code>fitted(fit)</code>, which is the <strong>marginal</strong> (population-level) prediction, so <code>y - fitted(fit)</code> averaged within a group is the unshrunk group effect.</li>
-<li><code>fig_shrinkage(groups, raw, blups)</code> from <code>tools/figures.jl</code>: the caterpillar, circles for each group’s own mean and diamonds for the model’s prediction, with the legend drawn outside the axis so it never covers a group.</li>
-<li><code>Cycled(i)</code> and <code>Makie.wong_colors()</code>: how to colour by group without inventing a palette.</li>
-<li><strong>Reading a <code>MethodError</code> from a real file.</strong> Line one says a <code>Float64</code> was wanted; the argument type in the signature says a string arrived. When that happens on data you did not simulate, suspect the file before you suspect the model.</li>
-<li><strong>The simulation thread.</strong> From Class 2 onward, the last thing you do with a fit is ask it to invent data and see whether the data look like yours. Here is that cell for a random intercept, and it carries a trap worth meeting once.</li>
+<li><strong><code>Dict(b =&gt; i for (i, b) in enumerate(ids))</code>.</strong> A <strong>Dict</strong> is a lookup table: give it a key, <code>idx[b]</code>, and it returns the value stored under it. Built here from a generator of <code>key =&gt; value</code> pairs, so any row can find its bird’s position.</li>
+<li><strong><code>sortperm(v)</code>.</strong> The order that would sort <code>v</code>; index another vector by it and that vector is sorted the same way.</li>
+<li><strong><code>1:14:length(ids)</code>.</strong> A range with a step: every fourteenth position.</li>
+<li><strong><code>"the same $(length(shown)) birds"</code>.</strong> String interpolation: <code>$(...)</code> pastes a value into a string.</li>
+<li><strong><code>trues(n)</code> with one entry set <code>false</code>.</strong> A mask; <code>df[keep, :]</code> keeps the rows where it is true.</li>
+<li><strong><code>randn(rng, r, c)</code> and <code>M[rows, :]</code>.</strong> A matrix of standard-normal draws, and rows of a matrix selected by a vector of positions, repeats allowed.</li>
+<li><strong><code>mean(std(dev[:, k]) for k in 1:nsim)</code>.</strong> A generator inside <code>mean</code>, one column at a time.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simulate() draws new responses from the fit. Read what it promises: for a</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co"># random-effect model the draw is conditional on the random effects being ZERO,</span></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co"># so it gives population-level birds with no individual identity at all.</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">600</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(ri_fit; nsim <span class="op">=</span> <span class="fl">100</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> ysim <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)</span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed SD about the fixed line : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)))</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated SD about the fixed line: %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(<span class="fu">std</span>(dev[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(dev, <span class="fl">2</span>)))</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma alone                      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e)</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(sigma_u^2 + sigma_e^2)      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>))</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Refit one replicate and look at what the estimator concludes about birds when</span></span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a><span class="co"># the truth is that birds do not differ at all.</span></span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>one_rep <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> ysim[<span class="op">:</span>, <span class="fl">1</span>])</span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>refit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> one_rep)</span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">refit on simulated data: sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">re_sd</span>(refit)[<span class="op">:</span>BirdID], <span class="fu">first</span>(<span class="fu">sigma</span>(refit)), <span class="fu">repeatability</span>(refit).estimate)</span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the fit it came from  : sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>        sigma_u, sigma_e, R.estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>CSV.read(path, DataFrame; missingstring = "NA")</code>: the keyword that keeps a column numeric when a human typed <code>NA</code> in it. Without it the whole column is text and the model refuses it.</li>
+<li><code>dropmissing(df, [:a, :b])</code> and <code>describe(df, :nmissing)</code>: keep rows complete on the columns you are about to model, and count the holes first.</li>
+<li><code>@formula(y ~ x + (1|g))</code>: the random intercept. Everything else about the call is unchanged from Class 2.</li>
+<li><code>re_sd(fit)[:g]</code>, <code>sigma(fit)</code>: the between-group SD, from a <code>Dict</code> keyed by grouping term, and the residual SD per observation (<code>first(...)</code> when constant).</li>
+<li><code>repeatability(fit)</code> and <code>repeatability(fit; method = :profile)</code>: R with a delta-method or a profile-likelihood interval, plus <code>bias</code> and <code>corrected</code>, because a ratio of estimates is not the estimate of a ratio. Report the one you asked for, by name.</li>
+<li><code>ranef(fit)[:g]</code>: the model’s prediction for each group’s shift, the BLUPs of the caterpillar. <code>fitted(fit)</code> is the <strong>marginal</strong> prediction, so <code>y - fitted(fit)</code> averaged within a group is the unshrunk group effect.</li>
+<li><code>fig_shrinkage(groups, raw, blups)</code> from <code>tools/figures.jl</code>: the caterpillar, circles for each group’s own mean and diamonds for the model’s prediction.</li>
+<li><strong>Reading a <code>MethodError</code> from a real file.</strong> Line one says a <code>Float64</code> was wanted; the argument type says a string arrived. On data you did not simulate, suspect the file before the model.</li>
+<li><strong>The simulation thread.</strong> From Class 2 onward, the last thing you do with a fit is ask it to invent data and see whether the data look like yours. For a fit with a random intercept there is one thing to know first: <code>simulate</code> draws with every bird’s effect set to zero (<a href="appendix-b-engine.html">Appendix B</a>), so add the bird effects yourself, from the same seeded generator, before you compare spreads.</li>
+</ul>
+<div id="simulate-refit" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">600</span>)   <span class="co"># a seed is a promise: anyone who runs this line gets the same draw</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>nsim <span class="op">=</span> <span class="fl">100</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>row_bird <span class="op">=</span> [idx[b] for b <span class="kw">in</span> sparrows.BirdID]        <span class="co"># which bird each row belongs to</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>u_sim <span class="op">=</span> sigma_u <span class="op">.*</span> <span class="fu">randn</span>(rng_sim, birds, nsim)       <span class="co"># a fresh nudge per bird, per world</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(ri_fit; nsim <span class="op">=</span> nsim, rng <span class="op">=</span> rng_sim) <span class="op">.+</span> u_sim[row_bird, <span class="op">:</span>]</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> ysim <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"observed SD about the fixed line : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(ri_fit)))</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"simulated SD about the fixed line: %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(<span class="fu">std</span>(dev[<span class="op">:</span>, k]) <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>nsim))</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(sigma_u^2 + sigma_e^2)      : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(sigma_u<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> sigma_e<span class="op">^</span><span class="fl">2</span>))</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Refit one replicate: does the estimator get back what it was given?</span></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>one_rep <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> ysim[<span class="op">:</span>, <span class="fl">1</span>])</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>refit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> one_rep)</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">refit on simulated data: sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">re_sd</span>(refit)[<span class="op">:</span>BirdID], <span class="fu">first</span>(<span class="fu">sigma</span>(refit)), <span class="fu">repeatability</span>(refit).estimate)</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the fit it came from  : sigma_u = %.4f, sigma = %.4f, R = %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>        sigma_u, sigma_e, R.estimate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>observed SD about the fixed line : 2.0880
-simulated SD about the fixed line: 1.0995
-sigma alone                      : 1.0969
-sqrt(sigma_u^2 + sigma_e^2)      : 2.0689</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
-│ The fit is at a variance/dispersion boundary, so standard errors for the
-│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
-│ or the bootstrap entry points for those targets.
-│   context = ""
-│   flat_coordinates =
-│    1-element Vector{Int64}:
-│     4
-│   rcond = 4.2988383010350234e-19</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-refit on simulated data: sigma_u = 0.0000, sigma = 1.1034, R = 0.0000
+simulated SD about the fixed line: 2.0794
+sqrt(sigma_u^2 + sigma_e^2)      : 2.0689
+
+refit on simulated data: sigma_u = 1.7401, sigma = 1.0720, R = 0.7249
 the fit it came from  : sigma_u = 1.7541, sigma = 1.0969, R = 0.7189</code></pre>
 </div>
 </div>
-<p>The simulated spread matches σ and not sqrt(σ_u² + σ²), and the refit recovers a repeatability near zero rather than the one we started with, because the draws were made with every bird effect set to zero. The warning printed above the refit is the engine noticing that the refit has put σ_u at zero, the same edge Class 8 is about, and telling you not to trust the standard errors it would print for that number; the word Hessian names the curvature of the likelihood at its peak, and at an edge there is no peak. If a line at the bottom of the warning names a file inside the engine, that line is for the engine’s authors, not for you. That is <code>simulate</code> doing exactly what it documents and nothing else. It makes this call the right way to generate a null in which individuals do not differ, and the wrong way to check whether a mixed model reproduces the spread of your data. Read what a function promises before you trust a hundred draws from it.</p>
+<p>In the cell, <code>randn(rng_sim, birds, nsim)</code> draws a whole matrix of standard-normal noise, one row per bird and one column per world, and <code>u_sim[row_bird, :]</code> picks each row’s own bird out of it — a vector in the row slot selects those rows, in that order, with repeats — so that every row of a bird gets the same nudge. With the bird effects put back, the simulated spread about the fixed line sits where the data sit, at sqrt(σ_u² + σ²), and one refit gets back a σ_u, a σ and an R close to the ones it was given: the model can reproduce its own data, which is the smaller claim Appendix A says this check makes. Leave the bird effects out and the same call gives you something else that is also useful, a world in which birds do not differ at all, which is the null Class 8 needs. Read what a function promises before you trust a hundred draws from it.</p>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
 <p class="aside">Graded by depth.</p>
@@ -1367,16 +1250,15 @@ the fit it came from  : sigma_u = 1.7541, sigma = 1.0969, R = 0.7189</code></pre
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 2 and not Class 6.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 2 and not Class 6.</p>
 <ol type="1">
-<li><p><strong>Find the identifier.</strong> Take a dataset of your own with repeated measurements. Report the number of rows, the number of individuals, and the distribution of measurements per individual, using <code>combine(groupby(...), nrow =&gt; :k)</code>. Then write one sentence naming what would have been counted as independent evidence if you had not looked.</p></li>
-<li><p><strong>Both fits, both standard errors.</strong> Fit your response on one predictor with and without <code>(1 | id)</code>. Report both slopes and both standard errors. Before you look, predict whether the standard error will go up or down, using the between-versus-within argument from class, and say afterwards whether you were right and why.</p></li>
-<li><p><strong>Repeatability, by hand and from the fit.</strong> Compute R from <code>re_sd</code> and <code>sigma</code> yourself, then check against <code>repeatability(fit)</code>. Report the interval too. Then write the one sentence you would put in a paper, including the words “estimated by”.</p></li>
-<li><p><strong>Adjusted or not.</strong> Fit the same random intercept with and without your fixed effect. Report both repeatabilities. Which of the two answers the question you actually care about? Two sentences.</p></li>
-<li><p><strong>Draw the shrinkage.</strong> Produce the caterpillar for your own data, with a stated rule for choosing which groups to show if you have too many to plot. Then answer: which group moved furthest, and is that because it had the least data or because it started furthest from the middle? Both are legitimate answers; the numbers decide.</p></li>
-<li><p><strong>Toto’s water fleas.</strong> <em>(Daphnia)</em> If you have clonal lines, R is a heritability in disguise. Compute it, then say in one sentence why the same arithmetic gets a different name when the groups are genotypes rather than individuals, and what would have to be true of the design for that name to be earned.</p></li>
-<li><p><strong>Break the pretence deliberately.</strong> Take the chapter’s file and collapse it to one row per bird by averaging. Fit the single-level model to the averages. Compare its slope and standard error to both of today’s fits. Explain in two sentences why averaging is not the same as modelling the individual, and name one thing you threw away.</p></li>
-<li><p><strong>The free upper bound.</strong> Your repeatability from question 3 caps the narrow-sense heritability of that trait. State the cap, name the estimator that produced it and say whether it is adjusted or unadjusted, then write two sentences: one explaining why h² cannot exceed R, in terms of what is on top of each ratio, and one naming something permanent about your individuals that would sit inside R and outside h². Finally, find a paper in your field reporting a heritability for a trait like yours and check it against any repeatability the same paper reports. If it reports no repeatability, say what you would have to measure to get one.</p></li>
+<li><p><strong>Find the identifier, and the holes.</strong> <code>data/ch9/chicks-broods.csv</code> is one row per sparrow chick with its mass at two days, <code>Mass2</code>, its hatching date, <code>JulianDate</code>, and the nest it came from, <code>BroodNo</code>. Read it and run <code>describe(df, :nmissing)</code>: one column you will need has holes, so drop those rows with <code>dropmissing</code> as the chapter did. Then report the number of rows, the number of broods, and the distribution of chicks per brood, using <code>combine(groupby(df, :BroodNo), nrow =&gt; :k)</code>. One sentence naming what would have been counted as independent evidence if you had not looked. <em>Check:</em> 7 rows dropped, 1593 kept, in 481 broods of 1 to 6 chicks.</p></li>
+<li><p><strong>Both fits, both standard errors.</strong> Fit <code>Mass2 ~ JulianDate</code> with and without <code>(1 | BroodNo)</code>. Before you look, predict whether the standard error on the date slope will go up or down, using the between-versus-within argument from class — and note that every chick in a brood hatched on the same day. Report both slopes and both standard errors, then say whether you were right and why. <em>Check:</em> the standard error changes by a factor of 1.43, and a random-intercept model of <code>JulianDate</code> itself puts a fraction 1.0 of its variation between broods.</p></li>
+<li><p><strong>Repeatability, by hand and from the fit.</strong> From the with-brood fit of question 2, compute R from <code>re_sd</code> and <code>sigma</code> yourself, then check against <code>repeatability(fit)</code>. Report the interval too. Then write the one sentence you would put in a paper, including the words “estimated by”, and say what R means when the group is a nest rather than an individual. <em>Check:</em> R = 0.416, interval 0.362 to 0.471.</p></li>
+<li><p><strong>Adjusted or not.</strong> Fit the same random intercept with and without <code>JulianDate</code>. Report both repeatabilities. Which of the two answers the question you actually care about? Two sentences. <em>Check:</em> without the date, R = 0.427; the gap between the two is what hatching date explained.</p></li>
+<li><p><strong>Draw the shrinkage.</strong> Produce the caterpillar for the broods, as the chapter’s cell did, with a stated rule for choosing which of the 481 broods to show. Then answer: which brood moved furthest, and is that because it had the least data or because it started furthest from the middle? Both are legitimate answers; the numbers decide. <em>Check:</em> a brood with 1 chick keeps a fraction 0.43 of its own signal, a brood with 6 keeps 0.82.</p></li>
+<li><p><strong>Break the pretence deliberately.</strong> Take the chapter’s file and collapse it to one row per bird by averaging <code>Tarsus</code> and <code>Wing</code> with <code>combine(groupby(sparrows, :BirdID), ...)</code>. Fit <code>Wing ~ Tarsus</code> to the averages. Compare its slope and standard error to both of today’s fits. Explain in two sentences why averaging is not the same as modelling the individual, and name one thing you threw away. <em>Check:</em> on the 171 averages the slope is 1.203 with standard error 0.191, against 0.164 from the random-intercept fit.</p></li>
+<li><p><strong>The free upper bound.</strong> The chapter’s wing repeatability caps the narrow-sense heritability of wing length in these sparrows. State the cap, name the estimator that produced it and say whether it is adjusted or unadjusted, then write two sentences: one explaining why h² cannot exceed R, in terms of what is on top of each ratio, and one naming something permanent about a sparrow that would sit inside R and outside h². <em>Check:</em> the cap is on this page, and Class 10 comes back for it.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

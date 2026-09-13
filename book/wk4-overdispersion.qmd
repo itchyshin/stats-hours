@@ -181,11 +181,11 @@ over_pois = sum(1 - Distributions.cdf(Distributions.Poisson(mu_p[i]), females.Eg
 @printf("expected rows with more fledglings than eggs, under this Poisson: %.2f\n", over_pois)
 ```
 
-**Itchy:** About `{julia} round(over_pois, digits = 1)` females' worth of impossibility — which is why I said *for now* rather than *correct* when Toto told me the predictions were all legal. **This model commits exactly the crime Class 3 convicted the Gaussian of**, and it hid it better, because a prediction of four chicks is only impossible if you know how many eggs there were. Now put the exposure in.
+**Itchy:** About `{julia} round(over_pois, digits = 1)` females' worth of impossibility — which is why I said *for now* rather than *correct* when Toto told me the predictions were all legal. **This model commits exactly the crime Class 3 convicted the Gaussian of**, and it hid it better, because a prediction of four chicks is only impossible if you know how many eggs there were. Two words on the cell before we move: `sum(... for i in 1:n_fem)` is a comprehension without its square brackets, a **generator**, handed straight to `sum` so nothing is stored on the way; and `Distributions.Poisson(...)`, written with its package name in front, is the probability distribution, because a bare `Poisson()` is DRM's family and the two share a word. Now put the exposure in.
 
 **Momo:** As an offset. I have read ahead.
 
-**Itchy:** As a covariate first, and I will tell you why in a minute. The right scale is the log one, because the link is a log: if a female's expected brood is proportional to her eggs, then log μ carries log `EggNo` with a coefficient of one.
+**Itchy:** As a covariate first, and I will tell you why in a minute. The right scale is the log one, because the link is a log: if a female's expected brood is proportional to her eggs, then log μ carries log `EggNo` with a coefficient of one. Adding the column is one assignment — `females.logEgg = log.(females.EggNo)` writes a new column into the frame, the dot taking the log of every egg count — and the formula can then name it.
 
 ```{julia}
 #| label: fit-exposure
@@ -508,7 +508,7 @@ n_sp = nrow(sparrows)
 combine(groupby(sparrows, :Sex), nrow => :n, :Wing => std => :wing_sd)
 ```
 
-**Itchy:** Class 2 fitted wing on tarsus and sex, and printed a single residual standard deviation for every bird on the island. Here is that model and here is the same model with a second formula in the box.
+**Itchy:** Two lines of housekeeping first, since you will do this to your own files. `ifelse.(raw.Sex .== "F", "female", "male")` is the dot on a three-argument function: for every row, *if* it is F write female, else male. `select(raw, :BirdID, ...)` keeps the named columns and drops the rest. Now: Class 2 fitted wing on tarsus and sex, and printed a single residual standard deviation for every bird on the island. Here is that model and here is the same model with a second formula in the box.
 
 > **y_i ~ N(μ_i, σ_i²),  μ_i = β0 + β1 tarsus_i + β2 male_i,  log σ_i = γ0 + γ1 male_i**
 
@@ -541,7 +541,7 @@ sd_range = extrema(sigma(fit_ls))
 @printf("location-scale model, the range  : %.4f to %.4f mm\n", sd_range[1], sd_range[2])
 ```
 
-**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts.
+**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts. One line in the next cell, the one that computes `se_g1`, is plumbing: it finds the standard error of the σ slope by its name rather than by its position in the table, and you may skip it.
 
 ```{julia}
 #| label: sparrow-verdicts
@@ -639,18 +639,27 @@ fig
 - **Plot the assumption, not only its consequences.** Mean against variance, binned, with the family's claim drawn as a curve and marker area showing sample size.
 - **What this chapter still pretends.** Every model here treats its rows as strangers, and these files cannot stop it: `FemaleSuccess.csv` carries no female identifier, and `MBodySize.csv` is one row per bird. Class 6 ends the pretence on a file that repeats birds, and the standard errors printed here will move when it does.
 
-### Julia stuff
+### Julia you used
 
-- `drm(bf(@formula(cbind(k, n - k) ~ x)), Binomial(); data = df)`: a **grouped** binomial. The response is two columns — successes and failures — and `cbind` is DRM's own marker, not R's function.
-- `drm(bf(@formula(cbind(k, n - k) ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)`: the overdispersed version. `coef(fit, :sigma)` is log σ and the precision is φ = 1/σ², so `exp(-2 * coef(fit, :sigma)[1])`.
-- `drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), NegBinomial2(); data = df)`: overdispersed counts, with θ = 1/σ² by the same arithmetic.
-- `drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)`: a location-scale Gaussian fit. `coef(fit, :sigma)` is on the log scale; exponentiate for millimetres.
-- `sigma(fit)`: the response-scale σ per observation for a Gaussian fit. On a constant-σ fit every element is the same number; on a modelled σ it is a range, which is what the fit header prints.
-- `confint(fit; parm = :sigma)`: one row per coefficient of that block, each with `.estimate`, `.lower` and `.upper` on the **link** scale, so exponentiate for a rate ratio or a σ ratio. `ci_row` above picks one row by name.
-- `dof_residual(fit)`: the residual degrees of freedom, for a Pearson dispersion statistic.
-- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: standard normal under a correct model for every family here. **Pass the `rng`**, and know that *which* rng you pass moves the second decimal, so do not read the SD's digits.
-- `import Distributions`: needed here because DRM exports its own `Poisson`, `Binomial` and `BetaBinomial`. Qualify the distribution as `Distributions.Poisson(μ)` when you want a pmf or a cdf.
-- **Marker size as sample size.** `markersize = 3 .* sqrt.(n)` in a binned plot. Area, not radius, is what the eye reads.
+- **`df.logEgg = log.(df.EggNo)`.** Assigning to a column that does not exist creates it. The dot takes the log of every element.
+- **`sum(f(i) for i in 1:n)`.** A **generator**: a comprehension without its square brackets, consumed as it goes. `sum(... for k in 0:n if cond)` filters it with an `if`, and a second `for` nests one inside another.
+- **`ifelse.(cond, a, b)`.** The dot on a three-argument function: for each element, `a` where the condition holds, otherwise `b`.
+- **`.&`, `.|`, `.!`.** *And*, *or* and *not*, element by element, for combining true/false vectors; `count(v)` counts the trues.
+- **`import Distributions` and `Distributions.Poisson(μ)`.** A package loaded without its names spilled into yours, so DRM's `Poisson()` family and the distribution can coexist; the dot after the package name reaches inside it.
+- **`findfirst(r -> r.coef == name, rows)`.** The position of the first element for which the function is true; `argmin(v)` is the position of the smallest value.
+- **`function refit_pair(y) ... (a, b) end`.** A function returning two values as a pair; `first.(pairs)` and `last.(pairs)` split a vector of pairs into two vectors.
+- **`join(names(df), ", ")`.** Glues strings together with a separator.
+- **`sort!(byage, :Age)`.** The `!` again: sorts the frame in place.
+
+### Calls you used
+
+- `drm(bf(@formula(cbind(k, n - k) ~ x)), Binomial(); data = df)`: a **grouped** binomial; `cbind` is DRM's own marker for successes and failures, not R's function.
+- `drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)` and `NegBinomial2()`: the overdispersed versions, with the second formula in the box. `coef(fit, :sigma)` is log σ, and φ or θ is `exp(-2 * coef(fit, :sigma)[1])`.
+- `drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)`: a location-scale fit; `exp.(coef(fit, :sigma))` for millimetres.
+- `sigma(fit)`, `dof_residual(fit)`, `stderror(fit)`: response-scale σ per observation, residual degrees of freedom for a Pearson statistic, and standard errors in coefficient order.
+- `confint(fit; parm = :sigma)`: one row per coefficient of that block, each with `.estimate`, `.lower`, `.upper` on the link scale; `ci_row` above picks a row by name.
+- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: as before. Which `rng` you pass moves the SD's second decimal, so do not read its digits.
+- `markersize = 3 .* sqrt.(n)` in a binned plot: area, not radius, is what the eye reads.
 - **The simulation thread.** Ask the negative-binomial fit to invent two hundred new sets of females, refit each, and watch which parameter is well pinned down and which is not.
 
 ```{julia}
@@ -697,7 +706,7 @@ Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
-The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly **asymmetric** — the mean printed above sits higher than the median, the largest refit is `{julia} round(maximum(thetas) / theta, digits = 1)` times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about `{julia} round(theta, digits = 2)`. So quote θ to one decimal, and prefer an interval read off the likelihood itself to the plain estimate-plus-or-minus-two-standard-errors kind — the **Wald** interval, which assumes the uncertainty is the same size on both sides. Appendix A takes that apart properly.
+`refit_pair` is Class 3's refit function returning two things at once, a pair in brackets, and `first.(pairs_out)` and `last.(pairs_out)` pull the two halves apart with the dot on a function: one vector of slopes, one of thetas. The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly **asymmetric** — the mean printed above sits higher than the median, the largest refit is `{julia} round(maximum(thetas) / theta, digits = 1)` times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about `{julia} round(theta, digits = 2)`. So quote θ to one decimal, and prefer an interval read off the likelihood itself to the plain estimate-plus-or-minus-two-standard-errors kind — the **Wald** interval, which assumes the uncertainty is the same size on both sides. Appendix A takes that apart properly.
 
 ---
 
@@ -715,18 +724,52 @@ The slope behaves itself: the spread of refitted slopes lands close to the stand
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 3 and not Class 4.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 3 and not Class 4.
 
-1. **Read the file before the model.** Take any count response of your own and list every other column. For each one, answer in a sentence: is this a predictor, an exposure, or neither? An exposure is anything that changes how much opportunity a row had — area searched, hours observed, eggs laid, individuals at risk. If you find one, you have found this chapter's first lesson in your own data.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files.
+ex_epp = CSV.read("../data/2012/EPPSuccess.csv", DataFrame)
+ex_vm = var(ex_epp.EPP) / mean(ex_epp.EPP)
+ex_pois = drm(bf(@formula(EPP ~ Age)), Poisson(); data = ex_epp)
+ex_nb = drm(bf(@formula(EPP ~ Age), @formula(sigma ~ 1)), NegBinomial2(); data = ex_epp)
+ex_theta = exp(-2 * coef(ex_nb, :sigma)[1])
+ex_daic = aic(ex_pois) - aic(ex_nb)
+ex_se_factor = stderror(ex_nb)[2] / stderror(ex_pois)[2]
+ex_rr_pois, ex_rr_nb = exp(coef(ex_pois, :mu)[2]), exp(coef(ex_nb, :mu)[2])
+ex_raw = CSV.read("../data/2012/SparrowSurvival.csv", DataFrame; missingstring = ["NA", ""])
+ex_bro = combine(groupby(dropmissing(ex_raw, [:HatchingSuccess, :EggNo, :JulianDate]), :BroodNo),
+                 :HatchingSuccess => first => :hatched, :EggNo => first => :eggs,
+                 :JulianDate => first => :date)
+ex_bro.failed = ex_bro.eggs .- ex_bro.hatched
+ex_bin = drm(bf(@formula(cbind(hatched, failed) ~ date)), Binomial(); data = ex_bro)
+ex_bb = drm(bf(@formula(cbind(hatched, failed) ~ date), @formula(sigma ~ 1)),
+            BetaBinomial(); data = ex_bro)
+ex_phi = exp(-2 * coef(ex_bb, :sigma)[1])
+ex_daic_bb = aic(ex_bin) - aic(ex_bb)
+ex_p_bin = fitted(ex_bin)
+ex_disp_bin = sum((ex_bro.hatched .- ex_bro.eggs .* ex_p_bin) .^ 2 ./
+                  (ex_bro.eggs .* ex_p_bin .* (1 .- ex_p_bin))) / dof_residual(ex_bin)
+ex_sp = CSV.read("../data/2012/MBodySize.csv", DataFrame)
+ex_wc = drm(bf(@formula(Weight ~ Tarsus + Sex)), Gaussian(); data = ex_sp)
+ex_wl = drm(bf(@formula(Weight ~ Tarsus + Sex), @formula(sigma ~ Sex)), Gaussian(); data = ex_sp)
+ex_g = ci_row(ex_wl, :sigma, "Sex: M")
+ex_se_g = (ex_g.upper - ex_g.lower) / (2 * z_a)
+ex_ratio = exp(ex_g.estimate)
+ex_mdr = exp((z_a + z_b) * ex_se_g)
+ex_daic_w = aic(ex_wl) - aic(ex_wc)
+```
 
-2. **Pay the exposure first.** If question 1 found an exposure, add `log(exposure)` to the mean model. Report both AICs, the coefficient on `log(exposure)` with its interval, and whether that interval covers one. Then report what happened to the coefficient you actually care about, and say in one sentence whether you would now write a different result.
+1. **Read the file before the model.** `data/2012/EPPSuccess.csv` records, for `{julia} nrow(ex_epp)` male sparrows, `EPP`, the number of extra-pair young each sired, and his `Age` in years. Before fitting anything, answer for each column other than `EPP`: predictor, exposure, or neither? An exposure is anything that changes how much *opportunity* a row had — area searched, hours observed, eggs laid, individuals at risk. Then say what column this file would need for an exposure to be payable, and compute the variance-to-mean ratio of `EPP` as the crude sign of what is coming. *Check:* the ratio is `{julia} round(ex_vm, digits = 2)`.
 
-3. **Pay the price.** Refit with `NegBinomial2()`, with and without the exposure. Report the coefficient, the standard error and the rate ratio in a four-row table, and report θ in both. Then write one sentence naming what changed and one naming what did not.
+2. **Pay the price.** Fit `EPP ~ Age` with `Poisson()`, then with `NegBinomial2()` and `@formula(sigma ~ 1)` in the box. Report the coefficient on `Age`, its standard error and the rate ratio under each family in a four-row table, and report θ. Then write one sentence naming what changed and one naming what did not. *Check:* θ = `{julia} round(ex_theta, digits = 3)`; AIC drops by `{julia} round(ex_daic, digits = 1)` for one parameter; the standard error grows by a factor of `{julia} round(ex_se_factor, digits = 2)`; the rate ratio moves from `{julia} round(ex_rr_pois, digits = 2)` to `{julia} round(ex_rr_nb, digits = 2)`, which is the part the chapter did not warn you about.
 
-4. **Out of how many?** If your response is a success count out of a known denominator, refit it as `cbind(successes, failures)` with `Binomial()` and then `BetaBinomial()`. Report both AICs, the Pearson X²/df under each, and φ. Then answer in one sentence why you may not compare either AIC with the count models from question 3.
+3. **The referee.** For the repair you kept in question 2, report the AIC difference. Then answer: if it had gone the other way, what would you have done, and would you have reported the comparison at all? Two sentences, and be honest in the second one.
 
-5. **The referee.** Report the AIC difference for the repair you kept. Then answer: if it had gone the other way, what would you have done, and would you have reported the comparison at all? Two sentences, and be honest in the second one.
+4. **Out of how many?** `data/2012/SparrowSurvival.csv` has one row per chick, and on each row the brood's `HatchingSuccess` (eggs that hatched) and `EggNo` (eggs laid). Two things this chapter has not needed: the file marks missing values two ways, so read it with `missingstring = ["NA", ""]`, and drop rows with holes in the three columns you need with `dropmissing(df, [:HatchingSuccess, :EggNo, :JulianDate])`; Classes 6 and 9 explain them. Then collapse to one row per brood with `combine(groupby(df, :BroodNo), :HatchingSuccess => first => :hatched, :EggNo => first => :eggs, :JulianDate => first => :date)`, and fit hatching success as `cbind(hatched, eggs - hatched)` on `date` with `Binomial()`, then with `BetaBinomial()`. Report both AICs, the Pearson X²/df under the binomial, and φ. Then answer in one sentence why you may not compare either AIC with the count models of question 2. *Check:* `{julia} nrow(ex_bro)` broods; X²/df = `{julia} round(ex_disp_bin, digits = 2)` under the binomial; φ = `{julia} round(ex_phi, digits = 2)`; the beta-binomial's AIC is lower by `{julia} round(ex_daic_bb, digits = 1)`.
 
-6. **Eddie's dunnocks.** Fit `Wing ~ Tarsus` on Eddie's data, then add `@formula(sigma ~ Sex)` to the `bf`. Report both AICs, the z and p on the σ slope row, **the σ ratio with its interval**, and the smallest ratio your sample size could have detected at 80% power (`exp((1.96 + 0.84) * se)`). Then write the result as a "not detected, and we could only have seen X" sentence rather than a "no".
+5. **The same move on mass.** On `data/2012/MBodySize.csv` fit `Weight ~ Tarsus + Sex`, then add `@formula(sigma ~ Sex)` to the box. Report both AICs, the z and p on the σ slope row, **the σ ratio with its interval**, and the smallest ratio this sample could have detected at 80% power, `exp((1.96 + 0.84) * se)`. Then write the result as a "not detected, and we could only have seen X" sentence rather than a "no". *Check:* the male-to-female σ ratio is `{julia} round(ex_ratio, digits = 2)`, interval `{julia} round(exp(ex_g.lower), digits = 2)` to `{julia} round(exp(ex_g.upper), digits = 2)`; the extra parameter raises AIC by `{julia} round(ex_daic_w, digits = 1)`; the smallest detectable ratio is `{julia} round(ex_mdr, digits = 2)`.
 
-7. **The two faces.** Write one paragraph, no code, explaining to a labmate why `BetaBinomial()`, `NegBinomial2()` and `sigma ~ x` are the same move. Your paragraph must contain the phrase "held fixed" and must name what is held fixed in each case.
+6. **The two faces.** Write one paragraph, no code, explaining to a labmate why `BetaBinomial()`, `NegBinomial2()` and `sigma ~ x` are the same move. Your paragraph must contain the phrase "held fixed" and must name what is held fixed in each case. *Check:* there are three answers to "what is held fixed", and questions 2, 4 and 5 each produced one of them.

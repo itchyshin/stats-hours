@@ -68,20 +68,18 @@ By the end of this class you should be able to:
 
 **Itchy:** Same notation as Class 6, so nothing new to learn before we start.
 
-<!-- eq: hand-typed; replace with equations(fit) when Symbolizer.jl lands -->
-
 > **μ_ij = β0 + β1 x_ij + u_j,  u_j ~ N(0, σ_u²),  y_ij ~ N(μ_ij, σ²)**
 
 **Itchy:** Tadpole *i* in pond *j*. β0 the intercept, β1 the slope on days since hatching, u_j the pond nudge, σ_u the spread of those nudges, σ the spread within a pond. And repeatability, the thing you actually wanted:
 
 > **R = σ_u² / (σ_u² + σ²). Not a coefficient of μ, not a p-value: a ratio of two things we are about to argue about, over a sum of the same two.**
 
-**Itchy:** Load them. And read the caveat at the top of the page: these tadpoles are simulated, because the real pond file does not exist yet.
+**Itchy:** Load them. And read the caveat at the top of the page: these tadpoles are simulated, because the real pond file does not exist yet, so read the function that makes them before you trust them. The line in triple quotes above it is a **docstring**, documentation attached to the function, and it may run to several lines, as a later one does. `J = 12` and its neighbours after the semicolon are keywords **with defaults**: `simulate_ponds(808)` gets twelve ponds, and a later call can say otherwise. `for j in 1:J, _ in 1:rand(rng, per)` is two loops on one line, the inner one running a random number of times per pond, and `push!` grows three vectors a tadpole at a time. `"P" * lpad(j, ...)` glues strings with `*`, padding the number so the pond names sort.
 
 ```{julia}
 #| label: setup
 include("../tools/figures.jl")
-using DRM, DataFrames, Random, Statistics, LinearAlgebra, Printf, Logging, CairoMakie
+using DRM, DataFrames, CSV, Random, Statistics, LinearAlgebra, Printf, Logging, CairoMakie
 set_theme!(theme_itchy(:light))
 
 """Simulate J ponds of `per` tadpoles each: body length on days since hatching."""
@@ -98,19 +96,9 @@ function simulate_ponds(seed; J = 12, sigma_u = 1.2, sigma = 1.0, per = 8:12)
     DataFrame(pond = pond, days = days, length = body)
 end
 
-function write_csv(df, path)
-    mkpath(dirname(path))
-    open(path, "w") do io
-        println(io, join(names(df), ","))
-        for r in eachrow(df)
-            println(io, r.pond, ",", r.days, ",", r.length)
-        end
-    end
-    return path
-end
-
 tadpoles = simulate_ponds(808)
-write_csv(tadpoles, "../data/ch8/tadpoles.csv")
+mkpath("../data/ch8")
+CSV.write("../data/ch8/tadpoles.csv", tadpoles)
 
 println("rows, columns: ", size(tadpoles))
 println("ponds: ", length(unique(tadpoles.pond)))
@@ -193,7 +181,7 @@ R(su, s) = su^2 / (su^2 + s^2)
 
 ### The divisor, grown up
 
-**Itchy:** Class 2, the box at the end. R's `lm` and our engine disagreed about the residual standard deviation, and the mechanism was a divisor. Maximum likelihood divides the squared residuals by *n*. The unbiased estimator divides by *n − p*, where *p* is the number of fixed effects you had to estimate before you could look at a residual.
+**Itchy:** Class 2's disagreement box. R's `lm` and our engine disagreed about the residual standard deviation, and the mechanism was a divisor. Maximum likelihood divides the squared residuals by *n*. The unbiased estimator divides by *n − p*, where *p* is the number of fixed effects you had to estimate before you could look at a residual.
 
 **Toto:** Because you spent some of the data working out where the line was.
 
@@ -203,7 +191,7 @@ R(su, s) = su^2 / (su^2 + s^2)
 
 **Momo:** So I can predict the ratio. It should be *n* over *n − p*.
 
-**Jaro:** For the residual, yes. There are two levels here, so there are two divisors. One symbol before you read the cell: call τ the ratio σ_u over σ, how big the pond spread is compared with the within-pond spread. Everything else in the fit follows from τ, so it is the one dial the two estimators set differently. Print both divisors, and print the identity that ties them together.
+**Jaro:** For the residual, yes. There are two levels here, so there are two divisors: the residual variance has *n* rows to learn from, and the pond variance has *J* ponds. Print the two ratios beside the divisor each one is heading for.
 
 ```{julia}
 #| label: divisors
@@ -211,46 +199,19 @@ n = nrow(tadpoles)
 J = length(unique(tadpoles.pond))
 p = 2   # intercept and slope
 
-# tau = sigma_u / sigma is the model's one shape parameter. Given tau, beta comes
-# from generalised least squares (ordinary least squares with the pond correlation
-# built in) and sigma^2 in closed form, so the whole fit hangs off it. q(tau) is
-# the residual sum of squares weighted by that correlation, r' H(tau)^-1 r.
-function qform(df, tau)
-    y = df.length
-    X = [ones(length(y)) df.days]
-    g = sort(unique(df.pond))
-    Z = Float64[df.pond[i] == g[j] for i in eachindex(y), j in eachindex(g)]
-    H = I + tau^2 * (Z * Z')
-    Hi = inv(H)
-    b = (X' * Hi * X) \ (X' * Hi * y)
-    r = y - X * b
-    return r' * Hi * r
-end
-
-tau_ml, tau_re = su_ml / s_ml, su_re / s_re
-q_ratio = qform(tadpoles, tau_re) / qform(tadpoles, tau_ml)
-
 @printf("n = %d, J = %d, p = %d\n\n", n, J, p)
 @printf("%-24s %12s %12s\n", "", "observed", "its divisor")
-@printf("%-24s %12.6f %12.6f\n",   "sigma^2   REML / ML", (s_re / s_ml)^2, n / (n - p))
-@printf("%-24s %12.6f %12.6f\n\n", "sigma_u^2 REML / ML", (su_re / su_ml)^2, J / (J - 1))
-
-println("the identity, one level at a time:")
-@printf("  sigma^2   ratio = n/(n-p) * q(tau_R)/q(tau_ML) = %.6f * %.6f = %.6f\n",
-        n / (n - p), q_ratio, (n / (n - p)) * q_ratio)
-@printf("  sigma_u^2 ratio = (tau_R/tau_ML)^2 * sigma^2 ratio = %.6f * %.6f = %.6f\n",
-        (tau_re / tau_ml)^2, (s_re / s_ml)^2, (tau_re / tau_ml)^2 * (s_re / s_ml)^2)
-@printf("  and (tau_R/tau_ML)^2 = %.6f, against J/(J-1) = %.6f\n",
-        (tau_re / tau_ml)^2, J / (J - 1))
+@printf("%-24s %12.6f %12.6f\n", "sigma^2   REML / ML", (s_re / s_ml)^2, n / (n - p))
+@printf("%-24s %12.6f %12.6f\n", "sigma_u^2 REML / ML", (su_re / su_ml)^2, J / (J - 1))
 ```
 
 **Momo:** Neither line lands on its divisor — the residual sits below *n* over *n − p*, and the pond line above *J* over *J − 1*.
 
-**Jaro:** Both misses are accounted for, and neither divisor is a guess. Take them one at a time. The residual ratio is *n* over *n − p* multiplied by a small factor, and that factor is only there because the two fits sit at slightly different values of τ. Fix τ and the residual divisor is exactly *n* over *n − p*, which is Class 2 unchanged. Then the pond ratio is the residual ratio again, multiplied by how much τ itself moved, and that second factor is heading for *J* over *J − 1*. It has not arrived yet, on a hundred and seventeen tadpoles.
+**Jaro:** Neither divisor is a guess, and both misses have one cause. Class 2's divisor is exact when the pond spread is held where it is. Here the two estimators also disagree about how big the pond spread is compared with the within-pond spread, and that small disagreement leaks into both rows: it pulls the residual row a little below its divisor and pushes the pond row a little above. The pond row is heading for *J* over *J − 1* and has not arrived yet, on a hundred and seventeen tadpoles.
 
 **Toto:** So the Class 2 argument did generalise.
 
-**Jaro:** It generalised exactly, and it generalised **per level**. One divisor for the rows, one for the groups, and the number you see printed is their product. What Class 2 could not tell you is that the two levels have different denominators, so the correction lands almost entirely on whichever level has fewer units. Here that is the ponds, by a factor of ten.
+**Jaro:** It generalised, and it generalised **per level**. One divisor for the rows, one for the groups. What Class 2 could not tell you is that the two levels have different denominators, so the correction lands almost entirely on whichever level has fewer units. Here that is the ponds, by a factor of ten.
 
 **Momo:** Then more tadpoles will fix it.
 
@@ -294,13 +255,11 @@ end
 ```{julia}
 #| label: fig-varcomp
 #| fig-cap: "Sigma_u and sigma estimated twice on the same pond data, circles for ML and diamonds for REML, each with its interval (estimate plus or minus about two standard errors, the Wald interval) on the millimetre scale. The two sigma_u point estimates sit apart in a direction that repeats every time the chapter checks it, while their intervals overlap almost completely."
-# confint() reports the resd and sigma blocks on the log scale, so exponentiate
-# the endpoints to get an interval for the standard deviation itself.
+# confint() gives the pond and residual rows on the log scale; exp() puts
+# the endpoints back in millimetres.
 function sd_intervals(fit)
-    rows = confint(fit)
-    pick(sym, nm) = only(filter(r -> r.param === sym && r.coef == nm, rows))
-    u = pick(:resd, "pond")
-    s = pick(:sigma, "(Intercept)")
+    u = confint(fit; parm = :resd)[1]     # the pond row
+    s = confint(fit; parm = :sigma)[1]    # the residual row
     return ((exp(u.lower), exp(u.upper)), (exp(s.lower), exp(s.upper)))
 end
 
@@ -315,7 +274,7 @@ fig_varcomp(["sigma_u", "sigma"],
 
 **Momo:** The intervals overlap almost completely.
 
-**Itchy:** They do, and that is the second half of the lesson. The difference between ML and REML here is much smaller than the uncertainty in either. It still matters, because a point estimate is what goes in the abstract, and because the difference is **systematic** while the uncertainty is not. Momo, do not take "systematic" on my word either. Forty fresh datasets, both estimators, count the sign.
+**Itchy:** They do, and that is the second half of the lesson. The difference between ML and REML here is much smaller than the uncertainty in either. It still matters, because a point estimate is what goes in the abstract, and because the difference is **systematic** while the uncertainty is not. Momo, do not take "systematic" on my word either. Forty fresh datasets, both estimators, count the sign. In the cell, `up += 1` adds one to `up`, and `cond && (up += 1)` runs the bracket only when the condition holds: an `if` on one line, which is how Julia writes a one-statement body.
 
 ```{julia}
 #| label: reml-above-ml
@@ -402,7 +361,7 @@ function simulate_flat_ponds(seed; J = 5)
 end
 
 puddles = simulate_flat_ponds(3)
-write_csv(puddles, "../data/ch8/puddles.csv")
+CSV.write("../data/ch8/puddles.csv", puddles)
 
 println("rows, columns: ", size(puddles))
 println("ponds: ", length(unique(puddles.pond)))
@@ -416,7 +375,7 @@ println(fit_b_full)
 
 **Toto:** It is zero. I broke it.
 
-**Itchy:** You did not break it. Two things are printed there that look like failure and are not. The warning says the likelihood has no proper peak here, only an edge: Hessian is the name for the curvature at the peak, and there is none, so the standard errors for that one number are not to be trusted. If a line at the bottom of a warning names a file inside the engine, that line is for the engine's authors, not for you. And "NOT converged" in the fit's first line is the optimiser saying it stopped at a wall rather than on a hilltop. Now look at the `resd` line the fit printed. Both that line and the `sigma:` line above it are printed **on the log scale**, so `resd` is log σ_u, and the optimiser has walked it off to minus something enormous, which is how a computer says zero. The estimate is at the edge of the space it is allowed to live in, because a standard deviation cannot be negative.
+**Itchy:** You did not break it. Two things are printed there that look like failure and are not. The warning says the likelihood has no proper peak here, only an edge: Hessian is the name for the curvature at the peak, and there is none, so the standard errors for that one number are not to be trusted. And "NOT converged" in the fit's first line is the optimiser saying it stopped at a wall rather than on a hilltop. Now look at the `resd` line the fit printed. Both that line and the `sigma:` line above it are printed **on the log scale**, so `resd` is log σ_u, and the optimiser has walked it off to minus something enormous, which is how a computer says zero. The estimate is at the edge of the space it is allowed to live in, because a standard deviation cannot be negative.
 
 **Momo:** But the true value is zero, so it got the right answer.
 
@@ -472,7 +431,7 @@ flat = lrt_boundary(fit_b_full, fit_b_red; q = 1)
 ```{julia}
 #| label: chibar-positive
 sunny = simulate_flat_ponds(55)
-write_csv(sunny, "../data/ch8/sunny.csv")
+CSV.write("../data/ch8/sunny.csv", sunny)
 
 fit_s_full = drm(bf(@formula(length ~ days + (1|pond))), Gaussian(); data = sunny)
 fit_s_red  = drm(bf(@formula(length ~ days)),            Gaussian(); data = sunny)
@@ -487,14 +446,16 @@ lrt_boundary(fit_s_full, fit_s_red; q = 1)
 
 **Jaro:** Which is why the next thing we do is count, rather than argue from one draw.
 
-**Itchy:** Do not take that on my authority or on the package's. Look at the likelihood itself. For each trial value of σ_u, let everything else in the model do its best and write down how well the model fits; that curve is called the profile of the likelihood, and where it peaks is the estimate.
+**Itchy:** Do not take that on my authority or on the package's. Look at the likelihood itself. For each trial value of σ_u, let everything else in the model do its best and write down how well the model fits; that curve is called the profile of the likelihood, and where it peaks is the estimate. The arithmetic behind the picture is twenty lines of matrix algebra you do not need to read; the picture is what you need.
 
 ```{julia}
 #| label: fig-profile
+#| echo: false
 #| fig-cap: "Profile log-likelihood, minus its own maximum, against sigma_u, for both datasets: the tadpole curve, with a true pond effect, peaks in the middle of the space with room on both sides, while the puddle curve, with none, is still climbing when it meets the dashed boundary line, so its maximum sits on the wall. A chi-squared reference assumes the interior kind of maximum, and only one of these two curves has one."
 # Closed-form profile log-likelihood for a Gaussian random intercept: fix the
 # ratio tau = sigma_u / sigma, solve for beta by GLS and for sigma in closed
 # form, and read sigma_u off as tau * sigmahat(tau). No optimiser involved.
+# Off the page on purpose: the reader is asked to read the figure, not this.
 function profile_tau(df, taus)
     y = df.length
     X = [ones(length(y)) df.days]
@@ -518,10 +479,8 @@ taus = range(0, 2.0, length = 401)
 ll_pud, su_pud = profile_tau(puddles, taus)
 ll_tad, su_tad = profile_tau(tadpoles, taus)
 
-@printf("closed form vs engine, sigma_u:  puddles %.5f / %.5f   tadpoles %.5f / %.5f\n",
-        su_pud[argmax(ll_pud)], re_sd(fit_b_full)[:pond], su_tad[argmax(ll_tad)], su_ml)
-@printf("closed form vs engine, logLik :  puddles %.5f / %.5f   tadpoles %.5f / %.5f\n",
-        maximum(ll_pud), loglik(fit_b_full), maximum(ll_tad), loglik(fit_ml))
+# where each curve peaks, against the engine's own estimate: quoted in the prose
+peak_pud, peak_tad = su_pud[argmax(ll_pud)], su_tad[argmax(ll_tad)]
 
 fig = Figure(size = (620, 380))
 ax = Axis(fig[1, 1];
@@ -529,20 +488,14 @@ ax = Axis(fig[1, 1];
     title = "Where the maximum sits")
 lines!(ax, su_pud, ll_pud .- maximum(ll_pud), label = "puddles (true sigma_u = 0)")
 lines!(ax, su_tad, ll_tad .- maximum(ll_tad), label = "tadpoles (true sigma_u = 1.2)")
-# explicit, non-cycled colour: vlines! cycles its own :color independently of
-# the lines! calls above and was landing on the same palette slot as "puddles"
-# (the same collision fig_shrinkage's boundary line was fixed for)
 vlines!(ax, [0.0]; linestyle = :dash, color = (:grey, 0.6), label = "the boundary")
 ylims!(ax, -8, 0.5)
 xlims!(ax, -0.05, 2.5)
-# legend outside the axis so it can never hide a group (same fix as the helpers
-# in tools/figures.jl: an inside legend at :rb was painting over the puddles
-# curve's declining tail)
 Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
-**Itchy:** Two curves, one picture. The tadpole curve has a maximum in the middle of the space, with room on both sides. The puddle curve is still climbing when it hits the wall, so the maximum **is** the wall.
+**Itchy:** Two curves, one picture. The tadpole curve has a maximum in the middle of the space, with room on both sides, and it peaks at `{julia} round(peak_tad, digits = 3)` mm, where the side-by-side table put σ_u under ML (`{julia} round(su_ml, digits = 3)`). The puddle curve is still climbing when it hits the wall, so the maximum **is** the wall: its peak sits at `{julia} round(peak_pud, digits = 3)`, and the engine's estimate, to three decimals, is `{julia} round(re_sd(fit_b_full)[:pond], digits = 3)`.
 
 **Toto:** And a chi-squared test assumes you are in the middle.
 
@@ -558,7 +511,7 @@ fig
 #| label: simulate-check
 # simulate() draws new responses from a fitted model. Check the spread of what
 # comes back BEFORE using it: subtract the fitted mean, then compare like with
-# like. Deviations from `fitted` are what the noise model is supposed to control.
+# like, the check Appendix A makes on every simulated column.
 rng_sim = MersenneTwister(800)   # a seed is a promise: anyone who runs this line gets the same draw
 ysim_red = simulate(fit_b_red; nsim = 200, rng = rng_sim)
 dev_red = ysim_red .- fitted(fit_b_red)
@@ -566,23 +519,13 @@ dev_red = ysim_red .- fitted(fit_b_red)
 @printf("reduced fit: sigma                       = %.4f\n", first(sigma(fit_b_red)))
 @printf("reduced fit: mean SD of simulated devs   = %.4f\n",
         mean(std(dev_red[:, k]) for k in 1:size(dev_red, 2)))
-
-# The same call on the MIXED fit is a different animal, and worth seeing once.
-rng_sim_mix = MersenneTwister(801)   # a seed is a promise: anyone who runs this line gets the same draw
-ysim_mix = simulate(fit_ml; nsim = 200, rng = rng_sim_mix)
-dev_mix = ysim_mix .- fitted(fit_ml)
-
-@printf("\ntadpole fit: sqrt(sigma_u^2 + sigma^2)   = %.4f\n", sqrt(su_ml^2 + s_ml^2))
-@printf("tadpole fit: sigma                       = %.4f\n", s_ml)
-@printf("tadpole fit: mean SD of simulated devs   = %.4f\n",
-        mean(std(dev_mix[:, k]) for k in 1:size(dev_mix, 2)))
 ```
 
-**Toto:** The first pair match. The second pair do not.
+**Toto:** They match.
 
-**Jaro:** Read what the function says about itself — type `?simulate` at the prompt — rather than guessing at the reason. `simulate` draws **conditional on the random effects being zero**, so on a mixed fit it gives you a population-level tadpole: residual noise around the fixed line, with no pond. That makes the second block a warning and the first block a licence. On the reduced puddle fit there are no random effects to omit, so the draws are the null we want, exactly.
+**Jaro:** They match because there is nothing for `simulate` to leave out. On the mixed fit it would draw with every pond effect set to zero, which Class 6 showed you and [Where the engine stops](appendix-b-engine.html) records; on the reduced fit there is no pond effect to omit, so these draws are the null we want, exactly.
 
-**Itchy:** Two thousand of them, then, and hold the design fixed: same five ponds, same numbers of tadpoles, only the response redrawn. What we are about to do has a name, a parametric bootstrap: draw new data from the fitted model, refit, and count. The plus-or-minus on each fraction the cell prints is its Monte Carlo standard error, the wobble that comes only from having used two thousand datasets rather than infinitely many, and "nominal" is the rate the test claims for itself. That is the study Exercise 5 will ask you to run on your own design.
+**Itchy:** Two thousand of them, then, and hold the design fixed: same five ponds, same numbers of tadpoles, only the response redrawn. What we are about to do has a name, a parametric bootstrap: draw new data from the fitted model, refit, and count. The plus-or-minus on each fraction the cell prints is its Monte Carlo standard error, the wobble that comes only from having used two thousand datasets rather than infinitely many, and "nominal" is the rate the test claims for itself. That is the study Exercise 5 will ask you to run on your own design. One idiom in it is new: `with_logger(NullLogger()) do ... end` is a **do-block**, which hands a whole block of code to a function as its first argument — here to `with_logger`, which runs the block with the boundary warning silenced, because you read that warning once above and two thousand copies would teach nothing. `falses(nsim)` is Class 6's `trues` the other way up.
 
 ```{julia}
 #| label: boundary-study
@@ -628,8 +571,6 @@ rate_chibar = mean(chibar .< alpha)
         alpha, rate_naive, mcse(rate_naive), alpha)
 @printf("chi-bar-squared rejections at %.2f     : %.4f  +/- %.4f  (nominal: %.4f)\n",
         alpha, rate_chibar, mcse(rate_chibar), alpha)
-@printf("\nrate the pile-up alone would predict   : %.4f   = (1 - %.4f) * %.2f\n",
-        (1 - pile) * 2alpha, pile, 2alpha)
 ```
 
 **Jaro:** Before you read that off a printout, look at the shape it came from.
@@ -662,11 +603,7 @@ fig
 
 **Momo:** The pile is bigger than half, and the plus-or-minus says that is not luck.
 
-**Jaro:** It is bigger than half, by several times its own Monte Carlo error, and the reason is that the half is what the theory promises when the number of ponds grows without limit — **asymptotic** is the word — and five ponds is nowhere near that limit. But do not let that one number carry more than it can. If the pile-up were the whole story, the corrected test would reject at the rate on the last line, because a chi-bar-squared p below `{julia} alpha` is the same event as a naive p below `{julia} 2alpha`.
-
-**Toto:** The measured rate is lower than that.
-
-**Jaro:** Lower again, and by more than its error bar, so there is a second effect: at five ponds the statistics that are *not* zero are lighter in the tail than chi-squared with one degree of freedom as well. Crainiceanu and Ruppert (2004) is where that is worked out properly. So the correction is a large improvement on the naive test, it is not a rescue, and there is no reference distribution that will give you five ponds' worth of information about a variance.
+**Jaro:** It is bigger than half, by several times its own Monte Carlo error, and the reason is that the half is what the theory promises when the number of ponds grows without limit — **asymptotic** is the word — and five ponds is nowhere near that limit. Read the two rejection rates the same way. The naive test rejects far below the five percent it claims; the corrected test is a large improvement, and it still sits below nominal, because the design is still five ponds. No reference distribution will give you five ponds' worth of information about a variance.
 
 **Itchy:** Write that in your notes and then read it again in Class 10, when somebody hands you a heritability from six families.
 
@@ -766,7 +703,7 @@ lrtest(reml_reduced, reml_full)
 
 **Jaro:** Are comparable, because the same fixed effects are taken out in both. That is the distinction the refusal draws: it refuses on the mean structure and stays quiet on the variance structure. Which is also why ML is the default. ML likelihoods compare across everything, so the default is the one that fewest users can hurt themselves with, and REML is the opt-in you take deliberately once you know what you are estimating.
 
-**Itchy:** One honest note before you leave, because you will meet the R twin of this engine. **`drmTMB` has neither of the two tools you learned this hour: it has no boundary-corrected test, and its `anova` refuses every comparison, not only the invalid ones.** That is an absence in the R package, not a disagreement between the packages. Where an absence and a disagreement look alike on the page, they are not alike at all: a disagreement means two answers and a mechanism, an absence means one answer and a gap. Say which one you are looking at, every time.
+**Itchy:** One honest note before you leave: the R twin of this engine has no boundary-corrected test and its `anova` refuses every comparison, which is an absence in one package, not a disagreement between them ([Where the engine stops](appendix-b-engine.html)).
 
 **Toto:** So today's summary is: name the estimator.
 
@@ -779,29 +716,37 @@ lrtest(reml_reduced, reml_full)
 ### Stats stuff
 
 - **ML versus REML.** Both are maximum-likelihood arguments. ML maximises the likelihood of the data. REML maximises the likelihood of contrasts, differences between data points from which the fixed effects have been taken out first, so estimating the fixed effects does not cost the variance estimate anything. On the same data REML returns larger variance components and essentially unchanged fixed effects.
-- **The divisor, grown up: one per level.** Class 2's *n* versus *n − p* is the same argument, and it does generalise: it applies once per level. The residual variance carries *n*/(*n − p*); the group variance carries that again, multiplied by a factor heading for *J*/(*J − 1*). The number the engine prints is the product, and the class cell shows the two factors multiplying out to it exactly.
+- **The divisor, grown up: one per level.** Class 2's *n* versus *n − p* is the same argument, and it does generalise: it applies once per level. The residual variance carries a divisor near *n*/(*n − p*); the group variance carries one heading for *J*/(*J − 1*), so the correction lands on whichever level has fewer units.
 - **Where it bites, and what fixes it.** Anything that is a variance component or a ratio of them: repeatability, intraclass correlation, heritability. A slope is nearly immune. The gap shrinks with the number of **groups**, not the number of rows: growing the tadpoles tenfold at twelve ponds left the pond ratio sitting on *J*/(*J − 1*), and only more ponds moved it. When you plan a design, count the groups.
 - **The boundary.** A variance cannot be negative, so when the truth is at or near zero the estimate piles up on exactly zero. This is a feature of a constrained estimator, not a convergence failure.
 - **Chi-bar-squared.** At the boundary the likelihood-ratio statistic does not follow a chi-squared distribution with q degrees of freedom, where q is the number of variance components being tested. For one component it is a fifty-fifty mixture of a lump at zero and a chi-squared with one degree of freedom, so for a **positive** statistic the correct p-value is half the naive one (Self & Liang 1987; Stram & Lee 1994). At a statistic of exactly zero the halving is arithmetic on the point mass — that lump of probability sitting right on zero — and means nothing: the two models fit identically and there is nothing to test. The naive test is conservative: it loses power rather than inventing significance.
-- **Asymptotic means asymptotic.** The two-thousand-replicate study in class put the pile-up above one half, by several times its Monte Carlo error, and both rejection rates below nominal on five ponds. The pile-up alone does not account for the shortfall: at five groups the non-zero statistics are lighter-tailed than a chi-squared with one degree of freedom as well (Crainiceanu & Ruppert 2004). The correction improves the test and does not manufacture information the design does not contain. Report a Monte Carlo standard error whenever you report a simulated rate.
+- **Asymptotic means asymptotic.** The two-thousand-replicate study in class put the pile-up above one half, by several times its Monte Carlo error, and both rejection rates below nominal on five ponds. The correction is a large improvement on the naive test and does not manufacture information the design does not contain. Report a Monte Carlo standard error whenever you report a simulated rate.
 - **Defaults are choices.** `lme4` prints REML, our engines print ML, and the numbers agree perfectly once you name the estimator. Bolker et al. (2009) is the practical guide that raised cross-package estimation differences with biologists; Bates et al. (2015) documents lme4's own defaults and optimisers. Report the estimator with the number, always.
 - **Why REML cannot be the default.** REML likelihoods are built on differences that depend on which fixed effects were taken out, so they are not comparable across different mean structures. ML likelihoods are comparable across everything, which makes ML the safer default and REML a deliberate choice.
 
-### Julia stuff
+### Julia you used
 
-- `drm(bf(...), Gaussian(); data = df, method = :REML)`: the same verb and the same box as every other chapter, plus one keyword. `method = :ML` is the default and may be written out for clarity.
-- `estimation_method(fit)`: returns `:ML` or `:REML`. Call it before you write a number down.
-- `re_sd(fit)`: a `Dict` of random-effect standard deviations by grouping term. `vc(fit)` gives the covariance blocks instead.
-- `sigma(fit)`: the residual standard deviation, as one value per observation; take `first(...)` when σ is constant.
-- `ranef(fit)`: the model's prediction for each group's shift, the BLUPs of Class 6, by grouping term, straight from the fit. Pair with `fitted(fit)`, which on these models is the **fixed-effect** prediction, so `y - fitted(fit)` is the unshrunk group signal plus noise.
-- `simulate(fit; nsim = k)`: `nobs × k` matrix of new responses. It draws **conditional on the random effects being zero**, so on a mixed fit it gives population-level draws with no group effect. That makes it exactly right for simulating a null with no random effect, and wrong for checking whether a mixed model reproduces its total spread. Check the spread of what comes back before you trust a thousand of them.
-- `loglik(fit)`, `reml_loglik(fit)`, `ml_loglik(fit)`: on a REML fit the last two are both available and mean different things. `reml_loglik` is the restricted one that was maximised.
-- `confint(fit)`: intervals as named tuples. The `:resd` and `:sigma` rows come back on the **log** scale; exponentiate the endpoints for an interval on the standard deviation.
-- `lrtest(reduced, full)` and `anova(...)`: the naive likelihood-ratio test. It warns when the extra parameter is a variance component, and it throws on two REML fits with different fixed effects.
-- `lrt_boundary(full, reduced; q = 1)`: the boundary-corrected test. Returns the statistic, the chi-bar-squared p-value and the naive one side by side.
-- `chibar_pvalue(stat, q)`: the mixture p-value on its own, for `q = 1` or `q = 2`, when you already have a statistic.
-- `repeatability(fit)`: R with a delta-method interval and a bias correction, so you do not build the ratio by hand.
-- **Reading the `ArgumentError` when two REML fits are compared.** It names the rule it enforced and the fix. The fix is not to force the comparison; it is to refit with `method = :ML`.
+- **`"""..."""` above a function.** A **docstring**: documentation attached to the function, shown by `?name` at the prompt.
+- **`function f(seed; J = 12, sigma = 1.0)`.** Keyword arguments **with defaults**: omit one and the default is used; name it to override.
+- **`for j in 1:J, _ in 1:k ... end`.** Two loops on one line, the second inside the first.
+- **`push!(v, x)` with `String[]`, `Float64[]`.** Class 5's growing vectors, now building a whole data frame a row at a time.
+- **`"P" * lpad(j, 2, '0')`.** Strings are glued with `*`; `lpad` pads to a width. `"Q$j"` pastes a value in directly.
+- **`up += 1` and `cond && (up += 1)`.** Add one to a counter, and run a statement only when the condition holds: a one-line `if`.
+- **`with_logger(NullLogger()) do ... end`.** A **do-block**: a block of code handed to a function as its first argument. `with_logger` runs it with warnings redirected.
+- **`return a, b, c` and `x, y, z = f(...)`.** Several values returned without brackets, caught by several names.
+- **`falses(n)`, `stats[.!piled]`.** A mask of falses, and a vector indexed by the negation of a mask.
+- **`for per in (8:12, 80:120)`.** Looping over ranges as values.
+
+### Calls you used
+
+- `drm(bf(...), Gaussian(); data = df, method = :REML)`: the same verb and box as every chapter, plus one keyword; `method = :ML` is the default.
+- `estimation_method(fit)`, `loglik(fit)`, `reml_loglik(fit)`, `ml_loglik(fit)`: which estimator ran, and the two likelihoods a REML fit carries; `reml_loglik` is the one that was maximised.
+- `re_sd(fit)[:g]`, `sigma(fit)`, `ranef(fit)[:g]`, `fitted(fit)`: as in Class 6; `fitted` is the fixed-effect prediction.
+- `confint(fit; parm = :resd)`: intervals for one block, as named tuples, on the log scale ([Where the engine stops](appendix-b-engine.html)).
+- `simulate(fit; nsim = k, rng = ...)`: the generator for a parametric bootstrap; what it does with random effects is in Class 6.
+- `lrtest(reduced, full)`, `lrt_boundary(full, reduced; q = 1)`, `chibar_pvalue(stat, q)`: the naive test, which refuses two REML fits with different fixed effects and names the fix; the boundary-corrected test; and the mixture p-value on its own.
+- `repeatability(fit)`: R with a delta-method interval and a bias correction.
+- `fig_varcomp`, `fig_shrinkage(...; boundary = true)` from `tools/figures.jl`: the two-estimator interval plot, and the caterpillar with its boundary variant.
 
 ---
 
@@ -815,27 +760,53 @@ lrtest(reml_reduced, reml_full)
 4. **Patterson, H. D. & Thompson, R. (1971) "Recovery of inter-block information when block sizes are unequal", *Biometrika* 58:545–554.** Where REML comes from, written before anybody called it REML, in the language of agricultural block designs. Read it for the pleasure of watching a general idea arrive disguised as a practical problem about fields.
 5. **Pinheiro, J. C. & Bates, D. M. (2000) *Mixed-Effects Models in S and S-PLUS*.** Chapter 2 remains the clearest book-length account of what REML is doing to the likelihood. The software is a museum piece; the exposition is not.
 6. **Bates, D., Mächler, M., Bolker, B. & Walker, S. (2015) "Fitting linear mixed-effects models using lme4", *Journal of Statistical Software* 67:1–48.** The paper for the other half of the disagreement box: what `lmer` actually does, why REML is its default, and the optimisers and convergence checks it ships with. Read section 5 if you ever have to explain a convergence warning to a co-author.
-7. **Crainiceanu, C. M. & Ruppert, D. (2004) "Likelihood ratio tests in linear mixed models with one variance component", *Journal of the Royal Statistical Society B* 66:165–185.** Why the class simulation undershoots even after the correction: with few groups the null distribution of the statistic is not the asymptotic mixture. The hardest item here, and the honest answer to "so is my corrected p-value right now?"
-8. **DRM.jl documentation, `capabilities`, the REML rows and the "REML scope" warning box.** Read the warning box before you rely on `method = :REML` for anything that is not a Gaussian mean model. It states plainly which model types are supported and tested and which are refused, which is more than most packages will tell you.
+7. **Crainiceanu, C. M. & Ruppert, D. (2004) "Likelihood ratio tests in linear mixed models with one variance component", *Journal of the Royal Statistical Society B* 66:165–185.** Why the class simulation still sits below nominal after the correction: with few groups the non-zero half of the statistic is lighter-tailed than a chi-squared with one degree of freedom, so the null distribution is not the asymptotic mixture either. The hardest item here, and the honest answer to "so is my corrected p-value right now?"
 
 ---
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 8.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files and the chapter's own functions.
+ex_ch = dropmissing(CSV.read("../data/ch9/chicks-broods.csv", DataFrame), [:JulianDate])
+ex_form = bf(@formula(Mass2 ~ JulianDate + (1|BroodNo)))
+ex_ml = drm(ex_form, Gaussian(); data = ex_ch)
+ex_re = drm(ex_form, Gaussian(); data = ex_ch, method = :REML)
+ex_J = length(unique(ex_ch.BroodNo))
+ex_su_ratio = (re_sd(ex_re)[:BroodNo] / re_sd(ex_ml)[:BroodNo])^2
+ex_R_ml, ex_R_re = repeatability(ex_ml).estimate, repeatability(ex_re).estimate
+ex_r24 = ratios(simulate_ponds(808; J = 24))
+ex_r6 = ratios(simulate_ponds(808; J = 6))
+ex_r4 = ratios(simulate_ponds(808; J = 4))
+ex_sunny = CSV.read("../data/ch8/sunny.csv", DataFrame)
+ex_s_red = drm(bf(@formula(length ~ days)), Gaussian(); data = ex_sunny)
+ex_pile, ex_stats, ex_piled = boundary_study(ex_s_red, ex_sunny, 2000; rng = MersenneTwister(808))
+ex_n = length(ex_stats)
+ex_mcse(p) = sqrt(p * (1 - p) / ex_n)
+ex_chibar = chibar_pvalue.(ex_stats, 1)
+ex_rate_naive = mean(min.(2 .* ex_chibar, 1.0) .< alpha)
+ex_rate_chibar = mean(ex_chibar .< alpha)
+ex_td = CSV.read("../data/ch8/tadpoles.csv", DataFrame)
+ex_reml_full = drm(bf(@formula(length ~ days + (1|pond))), Gaussian(); data = ex_td, method = :REML)
+ex_reml_none = drm(bf(@formula(length ~ days)), Gaussian(); data = ex_td, method = :REML)
+ex_p_random = lrtest(ex_reml_none, ex_reml_full).pvalue
+```
 
-1. **Do it on your own groups.** Take any grouped dataset of your own and fit the random-intercept model twice, once with the default and once with `method = :REML`. Report the two σ_u values, the two σ values, and the two fixed-effect vectors. Then write one sentence naming which rows moved and by how much, and one sentence saying whether the difference would have changed anything you would write in a paper.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 8.
 
-2. **Predict, then check.** Run `simulate_ponds(808; J = 12, per = 80:120)` and then `simulate_ponds(808; J = 60)`. **Before you run either**, write down what you expect the σ_u REML-to-ML variance ratio to be in each case, using *J*/(*J − 1*). Report both ratios against your two predictions. One of the two datasets has roughly ten times the rows of the chapter's; say in one sentence why that did almost nothing, using the word "groups".
+1. **Do it on real groups.** `data/ch9/chicks-broods.csv` is one row per sparrow chick with its mass at two days, `Mass2`, its hatching date, `JulianDate`, and its nest, `BroodNo`; drop the rows whose date is missing with `dropmissing`, as Class 6 did. Fit `Mass2 ~ JulianDate + (1 | BroodNo)` twice, once with the default and once with `method = :REML`. Report the two σ_u values, the two σ values and the two fixed-effect vectors. Then write one sentence naming which numbers moved and by how much, and one saying whether the difference would have changed anything you would write in a paper — and say why, using the word "groups". *Check:* `{julia} ex_J` broods; the REML-to-ML variance ratio for σ_u is `{julia} round(ex_su_ratio, digits = 4)` against a J/(J − 1) of `{julia} round(ex_J / (ex_J - 1), digits = 4)`.
 
-3. **Make the effect enormous.** Now run it with `J = 4`. Report the same ratio and compare it to *J*/(*J − 1*). Then answer: at what number of groups would you personally stop trusting either estimate, and what would you do instead?
+2. **Predict, then check.** Run `simulate_ponds(808; J = 24)` and `simulate_ponds(808; J = 6)` and pass each to the chapter's `ratios`. **Before you run either**, write down what you expect the σ_u REML-to-ML variance ratio to be in each case, using J/(J − 1). Report both ratios against your two predictions. *Check:* `{julia} round(ex_r24[3], digits = 3)` at 24 ponds and `{julia} round(ex_r6[3], digits = 3)` at 6.
 
-4. **Repeatability, both ways.** Using your fits from question 1, compute R from `re_sd` and `sigma` by hand for each estimator, then check yourself against `repeatability(fit)`. Report the two values of R. Write one sentence on which one you would publish and how you would label it.
+3. **Make the effect enormous.** Now run it with `J = 4`. Report the same ratio and compare it to J/(J − 1). Then answer: at what number of groups would you personally stop trusting either estimate, and what would you do instead? *Check:* `{julia} round(ex_r4[3], digits = 2)` at 4 ponds, against a J/(J − 1) of `{julia} round(4 / 3, digits = 2)`.
 
-5. **The pile-up, at your own sample size.** Run `boundary_study` on your own design: fit the reduced model to your data, then bootstrap from it exactly as the chapter does, so the design is held fixed and only the response is redrawn. Use 2000 replicates and report the fraction of fits with σ_u estimated at zero, **with its Monte Carlo standard error**. Compare it to 0.5 and explain the direction of the difference.
+4. **Repeatability, both ways.** Using the fits from question 1, compute R from `re_sd` and `sigma` by hand for each estimator, then check yourself against `repeatability(fit)`. Report the two values of R. Write one sentence on which one you would publish and how you would label it. *Check:* `{julia} round(ex_R_ml, digits = 4)` by ML and `{julia} round(ex_R_re, digits = 4)` by REML.
 
-6. **Buy back the power.** Using the statistics from question 5, report the rejection rate at 0.05 under the naive χ² reference and under `chibar_pvalue`, each with its Monte Carlo standard error. Compare the corrected rate to the rate the pile-up alone predicts, `(1 - pile) * 0.10`. If the two disagree by more than their error bars, say what that tells you about the non-zero statistics. Then answer in one sentence: how many extra groups would the naive test need to reach a rate you would accept, and how would you find out rather than guess?
+5. **The pile-up, on the other flat file.** `data/ch8/sunny.csv` is the chapter's second set of five ponds simulated with no pond effect. Fit the reduced model `length ~ days` to it and call the chapter's `boundary_study` on that fit with the file as the design and 2000 replicates, seeded with `MersenneTwister(808)`, so the design is held fixed and only the response is redrawn. Report the fraction of fits with σ_u estimated at zero, **with its Monte Carlo standard error**, and compare it to 0.5. *Check:* `{julia} round(ex_pile, digits = 3)` with a Monte Carlo standard error of `{julia} round(ex_mcse(ex_pile), digits = 3)`.
 
-7. **Provoke the refusal on purpose.** Fit two REML models on your data that differ only in the **random** part, and compare them with `lrtest`. Then fit two that differ in the **fixed** part and compare those. Paste both results, including the error. Explain in your own words why one comparison is allowed and the other is not, without using the word "restricted".
+6. **Buy back the power.** Using the statistics from question 5, report the rejection rate at 0.05 under the naive χ² reference and under `chibar_pvalue`, each with its Monte Carlo standard error, and say which of the two sits closer to nominal. Then answer in one sentence: how many extra ponds would the naive test need to reach a rate you would accept, and how would you find out rather than guess? *Check:* naive `{julia} round(ex_rate_naive, digits = 3)`, corrected `{julia} round(ex_rate_chibar, digits = 3)`, both with a Monte Carlo standard error near `{julia} round(ex_mcse(ex_rate_chibar), digits = 3)`.
 
-8. **Read the label.** Find a published paper in your field that reports a repeatability, an intraclass correlation or a heritability. Does it name the estimator? Does it name the software version? Write three sentences: what you can tell, what you cannot, and what one extra sentence from the authors would have fixed it.
+7. **Provoke the refusal on purpose.** On `data/ch8/tadpoles.csv`, fit two REML models that differ only in the **random** part — `length ~ days` with and without `(1 | pond)` — and compare them with `lrtest`. Then fit two REML models that differ in the **fixed** part and compare those. Paste both results, including the error. Explain in your own words why one comparison is allowed and the other is not, without using the word "restricted". *Check:* the random-part comparison returns p = `{julia} round(ex_p_random, sigdigits = 2)`; the fixed-part comparison returns an error whose message tells you what to refit with.

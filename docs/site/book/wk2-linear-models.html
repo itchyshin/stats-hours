@@ -99,7 +99,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
     <p class="meta">
       <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
-      <b>Provenance</b> Everything printed below came from running this chapter’s code from top to bottom when the site was built; nothing is typed from memory. The three errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in.<br>
+      <b>Provenance</b> Everything printed below came from running this chapter’s code from top to bottom when the site was built; nothing is typed from memory. The two errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in.<br>
       <b>Caveat</b> The data are real: 171 house sparrows measured on Lundy Island in the author’s 2012 course, read from data/2012/MBodySize.csv through a copy, data/ch2/sparrows.csv, with the sex column spelled out as female/male (where the file came from is recorded in data/2012/README.md).
     </p>
   </div>
@@ -229,7 +229,10 @@ Right. Load the data.</p></div>
 </div>
 </div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>171 birds. Look before you model, always. Toto, means and spreads.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>171 birds. Look before you model, always. Toto, means and spreads of the
+two columns we need: <code>sparrows[!, [:Tarsus, :Wing]]</code> picks
+them out by name, the <code>!</code> in the row slot meaning every row
+and the square brackets holding a list of the Symbols you met last week.</p></div>
 <div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(sparrows[!, [<span class="op">:</span>Tarsus, <span class="op">:</span>Wing]], <span class="op">:</span>mean, <span class="op">:</span>std, <span class="op">:</span>min, <span class="op">:</span>max)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
@@ -303,11 +306,14 @@ Figure&nbsp;1: Wing length against tarsus length, 171 house sparrows (Lundy Isla
 <code>lm(Wing ~ Tarsus, sparrows)</code> and I am done. You have added
 two words and a semicolon.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Correct, and I am going to defend the two words rather than pretend they
-are not there. <code>bf</code> stands for “<strong>b</strong>ig
-<strong>f</strong>ormula”, and it is a box that can hold <strong>more
-than one formula at a time</strong>: one for μ, one for σ, later one for
-the correlation between two traits. Today the box holds one formula, so
-it looks like packaging with nothing in it.</p></div>
+are not there. The semicolon needs no defence: a semicolon at the end of
+a line <strong>hides its printout</strong>, and I hid this one because
+the next cell shows the fit properly. You will see it on any line whose
+output would only be noise. <code>bf</code> stands for
+“<strong>b</strong>ig <strong>f</strong>ormula”, and it is a box that
+can hold <strong>more than one formula at a time</strong>: one for μ,
+one for σ, later one for the correlation between two traits. Today the
+box holds one formula, so it looks like packaging with nothing in it.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So it is overhead I pay now for a feature I get in Class 4.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Yes. That is exactly the deal, and you should be annoyed about it for
 about two more weeks. What you get for it: from here to the summit of
@@ -342,6 +348,7 @@ Scale model (log σ):
 <summary>
 Same fit in drmTMB, the same engine in R
 </summary>
+<p>The <code>mu:</code> rows are the μ table above; <code>sigma:(Intercept)</code> is the <code>(Intercept)</code> row of the σ table, on the log scale; the <code>sigma (constant)</code> line at the bottom is <strong>Residual SD (response scale)</strong> from the header.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># not re-run with the page. The same 171 Lundy Island sparrows, read from</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data/ch2/sparrows.csv.</span></span>
@@ -386,11 +393,8 @@ number at all, and you undo it at the end.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>There it is: <strong>1.88 mm.</strong> That is the residual standard
 deviation, in millimetres, on the natural scale. Now look back at the
 top of the fit, where it says <strong>Residual SD (response
-scale)</strong> — the same spread, in millimetres — next to
-<code>dof_residual</code>, the number of birds left over after the model
-has used up what it needs: 171 birds, minus an intercept, a slope and
-one number for the spread, leaves 168. The engine prints that number for
-you. I made you compute it by hand once so that the header means
+scale)</strong> — the same spread, in millimetres. The engine prints it
+for you. I made you compute it by hand once so that the header means
 something when you read it, and so that you never mistake the
 <code>sigma:</code> row, which is on the log scale, for the millimetres
 it is not. And now answer my earlier question, Toto. The raw wing
@@ -428,9 +432,10 @@ unit-dependent null is almost never a question about your organism.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>You ignore <em>that</em> one, and the same heading tells you when not
 to. The second line is about a σ <strong>slope</strong>, where zero
 means “these groups vary by the same amount”, and that is a real
-question about real animals. We will ask it before you go home. The rule
-is: read the null, then decide whether you care. A number the software
-is willing to compute is not automatically a number you should report.</p></div>
+question about real animals. We will ask it in Class 4, when σ gets a
+predictor. The rule is: read the null, then decide whether you care. A
+number the software is willing to compute is not automatically a number
+you should report.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Can I see all of it in one table?</p></div>
 <div class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftable</span>(fit1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -589,6 +594,7 @@ Scale model (log σ):
 <summary>
 Same fit in drmTMB, the same engine in R
 </summary>
+<p>Rows correspond as before: <code>mu:</code> to the μ table, <code>sigma:(Intercept)</code> to the σ table’s intercept on the log scale, <code>sigma (constant)</code> to the header’s residual SD.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"># not re-run with the page. The same 171 Lundy Island sparrows, read from</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data/ch2/sparrows.csv.</span></span>
@@ -627,32 +633,17 @@ answered</strong>. Neither is wrong. But if you are trying to say
 something about growth, the second is almost certainly the question you
 meant. A coefficient without the rest of the model attached to it means
 nothing; that is why you never report one on its own.</p></div>
-<div id="cell-fig-diagnostic" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(<span class="fu">residuals</span>(fit2; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile); title <span class="op">=</span> <span class="st">"fit2 diagnostic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig">
-<div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="wk2-linear-models_files/figure-html/fig-diagnostic-output-1.svg" class="img-fluid">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: The residuals from fit2, plotted against what a normal distribution would predict. Class 3 explains what these residuals are and Class 5 explains how to read this picture; for now, a flat scatter is what you want.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
 <h3 id="is-the-second-model-better" class="anchored">Is the second model better?</h3>
 <div class="line"><span class="who momo">Momo</span><p>Prove it is worth the extra term.</p></div>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">aic</span>(fit1), <span class="fu">aic</span>(fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">aic</span>(fit1), <span class="fu">aic</span>(fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
 <pre><code>(707.3318715214452, 611.5562817546105)</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(fit1, fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(fit1, fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>(statistic = 97.77558976683474, dof = 1, pvalue = 4.685886499453756e-23)</code></pre>
 </div>
 </div>
@@ -677,10 +668,10 @@ this term.</p></div>
 <div class="disagree">
 <p class="scene">⚠ DISAGREE — the same regression, two residual SDs</p>
 <p>Momo fits the identical model in R with <code>lm()</code>. Every slope agrees to five decimal places. The residual spread does not, and neither does the standard error on the slope. Nobody has made a mistake.</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run once by hand in R on 2026-09-06 (R 4.6.0, stats::lm) and pasted in;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"># not re-run with the page. The same sparrows, from data/ch2/sparrows.csv.</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(Wing <span class="sc">~</span> Tarsus <span class="sc">+</span> Sex, <span class="at">data =</span> sparrows)                                <span class="co"># R</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="sourceCode" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)     <span class="co"># Julia</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run once by hand in R on 2026-09-06 (R 4.6.0, stats::lm) and pasted in;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co"># not re-run with the page. The same sparrows, from data/ch2/sparrows.csv.</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(Wing <span class="sc">~</span> Tarsus <span class="sc">+</span> Sex, <span class="at">data =</span> sparrows)                                <span class="co"># R</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)     <span class="co"># Julia</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <table class="caption-top">
 <colgroup>
 <col style="width: 25%">
@@ -719,12 +710,12 @@ this term.</p></div>
 <td>SE of Tarsus slope</td>
 <td><strong>0.145977</strong></td>
 <td><strong>0.144691</strong></td>
-<td><strong>1.008889</strong></td>
+<td><strong>1.008887</strong></td>
 </tr>
 <tr class="odd">
 <td>log-likelihood</td>
-<td>−301.778141</td>
-<td>−301.778141</td>
+<td>-301.778141</td>
+<td>-301.778141</td>
 <td>1.000000</td>
 </tr>
 <tr class="even">
@@ -735,62 +726,60 @@ this term.</p></div>
 </tr>
 </tbody>
 </table>
-<p><strong>The mechanism.</strong> Both fits maximise the same likelihood and land on the same coefficients. They then divide the squared residuals by different numbers. <code>lm()</code> divides by <strong>n − p</strong>, where <em>p</em> counts only the mean coefficients (here 171 − 3 = 168 — not the 167 in fit2’s own header above, which also charges for σ), which makes the variance estimate — the SD squared — unbiased: its average across repeated samples lands on the true value rather than drifting to one side. Our engine reports the <strong>maximum likelihood</strong> estimate, which divides by <strong>n</strong> (171). The ratio is therefore exactly √(n / (n − p)) = √(171/168) = 1.008889, which is precisely what you see, to six decimal places, in both the SD and the standard error. It is one arithmetic choice, not a bug in either package.</p>
+<p><strong>The mechanism.</strong> Both fits maximise the same likelihood and land on the same coefficients. They then divide the squared residuals by different numbers. <code>lm()</code> divides by <strong>n − p</strong>, where <em>p</em> counts only the mean coefficients (here 171 − 3 = 168), which makes the variance estimate — the SD squared — unbiased: its average across repeated samples lands on the true value rather than drifting to one side. Our engine reports the <strong>maximum likelihood</strong> estimate, which divides by <strong>n</strong> (171). The ratio is therefore exactly √(n / (n − p)) = √(171/168) = 1.008889, which is what you see in both the SD and the standard error, to the last digit R’s six-decimal printout can support. It is one arithmetic choice, not a bug in either package. (The <code>dof_residual</code> in the fit’s own header is one smaller, because the engine counts σ among the things it estimated; R does not, and the ratio needs R’s count.)</p>
 <div id="cell-fig-disagree" class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit2's mu coefficients are [Intercept, Tarsus, Sex:male]; female is the</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># baseline. A smooth grid at Sex = female avoids the zigzag that</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting fitted() at each observation would give once Sex is in the model.</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The scatter on the left is filtered to females too: fit2's ~2.5 mm sex</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"># effect is bigger than the ~1.4 mm band, so plotting both sexes around a</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># female-only band would bury the divisor question under an unrelated,</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"># unlabelled population offset.</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit2, <span class="op">:</span>mu)</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus); length <span class="op">=</span> <span class="fl">100</span>)</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>mu2 <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> xs</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>p_mu <span class="op">=</span> <span class="fu">length</span>(b)                                      <span class="co"># 3: intercept, Tarsus, Sex</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>sigma_ours <span class="op">=</span> <span class="fu">sigma</span>(fit2)[<span class="fl">1</span>]                           <span class="co"># ÷n   (DRM.jl, ML)</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>sigma_r <span class="op">=</span> sigma_ours <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fu">nobs</span>(fit2) <span class="op">/</span> (<span class="fu">nobs</span>(fit2) <span class="op">-</span> p_mu))  <span class="co"># ÷(n−p) (R lm())</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> sparrows.Sex <span class="op">.==</span> <span class="st">"female"</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">760</span>, <span class="fl">340</span>))</span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"Tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"Wing (mm)"</span>,</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Fitted line, females only"</span>)</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="co"># band and line first, real data drawn LAST so no point is ever painted over</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax1, xs, mu2 <span class="op">.-</span> sigma_ours, mu2 <span class="op">.+</span> sigma_ours)</span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax1, xs, mu2; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="op">:</span>black)</span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax1, sparrows.Tarsus[females], sparrows.Wing[females]; markersize <span class="op">=</span> <span class="fl">6</span>)</span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="co"># The two divisors are a deterministic ratio of one another (sqrt(n/(n-p))),</span></span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a><span class="co"># not two independent estimates, so no error bars: whiskers sized to the</span></span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a><span class="co"># fit's own sampling SE (~0.076 mm) would be ~6x wider than the 0.013 mm gap</span></span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="co"># between them and would swallow the very difference this panel exists to</span></span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a><span class="co"># show. Two plain points, y-axis zoomed to just the two of them, is honest.</span></span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>];</span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"R lm()</span><span class="sc">\n</span><span class="st">÷(n−p)"</span>, <span class="st">"DRM.jl</span><span class="sc">\n</span><span class="st">÷n"</span>]),</span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"residual SD (mm)"</span>,</span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Same gap, zoomed in"</span>)</span>
-<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
-<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>], [sigma_r]; markersize <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">2</span>], [sigma_ours]; markersize <span class="op">=</span> <span class="fl">14</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
-<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit2's mu coefficients are [Intercept, Tarsus, Sex:male]; female is the</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># baseline. A smooth grid at Sex = female avoids the zigzag that</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting fitted() at each observation would give once Sex is in the model.</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The scatter on the left is filtered to females too: fit2's ~2.5 mm sex</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co"># effect is bigger than the ~1.4 mm band, so plotting both sexes around a</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># female-only band would bury the divisor question under an unrelated,</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co"># unlabelled population offset.</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit2, <span class="op">:</span>mu)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus); length <span class="op">=</span> <span class="fl">100</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>mu2 <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> xs</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>p_mu <span class="op">=</span> <span class="fu">length</span>(b)                                      <span class="co"># 3: intercept, Tarsus, Sex</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>sigma_ours <span class="op">=</span> <span class="fu">sigma</span>(fit2)[<span class="fl">1</span>]                           <span class="co"># ÷n   (DRM.jl, ML)</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>sigma_r <span class="op">=</span> sigma_ours <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fu">nobs</span>(fit2) <span class="op">/</span> (<span class="fu">nobs</span>(fit2) <span class="op">-</span> p_mu))  <span class="co"># ÷(n−p) (R lm())</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> sparrows.Sex <span class="op">.==</span> <span class="st">"female"</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">760</span>, <span class="fl">340</span>))</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"Tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"Wing (mm)"</span>,</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Fitted line, females only"</span>)</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="co"># band and line first, real data drawn LAST so no point is ever painted over</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax1, xs, mu2 <span class="op">.-</span> sigma_ours, mu2 <span class="op">.+</span> sigma_ours)</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax1, xs, mu2; linewidth <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="op">:</span>black)</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax1, sparrows.Tarsus[females], sparrows.Wing[females]; markersize <span class="op">=</span> <span class="fl">6</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a><span class="co"># The two divisors are a deterministic ratio of one another (sqrt(n/(n-p))),</span></span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a><span class="co"># not two independent estimates, so no error bars: whiskers sized to the</span></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a><span class="co"># fit's own sampling SE (~0.076 mm) would be ~6x wider than the 0.013 mm gap</span></span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a><span class="co"># between them and would swallow the very difference this panel exists to</span></span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a><span class="co"># show. Two plain points, y-axis zoomed to just the two of them, is honest.</span></span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>];</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, [<span class="st">"R lm()</span><span class="sc">\n</span><span class="st">÷(n−p)"</span>, <span class="st">"DRM.jl</span><span class="sc">\n</span><span class="st">÷n"</span>]),</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"residual SD (mm)"</span>,</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Same gap, zoomed in"</span>)</span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax2, <span class="fl">0.5</span>, <span class="fl">2.5</span>)</span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">1</span>], [sigma_r]; markersize <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax2, [<span class="fl">2</span>], [sigma_ours]; markersize <span class="op">=</span> <span class="fl">14</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">2</span>))</span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
 <div id="fig-disagree" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-disagree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk2-linear-models_files/figure-html/fig-disagree-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-disagree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Left: the fitted line for females (fit2) with DRM.jl’s ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the 0.89% gap that would sit under a fraction of a pixel at wing-length scale (left) is a full-height separation here.
+Figure&nbsp;3: Left: the fitted line for females (fit2) with DRM.jl’s ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the gap, which would sit under a fraction of a pixel at wing-length scale (left), is a full-height separation here.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
+<p><strong>Two habits from Class 1, now doing work.</strong> In the cell above, <code>b[1] .+ b[2] .* xs</code> is the dot doing arithmetic: the intercept is added to, and the slope multiplied into, every point of the grid <code>xs</code> at once, which is how a fitted line is drawn in this book from here on. And <code>females = sparrows.Sex .== "female"</code> followed by <code>sparrows.Tarsus[females]</code> is the true/false vector used to keep rows, exactly as <code>wing_f</code> was picked out last week.</p>
 <p><strong>When it stops mattering.</strong> The gap is √(n/(n − p)), so it shrinks as your sample grows relative to the number of things you are estimating: about 0.89% here, and it would fall further still with more birds at the same three parameters — enormous if you ever fit twenty coefficients to thirty birds. It bites hardest exactly where beginners work. R also judges each slope against a <em>t</em> distribution (slightly wider tails, to allow for having estimated the spread) where we use the plain normal; that difference pushes the same way as the larger standard error, not against it, so both make R’s <em>p</em>-value the larger one — on the Tarsus slope, R’s own printout gives <code>Pr(&gt;|t|)</code> = 8.59e-11 against our 2.72e-12, on a slope neither package doubts.</p>
 <p><strong>Why this is worth a page in Class 2.</strong> This is the small, tame version of the argument that takes a whole chapter later. Divide by n, or divide by something that accounts for the other numbers you also had to estimate: that same choice, in the models of Class 6 onward — where birds come in families or sites — is the difference between plain maximum likelihood (ML) and restricted maximum likelihood (REML), and there the disagreement is not under one percent on a number you never wanted; it is the spread between groups, the number you came for. Our engine uses ML in both languages. <code>lme4</code>, the usual R package for those models, uses REML. Neither told you. That is Class 8.</p>
-<p class="provenance">
-DRM.jl 0.7.1 (Julia 1.10.0) · R 4.6.0 <code>stats::lm</code> and drmTMB 0.7.0 · R numbers run once by hand on 2026-09-06 on the same 171 Lundy Island sparrows and pasted in; the Julia numbers are computed with the page
-</p>
 </div>
 <hr>
 <div class="line"><span class="who toto">Toto</span><p>So which one is right?</p></div>
@@ -815,164 +804,33 @@ mistakes in one morning, and the second one was mine.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And the button?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Now you may have the button.</p></div>
 <div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_constant_sigma</span>(fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_constant_sigma</span>(fit2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
 <pre><code>0.5415360294417806</code></pre>
 </div>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>0.5415, which is R’s <code>lm</code> R² to every digit R prints. I made
 you do it the long way first because the long way is where the divisor
-lives and the button will not teach you that. Two things before we move
-on. R-squared causes at least as much trouble as it prevents once we get
-above this rung, and I will show you why in Class 5. And the function is
-called <code>r2_constant_sigma</code> and not <code>r2</code>, which is
-not fussiness. You will find out why in about four minutes.</p></div>
-<h3 id="one-glance-up-the-mountain" class="anchored">One glance up the mountain</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>Last thing, and it is a peek, not a lesson. Look at the σ table one more
-time. It has been sitting there all morning with a single intercept in
-it, doing nothing.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>You are going to put <code>Sex</code> in it.</p></div>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>fit3 <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex), <span class="pp">@formula</span>(sigma <span class="op">~</span> Sex)),</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
-<pre><code>Distributional regression fit (Gaussian)
-  nobs = 171   logLik = -301.6513   converged = true
-  Residual SD (response scale) varies with the σ model: 1.3757 to 1.4528   dof_residual = 166
-
-Mean model (μ):
-  H0: coefficient = 0
-                 Coef.  Std.Error        z    Pr(&gt;|z|)
-  (Intercept)  57.8574     2.6912  21.4985  1.609e-102
-  Tarsus        1.0097     0.1450   6.9630   3.332e-12
-  Sex: male     2.5015     0.2183  11.4614   2.063e-30
-
-Scale model (log σ):
-  H0: coefficient = 0 on log σ
-  intercept ⇔ σ = 1 (unit-dependent); slope ⇔ equal dispersion
-                Coef.  Std.Error       z   Pr(&gt;|z|)
-  (Intercept)  0.3190     0.0750  4.2549  2.092e-05
-  Sex: male    0.0545     0.1083  0.5034     0.6147</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>.(<span class="fu">coef</span>(fit3, <span class="op">:</span>sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="37">
-<pre><code>2-element Vector{Float64}:
- 1.3757070292392783
- 1.056016793235814</code></pre>
-</div>
-</div>
-<div class="line"><span class="who itchy">Itchy</span><p>By hand, as before, and then look at the header. <strong>Residual SD
-(response scale) varies with the σ model</strong>, and it prints the
-range rather than a single number, because with <code>Sex</code> in σ
-there is no single number to print.</p></div>
-<div class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">aic</span>(fit3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="38">
-<pre><code>613.3026370614464</code></pre>
-</div>
-</div>
-<div class="line"><span class="who itchy">Itchy</span><p>One extra formula in the same box, and this time I want you to watch me
-lose the argument. Females vary by about 1.38 mm around their line;
-males by about 1.45 mm — a little <em>more</em>, not less. But look at
-the AIC: 613.3 against fit2’s 611.56. Adding <code>Sex</code> to σ made
-the AIC <em>worse</em>, by about 1.75. The third assumption I made you
-recite at nine o’clock — the one about the width being the same for
-every bird — is technically false in these data, sex-in-σ is not the
-story that pays for itself here.</p></div>
-<div class="line"><span class="who toto">Toto</span><p>So the whole thing was pointless?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>No — it was the <em>correct</em> thing to try, and it just did not
-survive contact with real sparrows. That is a better lesson than the one
-I was expecting to teach you. AIC is not a formality you run to confirm
-what you already believed; it is the referee, and today it overruled me.
-We added seven characters, asked a real question, and the honest answer
-was not “no” — it was <em>not detected</em>, and those are different
-claims.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And now the row I promised you this morning. Look at
-<code>Sex: male</code> in the σ table. It has a z of 0.503 and a
-<em>p</em> of 0.61, and the null printed above it is the one that is
-worth testing: equal dispersion, males and females varying by the same
-amount. Read the coefficient as a ratio and the claim gets sharper:
-males vary 1.056× as much as females, 95% interval [0.854, 1.306] — an
-interval that sits on both sides of 1. And at 171 sparrows, the smallest
-ratio this sample would have caught four times out of five — that is
-what “80% power” means — is 1.354-fold; ours is nowhere near that. That
-is not a unit-dependent curiosity like the intercept’s σ = 1. That is a
-question about sparrows, and the honest answer is not disproved, it is
-not detected: the interval includes 1, and this sample could not have
-told us about a sex difference smaller than 1.354-fold even if one were
-sitting right there in the birds. Two referees, arriving from different
-directions, agreeing.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p><em>(chalk, not keyboard)</em> Let me put that last sentence on the
-board instead of in your ears.</p></div>
-<div id="cell-fig-sigma-sex-ratio" class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">300</span>, <span class="fl">380</span>))</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>];</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    xticks <span class="op">=</span> ([<span class="fl">1</span>], [<span class="st">"male : female"</span>]),</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"residual-SD ratio"</span>,</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Sex effect on spread (fit3)"</span>)</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="fu">xlims!</span>(ax, <span class="fl">0.5</span>, <span class="fl">1.5</span>)</span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">1.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rangebars!</span>(ax, [<span class="fl">1</span>], [sex_sigma_lo], [sex_sigma_hi]; whiskerwidth <span class="op">=</span> <span class="fl">14</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, [<span class="fl">1</span>], [sex_sigma_ratio]; markersize <span class="op">=</span> <span class="fl">16</span>, color <span class="op">=</span> <span class="fu">Cycled</span>(<span class="fl">1</span>))</span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="42">
-<div id="fig-sigma-sex-ratio" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig">
-<div aria-describedby="fig-sigma-sex-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="wk2-linear-models_files/figure-html/fig-sigma-sex-ratio-output-1.svg" class="img-fluid">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sigma-sex-ratio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: The male:female ratio of residual SD from fit3 (Sex in σ), with its 95% interval. The dashed line at 1 marks equal dispersion — no sex difference in spread. The interval straddles it: not disproved, not detected.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="line"><span class="who toto">Toto</span><p>The dot’s above the line, but the bar still crosses it.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>That is exactly the finding, in one glance, and it took me four
-sentences to say it in words a minute ago. The point estimate says males
-vary a bit more — that dot sitting above 1 is real, it is what the fit
-actually returned. The bar is what tells you not to trust it yet: it
-reaches down past 1, so “males vary a bit more” and “no difference at
-all” are both still standing after 171 sparrows.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>Then give me the R² for this one and I will go home.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Try it.</p></div>
-<div class="cell" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r2_constant_sigma</span>(fit3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-error">
-<div class="ansi-escaped-output">
-<pre>ArgumentError: r2_constant_sigma refuses a MODELLED σ: the `sigma` block carries 1 non-intercept term(s) (Sex: male). The total variance then changes with the covariates, so R² has no single denominator — variance at the mean covariate, averaged over the sample, and at σ's intercept all give different answers. Fit `sigma ~ 1` if you want the ordinary R².
-
-(stack trace omitted)</pre>
-</div>
-</div>
-</div>
-<div class="line"><span class="who toto">Toto</span><p>It refused.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It refused, and read what it says, because it is the best sentence in
-the package. The total variance now <strong>changes with the
-covariates</strong> — the predictors, Tarsus and Sex — so R² has no
-single denominator: males and females have different spreads, so “the
-variance of the data” is several different quantities and the function
-will not pick one and pretend. That is what the name has been telling
-you since four minutes ago. <code>r2_constant_sigma</code> computes R²
-where R² means one thing, and declines everywhere else.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>So R would have given me a number here.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>R would not have been asked, because <code>lm</code> cannot fit this
-model. Something else in R would give you a number, and you would have
-to find out for yourself which denominator it picked. One caution, and
-then we really are done: that refusal is what the function does
-<strong>today</strong>, not a promise for ever. The package’s own
-documentation marks <code>r2_constant_sigma</code> as
-<strong>experimental</strong>, and is precise about which half is which:
-the number is settled, and it is the refusals that may widen later. The
-0.5415 you got for the last model is not going to move. What the
-function declines to answer might.</p></div>
-<div class="line"><span class="who momo">Momo</span><p><em>(packing up)</em> AIC said no and you are still pleased about it.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>I am. A model that only ever confirms the story you walked in with is
-not doing any work. Ask me again in Class 4, once there are more
-sparrows in the room.</p></div>
+lives and the button will not teach you that.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>And why is the button called <code>r2_constant_sigma</code> and not
+<code>r2</code>?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Because the name is a promise about when the number means anything. R²
+is a share: the residual spread set against the total spread. That is
+one number only while there is one residual spread to set against it —
+the third claim on the board, the same σ for every bird. Take that claim
+away, as we will in Class 4 when σ gets predictors of its own, and “the
+variance of the data” is several different quantities; give the model a
+count or a yes/no to explain, as in Class 3, and there is no single σ at
+all. Every R² you are offered above this rung has quietly picked a
+denominator for you, and two papers can quote two different R²s for the
+same model with neither being wrong. So the function computes R² where
+R² means one thing, and declines everywhere else. Report it today. From
+next week, report the residual spread in the units of your organism, and
+the comparison between models, and let R² go.</p></div>
+<div class="line"><span class="who momo">Momo</span><p><em>(packing up)</em> So the number R prints on every regression is the
+one you want me to stop reporting.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>On this rung it is fine. One rung up it stops meaning one thing. Ask me
+again in Class 4.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Do water fleas have tarsi?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Toto, water fleas have <em>carapace length</em>, and you are going to
 regress something on it before Thursday. Off you go.</p></div>
@@ -983,64 +841,70 @@ some time.</p>
 <h2 id="summary" class="anchored">Summary</h2>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
-<li><strong>Linear model.</strong> Three claims, not one: the response is normally distributed around its own mean; that mean is a straight-line function of the predictors; the spread is constant. Only the second is usually tested; today we tested the third for the first time.</li>
+<li><strong>Linear model.</strong> Three claims, not one: the response is normally distributed around its own mean; that mean is a straight-line function of the predictors; the spread is constant. Only the second is usually tested.</li>
 <li><strong>μ and σ.</strong> The two halves of every model in this book. μ says where the values sit, σ says how far they scatter. R prints σ as “Residual standard error”; we print it as a table because we will later give it predictors.</li>
 <li><strong>Intercept.</strong> The fitted mean when every predictor is zero. Often outside the data and therefore not biology. Centre a predictor on its mean and the intercept becomes interpretable.</li>
 <li><strong>Slope.</strong> The expected change in the response for a one-unit change in a predictor, <strong>holding the other predictors fixed</strong>. The last clause is why a slope changes when you add a term, and why a coefficient reported without its model is meaningless.</li>
 <li><strong>How a text column becomes a number (dummy coding).</strong> A text predictor with two levels becomes one coefficient measured against the alphabetically first level (here, female). More levels means more coefficients, all against the same baseline.</li>
 <li><strong>Confidence interval.</strong> The range of parameter values the data are consistent with. Read it before the <em>p</em>-value; it is in the units of your organism.</li>
 <li><strong>Nested models.</strong> Model A is nested in B if you can get A by fixing some of B’s parameters (usually to zero). Likelihood-ratio tests and, in spirit, AIC comparisons require this.</li>
-<li><strong>AIC.</strong> Log-likelihood penalised for the number of parameters. Lower is better; differences of a few points are worth attending to, differences below about two are not — and a <em>worse</em> AIC after adding a term is a real answer, not a failed attempt.</li>
+<li><strong>AIC.</strong> Log-likelihood penalised for the number of parameters. Lower is better; differences of a few points are worth attending to, differences below about two are not.</li>
 <li><strong>Maximum likelihood (ML) versus the unbiased variance.</strong> Maximum likelihood divides the squared residuals by <em>n</em> (the number of birds); the unbiased version divides by <em>n − p</em> (birds minus the number of coefficients). This is the whole of today’s disagreement box, and the seed of Class 8, where the same choice is called ML versus REML.</li>
-<li><strong>Residual standard deviation as an effect size.</strong> Raw spread versus residual spread tells you whether a model is <em>useful</em>, which no <em>p</em>-value does — and here it also tells you, honestly, when a fancier model was not worth the extra parameter.</li>
+<li><strong>Residual standard deviation as an effect size.</strong> Raw spread versus residual spread tells you whether a model is <em>useful</em>, which no <em>p</em>-value does.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><code>using DRM, DataFrames, CSV, Statistics</code>: the four packages this chapter needs.</li>
-<li><code>CSV.read("file.csv", DataFrame)</code>: read a table. Text columns arrive as <code>String7</code> and similar; that is Julia being efficient, not a different type of text.</li>
-<li><code>first(df, 6)</code>, <code>describe(df[!, [:a, :b]], :mean, :std, :min, :max)</code>: look before you model.</li>
-<li><code>@formula(y ~ x)</code>: the formula. <strong>Required</strong>; <code>drm</code> will not accept a formula written any other way.</li>
-<li><code>bf(...)</code>: the “big formula” box. Holds one formula today, several later (<code>bf(@formula(y ~ x), @formula(sigma ~ z))</code>). <strong>Required, even when it holds only one.</strong></li>
-<li><code>drm(bf(...), Gaussian(); data = df)</code>: the fit. Verb, box, family, data. This exact shape carries every model in the book. Note the family is <strong>positional</strong> and the data is a <strong>keyword</strong>.</li>
-<li><code>coef(fit, :mu)</code>, <code>coef(fit, :sigma)</code>: the coefficients of one sub-model, as a plain vector.</li>
-<li><code>exp(coef(fit, :sigma)[1])</code>: the residual SD in the units of your response. The fit’s header prints the same number as “Residual SD (response scale)”; do it by hand once so you know what the header means.</li>
-<li><code>coeftable(fit)</code>: everything, with 95% intervals. <code>summary(fit)</code> gives the same table.</li>
-<li><code>confint(fit)</code>: the intervals as named tuples, if you want them programmatically.</li>
-<li><code>loglik(fit)</code>, <code>aic(fit)</code>, <code>bic(fit)</code>, <code>nobs(fit)</code>, <code>dof_residual(fit)</code>: the log-likelihood, AIC, BIC (the Bayesian information criterion, AIC’s stricter cousin, which charges more for each parameter), the number of birds and the residual degrees of freedom. Note the Julia spellings; there is no <code>logLik</code> or <code>AIC</code>.</li>
-<li><code>lrtest(fit_small, fit_big)</code>: likelihood-ratio test for nested models.</li>
-<li><strong>Reading a <code>MethodError</code>.</strong> Line one is what you asked for; the candidates below are what exists; the argument that was wrong is printed <strong>in red</strong> (the same marker appears as <code>!Matched</code> where there is no colour). It is verbose because it is complete.</li>
-<li><strong>Reading an <code>ArgumentError</code> from a formula.</strong> Misspell a column and the engine suggests the nearest real name. Use it.</li>
+<li><strong>The trailing semicolon: <code>fit1 = drm(...);</code>.</strong> Hides the printout of that line. The value is still made and kept.</li>
+<li><strong><code>df[!, [:Tarsus, :Wing]]</code>.</strong> Columns picked by name: <code>!</code> in the row slot means every row; the vector of Symbols names the columns.</li>
+<li><strong>The dot, now for arithmetic: <code>b[1] .+ b[2] .* xs</code>.</strong> Adds the intercept to, and multiplies the slope into, every point of <code>xs</code> at once. <code>sims .- fitted(fit1)</code> does the same to every column of a matrix.</li>
+<li><strong>The dot on a function: <code>std.(eachcol(sims))</code>.</strong> Applies <code>std</code> to each thing <code>eachcol</code> hands it, which is one column of the matrix at a time.</li>
+<li><strong><code>[rand(rng, Normal(m, s)) for m in mu_hat]</code>.</strong> A <strong>comprehension</strong>: a <code>for</code> loop in one line whose square brackets collect each result into a vector. Class 3 writes the loop out.</li>
+<li><strong><code>Normal(m, s)</code>.</strong> A distribution object from <code>Distributions</code>, which <code>rand(rng, ...)</code> draws from; the package also supplies <code>cdf</code> and <code>quantile</code> for it.</li>
+<li><strong><code>DataFrame(BirdID = ids, Wing = wing_sim)</code>.</strong> Builds a table from named columns of the same length.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>using DRM, DataFrames, CSV, Statistics</code>, then <code>using Random, Distributions</code> for the simulation.</li>
+<li><code>@formula(y ~ x)</code> inside <code>bf(...)</code>: the formula and the “big formula” box, both <strong>required</strong>. <code>bf(@formula(y ~ x), @formula(sigma ~ z))</code> is the two-formula form Class 4 uses.</li>
+<li><code>drm(bf(...), Gaussian(); data = df)</code>: the fit. Verb, box, family, data. The family is <strong>positional</strong> and the data is a <strong>keyword</strong>; this exact shape carries every model in the book.</li>
+<li><code>coef(fit, :mu)</code>, <code>coef(fit, :sigma)</code>: one sub-model’s coefficients, as a vector. <code>exp(coef(fit, :sigma)[1])</code> is the residual SD in the response’s units, the same number the header prints as “Residual SD (response scale)”.</li>
+<li><code>coeftable(fit)</code>, <code>confint(fit)</code>: the table with 95% intervals, and the intervals alone as named tuples.</li>
+<li><code>aic(fit)</code>, <code>loglik(fit)</code>, <code>nobs(fit)</code>, <code>lrtest(fit_small, fit_big)</code>: the comparison toolkit; the test needs nested models on the same rows.</li>
+<li><code>fitted(fit)</code>, <code>sigma(fit)</code>, <code>r2_constant_sigma(fit)</code>: fitted means, response-scale σ per bird, and R² where R² means one thing.</li>
+<li><code>simulate(fit; nsim = k, rng = rng_sim)</code>: a birds-by-simulations matrix of new responses; the generator is the same <code>rng</code> keyword <code>rand</code> took last week.</li>
+<li><strong>Two errors.</strong> Forget <code>bf</code> and you get a <code>MethodError</code> whose red argument is the formula; misspell a column and the <code>ArgumentError</code> names the nearest real one.</li>
 </ul>
 <p><strong>Simulating from a fitted model.</strong> Every model in this book can generate data as easily as it can fit it, and doing so is the fastest way to check you understand what you fitted.</p>
-<div class="cell" data-execution_count="33">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span>, <span class="bu">Distributions</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2012</span>)</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>mu_hat <span class="op">=</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">1</span>] <span class="op">.+</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>] <span class="op">.*</span> sparrows.Tarsus</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit1, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>wing_sim <span class="op">=</span> [<span class="fu">rand</span>(rng_sim, <span class="fu">Normal</span>(m, sigma_hat)) for m <span class="kw">in</span> mu_hat]</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>sim_df <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Sex <span class="op">=</span> sparrows.Sex,</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>                    Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> wing_sim)</span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>fit1_sim <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sim_df);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Random</span>, <span class="bu">Distributions</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">2012</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>mu_hat <span class="op">=</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">1</span>] <span class="op">.+</span> <span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>] <span class="op">.*</span> sparrows.Tarsus</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>sigma_hat <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(fit1, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>wing_sim <span class="op">=</span> [<span class="fu">rand</span>(rng_sim, <span class="fu">Normal</span>(m, sigma_hat)) for m <span class="kw">in</span> mu_hat]</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>sim_df <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Sex <span class="op">=</span> sparrows.Sex,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>                    Tarsus <span class="op">=</span> sparrows.Tarsus, Wing <span class="op">=</span> wing_sim)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>fit1_sim <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sim_df);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(fit1_sim, <span class="op">:</span>mu)[<span class="fl">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit1, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(fit1_sim, <span class="op">:</span>mu)[<span class="fl">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
 <pre><code>(1.2031120353871703, 1.1875405568706943)</code></pre>
 </div>
 </div>
 <p>By hand, one draw at a time: <code>rand(Normal(μ̂, σ̂))</code> for each bird’s fitted mean, refit the same model, and the tarsus slope above wanders from <code>fit1</code>’s to a slightly different number — same data-generating process (the same recipe for making wing lengths), different noise, different estimate. That wander <em>is</em> sampling variability, made visible instead of assumed.</p>
-<div class="cell" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">200</span>)   <span class="co"># a seed is a promise: the same draw every time this is run</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit1; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Read the cell line by line, because you will adapt it. <code>mu_hat</code> is the fitted line evaluated at every bird, with the dots from the disagreement box. <code>Normal(m, sigma_hat)</code> is a distribution object from <code>Distributions</code>, and <code>rand(rng_sim, ...)</code> draws one number from it. The line that draws is a <strong>comprehension</strong>: <code>[rand(...) for m in mu_hat]</code> reads “for each fitted mean <code>m</code>, draw one wing, and collect the draws in a vector” — a <code>for</code> loop folded into one line, the square brackets collecting the results; Class 3 writes the same loop out longhand. <code>DataFrame(BirdID = ..., Wing = wing_sim)</code> builds a table from named columns.</p>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">200</span>)   <span class="co"># a seed is a promise: the same draw every time this is run</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> <span class="fu">simulate</span>(fit1; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="36">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims <span class="op">.-</span> <span class="fu">fitted</span>(fit1)))), <span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="49">
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims <span class="op">.-</span> <span class="fu">fitted</span>(fit1)))), <span class="fu">mean</span>(<span class="fu">std</span>.(<span class="fu">eachcol</span>(sims)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
 <pre><code>(1.8703085195848685, 2.0840219108107236)</code></pre>
 </div>
 </div>
-<p><code>simulate(fit; nsim = n)</code> (exported — meaning DRM makes it public, so you can call it directly after <code>using DRM</code> — <code>nsim</code> matching R’s own keyword) does the same thing two hundred times at once, returning a birds-by-simulations matrix. The trap: each simulated column still carries fit1’s fitted mean structure, so its raw spread is close to the <em>raw</em> wing spread, not <code>sigma_hat</code>. Subtract <code>fitted(fit1)</code> from each column first — the first number above, near 1.88 — and only then does it match the model’s own σ; the second number, without the subtraction, does not, and looks like the model cannot reproduce its own residual spread when it can. Appendix A takes this idea further and simulates whole sparrow datasets from a fitted model.</p>
+<p><code>simulate(fit; nsim = n)</code> does the same thing two hundred times at once, returning a birds-by-simulations matrix, and the one-line check on it uses the dot on a <em>function</em> for the first time: <code>std.(eachcol(sims))</code> takes the standard deviation of each column, with <code>eachcol</code> walking the matrix one column at a time, and <code>sims .- fitted(fit1)</code> subtracts the vector of fitted means from every column of the matrix. The trap: each simulated column still carries fit1’s fitted mean structure, so its raw spread is close to the <em>raw</em> wing spread, not <code>sigma_hat</code>. Subtract <code>fitted(fit1)</code> from each column first — the first number above, near 1.88 — and only then does it match the model’s own σ; the second number, without the subtraction, does not, and looks like the model cannot reproduce its own residual spread when it can. Appendix A takes this idea further and simulates whole sparrow datasets from a fitted model.</p>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
 <p class="aside">Graded by depth. References checked 2026-09-07.</p>
@@ -1048,23 +912,22 @@ some time.</p>
 <li><strong>Crawley, M. J. (2007) <em>The R Book</em>. Wiley, Chichester.</strong> Itchy’s own teacher’s book, and the reason there was a 2012 sparrow manual at all. Read the linear-models chapter for the sheer density of worked examples; ignore the software, keep the statistics.</li>
 <li><strong>Zuur, A. F., Ieno, E. N. &amp; Elphick, C. S. (2010) “A protocol for data exploration to avoid common statistical problems”, <em>Methods in Ecology and Evolution</em> 1:3–14.</strong> doi:10.1111/j.2041-210X.2009.00001.x. Eight pages on the things you should look at before you fit anything. If you only read one item on this list, read this one; it is the paper version of “look before you model”.</li>
 <li><strong>Gelman, A. &amp; Hill, J. (2007) <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>. Cambridge University Press.</strong> Chapters 3 and 4 are the best plain-language account I know of what a regression coefficient means and how badly people misread the intercept. It is also the on-ramp to Class 4.</li>
-<li><strong>Rigby, R. A. &amp; Stasinopoulos, D. M. (2005) “Generalized additive models for location, scale and shape”, <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> 54:507–554.</strong> doi:10.1111/j.1467-9876.2005.00510.x. The paper that made “put a model on σ too” a respectable thing to do. Hard, and worth knowing exists; <code>fit3</code> at the end of class is a one-line child of this idea.</li>
+<li><strong>Rigby, R. A. &amp; Stasinopoulos, D. M. (2005) “Generalized additive models for location, scale and shape”, <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> 54:507–554.</strong> doi:10.1111/j.1467-9876.2005.00510.x. The paper that made “put a model on σ too” a respectable thing to do. Hard, and worth knowing exists; the second formula Class 4 puts in the box is a one-line child of this idea.</li>
 <li><strong>DRM.jl documentation, <code>getting-started</code> and <code>capabilities</code>.</strong> The capability page is unusually honest about what the package cannot do and where its own arithmetic is less exact than it would like. Read the warning boxes; they are the interesting part.</li>
 <li><strong>The StatsModels.jl <code>@formula</code> documentation.</strong> Everything the formula grammar can express, including interactions, transformations and how contrasts are chosen. This grammar is shared across the Julia statistics ecosystem, so learning it once pays everywhere.</li>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 1 and not Class 2.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 1 and not Class 2; Class 1’s worked answer is the model.</p>
 <ol type="1">
-<li><p><strong>Centre the intercept.</strong> Add a column <code>TarsusC = Tarsus - mean(Tarsus)</code> and refit <code>Wing ~ TarsusC</code>. Which numbers changed and which did not? Write one sentence saying what the new intercept means, in millimetres, about a real sparrow.</p></li>
-<li><p><strong>Predict a bird.</strong> Using <code>fit2</code>, compute by hand (from the coefficients, not with a function) the expected wing length of a male sparrow with a 19.0 mm tarsus. Then compute it for a female with the same tarsus. Explain in one sentence what the difference between your two answers is, and why it does not depend on the tarsus value you chose.</p></li>
-<li><p><strong>Break it deliberately.</strong> Fit <code>Wing ~ Sex</code> alone, then <code>Wing ~ Tarsus + Sex</code>. The sex coefficient changes. Explain why, using the same reasoning Itchy used for the tarsus slope. Which of the two numbers would you put in a paper about sexual size dimorphism, and why?</p></li>
-<li><p><strong>Toto’s water fleas.</strong> <em>(Daphnia)</em> Regress body length on carapace length. Report the slope with its 95% interval, and the residual SD on the natural scale using <code>exp</code>. Then answer: was the predictor worth it? Compare the residual SD to the raw SD of body length and say so in one sentence with numbers in it.</p></li>
-<li><p><strong>Momo’s tadpoles.</strong> Fit a model with a categorical predictor of <strong>three</strong> levels (for example, three ponds). You will get two coefficients, not three. Explain what happened to the third pond, and write down how you would get the mean of each pond from the coefficients you were given.</p></li>
-<li><p><strong>Eddie’s dunnocks.</strong> Fit <code>Wing ~ Tarsus</code> and then the same model with <code>@formula(sigma ~ Tarsus)</code> added to the <code>bf</code>. Report both AICs. Does the spread of dunnock wing lengths change with body size? Write two sentences: one about the statistics, one about the birds.</p></li>
-<li><p><strong>The disagreement, on your own data.</strong> Fit your model both in Julia with <code>drm</code> and in R with <code>lm</code>. Confirm the coefficients match and the residual SDs do not. Verify numerically that the ratio equals √(n/(n − p)) for your <em>n</em> and <em>p</em>. Then answer in one sentence: if a referee asked you to report “the residual standard deviation”, which of the two would you give them, and would you say which one it was?</p></li>
-<li><p><strong>Simulate the σ~Sex question yourself.</strong> Simulate 200 new wing-length datasets from <code>fit2</code> (constant σ, no <code>Sex</code> in the σ formula) with <code>simulate(fit2; nsim = 200, rng = MersenneTwister(1))</code>, refit <code>fit3</code>’s σ~Sex model to each, and record the AIC difference each time. Where does today’s actual AIC difference (fit3 minus fit2) fall in that distribution? Write one sentence about whether today’s result looks like ordinary sampling noise or a real signal.</p></li>
+<li><p><strong>Centre the intercept.</strong> Add a column <code>TarsusC = sparrows.Tarsus .- mean(sparrows.Tarsus)</code> and refit <code>Wing ~ TarsusC</code>. Which numbers changed and which did not? Write one sentence saying what the new intercept means, in millimetres, about a real sparrow. <em>Check:</em> the slope is still 1.203, and the intercept is now 77.85, which is also the mean wing length.</p></li>
+<li><p><strong>Predict a bird.</strong> Using <code>fit2</code>, compute by hand — from the coefficients, not with a function — the expected wing length of a male sparrow with a 19.0 mm tarsus, then of a female with the same tarsus. Explain in one sentence what the difference between your two answers is, and why it does not depend on the tarsus value you chose. <em>Check:</em> 79.54 mm and 77.04 mm.</p></li>
+<li><p><strong>Was the predictor worth it?</strong> Read <code>data/2012/MBodySize.csv</code>, the file this chapter’s sparrows came from, which has four more columns; one of them is <code>Weight</code>. Regress <code>Weight ~ Tarsus</code>. Report the slope with its 95% interval and the residual SD on the natural scale with <code>exp</code>. Then compare that residual SD with the raw SD of <code>Weight</code> and say, in one sentence with both numbers in it, how much of the scatter in mass a sparrow’s tarsus accounts for. <em>Check:</em> slope 1.24 g per mm, interval 0.99 to 1.49; residual SD 1.24 g against a raw SD of 1.56 g.</p></li>
+<li><p><strong>Break it deliberately.</strong> Fit <code>Wing ~ Sex</code> alone, then <code>Wing ~ Tarsus + Sex</code>. The sex coefficient changes. Explain why, using the same reasoning Itchy used for the tarsus slope, and say which of the two numbers you would put in a paper about sexual size dimorphism. <em>Check:</em> 2.68 mm alone, 2.5 mm with tarsus in the model.</p></li>
+<li><p><strong>Four levels, three coefficients.</strong> <code>data/2012/Anscombe.csv</code> has a <code>Type</code> column with four levels. Fit <code>Drink ~ Type</code>. You get three coefficients for four types. Explain what happened to the fourth, and write down how to get each type’s mean from the coefficients you were given; then check your four means against <code>combine(groupby(df, :Type), :Drink =&gt; mean =&gt; :m)</code>, which you learned in Class 1. <em>Check:</em> the intercept is 7.5 and none of the other three is larger than 0.001 in size — the four types have the same mean, so the three comparisons against the baseline are all nearly zero.</p></li>
+<li><p><strong>Simulate and refit, in a comprehension.</strong> Simulate 200 datasets from <code>fit2</code> with <code>simulate(fit2; nsim = 200, rng = MersenneTwister(2))</code>. Write a one-line function that takes a simulated <code>Wing</code> column, builds a <code>DataFrame</code> with the real <code>Tarsus</code> and <code>Sex</code>, refits <code>Wing ~ Tarsus + Sex</code>, and returns the sex coefficient. Collect the 200 refitted sex coefficients with a comprehension over <code>eachcol(sims)</code>, and report their standard deviation next to the standard error <code>fit2</code> printed for the same coefficient. One sentence on why they should agree. <em>Check:</em> SD of the refits 0.203, reported SE 0.218.</p></li>
 </ol>
+<p><strong>If you have R.</strong> Fit <code>Wing ~ Tarsus + Sex</code> in R with <code>lm</code> on <code>data/ch2/sparrows.csv</code>. Confirm the coefficients match <code>fit2</code> and the residual SDs do not, and verify numerically that the ratio is √(n/(n − p)) for n = 171 and p = 3. Then answer in one sentence: if a referee asked for “the residual standard deviation”, which would you give, and would you say which one it was? <em>Check:</em> the ratio is 1.0089.</p>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
 
@@ -1073,7 +936,7 @@ some time.</p>
   <a class="chapter-nav-link prev" href="wk1-base-camp.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 1 · Base camp</span></a><a class="chapter-nav-link next" href="wk3-glms.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 3 · The shape of the noise</span></a>
 </nav>
 <footer>
-  Stats Hours with Itchy · Class 2 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-07<br>
+  Stats Hours with Itchy · Class 2 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-12<br>
   Text, figures and data are <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; code is GPL-3.
 </footer>
 </div>

@@ -373,7 +373,10 @@ counts before a model has been fitted. 270 of 484 broods had no
 disagreement inside them at all, and independent coin flips at the
 population rate would have given you about 141. Hold the number; it
 comes back, and when it does it will be the best argument for a random
-effect you have met.</p></div>
+effect you have met. (Two small things in the cell:
+<code>0 .&lt; p .&lt; 1</code> chains two comparisons, element by
+element, and the expected count is Class 4’s generator handed to
+<code>sum</code>.)</p></div>
 <div class="line"><span class="who momo">Momo</span><p>In Class 6 you made us predict what the grouping would do to the
 standard error before fitting anything.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>And you are going to do it again, with Class 6’s rule, on this file.
@@ -688,7 +691,14 @@ the whole thing by one constant, which moves the
 <div class="line"><span class="who itchy">Itchy</span><p>We will not prove it, we will make the model prove it, which is this
 book’s method. The fit believes a distribution of broods. Draw broods
 from it, draw chicks in those broods, fit the model that ignores broods,
-and see what that model recovers.</p></div>
+and see what that model recovers. The coin flip is one line:
+<code>rand(rng_marg, n) .&lt; p</code> compares a uniform draw with each
+chick’s probability, so it is true with probability <code>p</code>, and
+<code>Int.(...)</code> turns the trues and falses into ones and zeros
+for the formula. <code>logistic</code> is a one-line function of our own
+for the squashing curve, and the loop collects with <code>push!</code>
+as Class 5 did. Further down, <code>20_000</code> is twenty thousand
+with an underscore for the eye.</p></div>
 <div id="marginal-by-simulation" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logistic</span>(z) <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> (<span class="fl">1</span> <span class="op">+</span> <span class="fu">exp</span>(<span class="op">-</span>z))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -944,14 +954,16 @@ Random-effect SD (log σ_b):
 first, and nobody had to estimate a distribution from four points. If
 you want a second <em>random</em> grouping in this file, there is a
 candidate with 126 levels in the <code>Mum</code> column — and two
-things stand between you and it. One is the engine: it cannot yet fit a
-second grouping beside the brood on a binomial response, and <a href="appendix-b-engine.html">Where the engine stops</a> records that.
-The other is the design, which comes first whatever the engine can do.
-184 of the 484 broods carry more than one mother, and a mother holds up
-to 17 broods. So <code>Mum</code> is not nested above
-<code>BroodNo</code> and it is not cleanly crossed with it either: it is
-<strong>partially crossed</strong>, and the honest answer to “which is
-it” is that neither word fits. That is question six.</p></div>
+things stand between you and it. One is the engine: on a binomial
+response it will take a second grouping beside the brood, converge, and
+hand back an infinite standard error for every level without a word of
+warning, which is worse than a refusal; <a href="appendix-b-engine.html">Where the engine stops</a> records it. The
+other is the design, which comes first whatever the engine can do. 184
+of the 484 broods carry more than one mother, and a mother holds up to
+17 broods. So <code>Mum</code> is not nested above <code>BroodNo</code>
+and it is not cleanly crossed with it either: it is <strong>partially
+crossed</strong>, and the honest answer to “which is it” is that neither
+word fits. That is question six.</p></div>
 <h3 id="what-a-random-effect-is-when-you-cannot-see-it" class="anchored">What a random effect is, when you cannot see it</h3>
 <div class="line"><span class="who eddie">Eddie</span><p>In Class 6 you answered “what is a random intercept” with the shrinkage
 picture. Do it again here.</p></div>
@@ -1182,16 +1194,26 @@ on a scale you cannot see.</p></div>
 <li><strong>Ask which distribution a residual is judged against.</strong> Randomised quantile residuals are standard normal under a correct model only if each observation is compared with its own correct probability. <code>fitted</code> on a GLMM sets every group effect to zero, and on a nonlinear link that is <em>not</em> the average over groups: judged against the u = 0 probabilities the spread was 1.054, and against the probability averaged over broods it was 1.014. A per-observation check cannot see the correlation the model was fitted to handle.</li>
 <li><strong>The likelihood has an integral in it, and packages approximate it differently.</strong> <code>glmer</code> and <code>drmTMB</code> default to <strong>Laplace</strong> (brood SD 1.700, from the box); ours is a fixed thirty-two-node Gauss–Hermite grid (1.8609); <code>glmer</code> at <code>nAGQ &gt; 1</code> re-centres that grid at each group’s own mode (1.860915 from the box). Name the approximation next to the number, as Class 8 taught you to name the estimator.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><code>CSV.read(path, DataFrame; missingstring = ["NA", ""])</code>: <code>missingstring</code> <strong>replaces</strong> the list of missing markers rather than adding to it, and the empty string is on the default list. A file that uses both conventions needs both spelled out, or every column silently becomes text with nothing missing in it.</li>
-<li><code>drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)</code>: the whole of a GLMM. The family is Class 3’s and the grouping term is Class 6’s; nothing else about the call changes.</li>
-<li><code>re_sd(fit)[:g]</code>: the group SD, here on the <strong>log-odds</strong> scale. <code>vc(fit)</code> gives the variance instead. There is no <code>sigma(fit)</code> on a binomial fit, and its absence is the family’s decree, not an omission.</li>
-<li><code>lrtest(reduced, full)</code> warns when the added block is a variance component and points at <code>lrt_boundary(full, reduced; q = k)</code>, which uses the chi-bar-squared mixture — a blend of chi-squared distributions that is the right reference when a variance is tested at zero. Class 8.</li>
-<li><code>fitted(fit)</code> on a mixed fit is the prediction with every group effect <strong>set to zero</strong>, which on a nonlinear link is not the average over groups. Average the curve yourself if what you want is marginal.</li>
-<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: as in Class 3, and pass the <code>rng</code>. Check what probability it is judging each observation against before you read the spread as a verdict on the model.</li>
-<li>A grouping or factor variable that is stored as a number should be converted to text first (<code>string.(df.Year)</code>), or the formula will treat it as a covariate.</li>
-<li><strong>Seeding.</strong> Every random draw on this page — the jitter, both sets of quantile residuals, and the brood draws in every simulation — comes from an explicit <code>MersenneTwister</code> handed to the function that needs it. Never the global generator, and never <code>Random.seed!</code>.</li>
+<li><strong><code>Int.(rand(rng, n) .&lt; p)</code>.</strong> A Bernoulli draw per row: a uniform compared with a probability gives trues and falses, and <code>Int.</code> makes them ones and zeros.</li>
+<li><strong><code>0 .&lt; p .&lt; 1</code>.</strong> Two comparisons chained, element by element.</li>
+<li><strong><code>logistic(z) = 1 / (1 + exp(-z))</code>.</strong> A one-line function of your own for a curve the chapter uses repeatedly; <code>logistic.(v)</code> applies it to a vector.</li>
+<li><strong><code>20_000</code>.</strong> An underscore inside a number is ignored; it is there for the reader.</li>
+<li><strong><code>[... for (yi, pi_, ui) in zip(y, p, U)]</code>.</strong> <code>zip</code> over three vectors at once, each triple unpacked into three names, with a one-line <code>if</code> inside.</li>
+<li><strong><code>clamp.(v, lo, hi)</code>.</strong> Pulls every element inside a range, here to keep a quantile finite.</li>
+<li><strong><code>string.(df.Year)</code>.</strong> Converts a numeric column to text. A grouping or factor stored as a number must be converted, or the formula treats it as a covariate.</li>
+<li><strong><code>:Year =&gt; (x -&gt; length(unique(x))) =&gt; :nyear</code>.</strong> Class 7’s anonymous function inside <code>combine</code>, here counting distinct values per group.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>CSV.read(path, DataFrame; missingstring = ["NA", ""])</code>: <code>missingstring</code> <strong>replaces</strong> the list of missing markers rather than adding to it, and the empty string is on the default list. A file using both conventions needs both spelled out.</li>
+<li><code>drm(bf(@formula(y ~ x + (1|g))), Binomial(); data = df)</code>: the whole of a GLMM. The family is Class 3’s and the grouping term is Class 6’s.</li>
+<li><code>re_sd(fit)[:g]</code>, <code>vc(fit)</code>: the group SD, here on the <strong>log-odds</strong> scale, and the variance. There is no <code>sigma(fit)</code> on a binomial fit; the family has spent it.</li>
+<li><code>lrtest(reduced, full)</code> and <code>lrt_boundary(full, reduced; q = 1)</code>: the naive test, which warns when the added block is a variance component, and the chi-bar-squared one it points at.</li>
+<li><code>fitted(fit)</code> on a mixed fit: the prediction with every group effect <strong>set to zero</strong>, which on a nonlinear link is not the average over groups. Average the curve yourself if you want marginal.</li>
+<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: as in Class 3, seeded; check which probability it judges each observation against before reading the spread.</li>
+<li><strong>Seeding.</strong> Every random draw on this page comes from an explicit <code>MersenneTwister</code> handed to the function that needs it. Never the global generator, and never <code>Random.seed!</code>.</li>
 <li><strong>The simulation thread.</strong> One cell, and it is the trap Class 6 met, on a new family.</li>
 </ul>
 <div id="simulate-refit" class="cell" data-execution_count="21">
@@ -1239,17 +1261,17 @@ catalogue of research papers.</p>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Classes 3 and 6 and not Class 9.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Classes 3 and 6 and not Class 9.</p>
 <ol type="1">
-<li><p><strong>Find the grouping, then break the file.</strong> Take a binary response of your own with a grouping column. Report the number of rows, the number of groups, and the distribution of observations per group. Then read the file once with the wrong <code>missingstring</code> and once with the right one, and report how many rows each version gives you. One sentence on what would have happened if you had never checked.</p></li>
-<li><p><strong>Both fits, both standard errors, one dataset.</strong> Fit your response with and without <code>(1 | group)</code>, on the same rows. Report both slopes and both standard errors and the two ratios. Before you look, predict the direction of the standard-error change from how much your predictor varies within groups versus between them — <strong>compute</strong> that split with a Gaussian random-intercept model on the predictor itself, do not eyeball it. Afterwards say whether you were right, and which part of the change your prediction could not have covered.</p></li>
-<li><p><strong>Name the scale.</strong> Compute the latent-scale ICC from <code>re_sd(fit)</code> and π²/3. Then write the single sentence you would put in a paper, containing the word “latent” and the name of your link function. Now refit with a probit link if your engine offers one, recompute, and say in one sentence why the two numbers differ although the birds did not.</p></li>
-<li><p><strong>Conditional or marginal?</strong> Report your fit’s odds ratio. Then adapt the chapter’s thousand-worlds simulation — your own seed — to get the marginal one. Report both. Then find a sentence in a paper in your field that reports an odds ratio from a mixed model and decide which of the two the sentence is claiming. If you cannot tell, that is the answer, and say so.</p></li>
-<li><p><strong>Too few levels.</strong> Add a random intercept for a factor in your data with four or fewer levels, and report the variance component it prints and its standard error. Then refit with the same factor as a fixed effect instead. In three sentences: what did the random version claim to estimate, why would you not report it, and what does the fixed version report in its place?</p></li>
-<li><p><strong>Count the design before you trust the formula.</strong> <code>data/2012/SparrowSurvival.csv</code> carries a <code>Mum</code> column with 126 levels. Count how many of the 484 broods carry more than one <code>Mum</code>, and how many broods a mother holds; the chapter makes it 184 and up to 17. Say which of “nested”, “crossed” and “neither” describes <code>Mum</code> against <code>BroodNo</code>, and why the formula could never have told you. Then fit <code>(1|BroodNo)</code> and <code>(1|MumF)</code> <strong>separately</strong> on the same rows and say which grouping the chicks share more of their fate through.</p></li>
-<li><p><strong>The broods with no answer.</strong> For your own grouped binary data, count the groups in which the response is unanimous. Report the number and the fraction. Then explain in two sentences why a fixed-effect-per-group model cannot give those groups a finite estimate, and what the mixed model used instead.</p></li>
+<li><p><strong>Break the file, then find the grouping.</strong> Read <code>data/2012/SparrowSurvival.csv</code> once with <code>missingstring = "NA"</code> and once with <code>missingstring = ["NA", ""]</code>, drop the rows missing <code>Survival</code>, <code>Mass2</code> or <code>BroodNo</code> from each, and report how many rows each version keeps and what type <code>Survival</code> has in each. One sentence on what would have happened if you had never checked. <em>Check:</em> 1950 rows and 1600 rows; in the first version <code>Survival</code> is text.</p></li>
+<li><p><strong>Both fits, both standard errors, one dataset.</strong> On <code>data/ch9/chicks-broods.csv</code>, with the rows missing <code>JulianDate</code> dropped, fit <code>Survival ~ JulianDate</code> with and without <code>(1 | BroodNo)</code>. Before you look, predict the direction of the standard-error change from how much hatching date varies within broods versus between them — <strong>compute</strong> that split with a Gaussian random-intercept model on <code>JulianDate</code> itself, do not eyeball it. Report both slopes, both standard errors and the two ratios. Afterwards say whether you were right, and which part of the change your prediction could not have covered. <em>Check:</em> the within-brood share of <code>JulianDate</code> is 0.0; the standard error changes by a factor of 2.1 and the slope by 1.53.</p></li>
+<li><p><strong>Name the scale.</strong> Compute the latent-scale ICC from <code>re_sd(fit)</code> and π²/3 for the mixed fit of question 2. Then write the single sentence you would put in a paper, containing the word “latent” and the name of your link function, and say in one sentence what would change in that sentence, and what would not, under a probit link. <em>Check:</em> σ_b = 1.73 on the log-odds scale, ICC = 0.48.</p></li>
+<li><p><strong>Conditional or marginal?</strong> Report the odds ratio per ten days of hatching date from the mixed fit. Then adapt the chapter’s thousand-worlds loop to this fit, with <code>MersenneTwister(1)</code>, to get the marginal slope, and report the marginal odds ratio per ten days beside the conditional one. Two sentences: which of the two a reader comparing early and late broods across the whole island wants, and which one compares two chicks in the same nest. <em>Check:</em> conditional 1.3, marginal 1.19.</p></li>
+<li><p><strong>Too few levels.</strong> The file’s <code>Year</code> has 4 levels. Convert it to text with <code>string.(df.Year)</code>, add <code>(1 | YearF)</code> to a Gaussian model of <code>Mass2 ~ JulianDate + (1 | BroodNo)</code>, and report the year standard deviation it prints. Then refit with <code>YearF</code> as a fixed effect instead. In three sentences: what did the random version claim to estimate, why would you not report it, and what does the fixed version report in its place? <em>Check:</em> the year SD is 0.145 g, from four numbers.</p></li>
+<li><p><strong>Count the design before you trust the formula.</strong> <code>data/2012/SparrowSurvival.csv</code> carries a <code>Mum</code> column with 126 levels. Count how many of the 484 broods carry more than one <code>Mum</code>, and how many broods a mother holds; the chapter makes it 184 and up to 17. Say which of “nested”, “crossed” and “neither” describes <code>Mum</code> against <code>BroodNo</code>, and why the formula could never have told you. Then fit <code>(1|BroodNo)</code> and <code>(1|Mum)</code> <strong>separately</strong> on the same rows and say which grouping the chicks share more of their fate through.</p></li>
+<li><p><strong>The broods with no answer.</strong> Count the broods in <code>data/ch9/chicks-broods.csv</code> in which survival is unanimous, using <code>combine(groupby(df, :BroodNo), :Survival =&gt; mean =&gt; :p)</code>. Report the number and the fraction. Then explain in two sentences why a fixed-effect-per-brood model cannot give those broods a finite estimate, and what the mixed model used instead. <em>Check:</em> 268 of 481 broods.</p></li>
 </ol>
-<p><strong>If you have R.</strong> Fit the same model with <code>glmer</code> at <code>nAGQ = 1</code>, <code>nAGQ = 9</code> and <code>nAGQ = 25</code>, and report all three group standard deviations and all three log-likelihoods. Then write the methods sentence you would use, containing both the estimator and the integral approximation. In the chapter’s box the log-likelihood at nine is higher than at twenty-five, and twenty-five is the converged answer, so “believe the higher log-likelihood” is not available to you: say in two sentences what evidence you would use instead.</p>
+<p><strong>If you have R.</strong> Fit the chapter’s model with <code>glmer</code> at <code>nAGQ = 1</code>, <code>nAGQ = 9</code> and <code>nAGQ = 25</code>, and report all three group standard deviations and all three log-likelihoods. Then write the methods sentence you would use, containing both the estimator and the integral approximation. In the chapter’s box the log-likelihood at nine is higher than at twenty-five, and twenty-five is the converged answer, so “believe the higher log-likelihood” is not available to you: say in two sentences what evidence you would use instead.</p>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">
 

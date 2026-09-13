@@ -180,6 +180,15 @@ the join.</p></div>
 <code>data/</code>, so the path climbs out one level. Paths are relative
 to the file being run, and that is what makes this page reproducible on
 a machine that is not mine.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>And the line that printed the counts starts with an <code>@</code>.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>The <code>@</code> marks a <strong>macro</strong>: a thing that rewrites
+the code you hand it before running it, which lets it do what a function
+cannot. You will meet one more, <code>@formula</code>, before we finish.
+Read <code>@printf</code> as “print, to a pattern”: <code>%d</code> is a
+slot for a whole number, <code>%.4f</code> a decimal with four places,
+<code>\n</code> ends the line, and the values after the comma fill the
+slots in order. <code>println</code> prints what it is given, with no
+pattern.</p></div>
 <h3 id="look-at-it-four-ways" class="anchored">Look at it four ways</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Before anything else, look. Four different looks, and each one catches
 something the other three do not.</p></div>
@@ -397,8 +406,13 @@ smallest and largest values, which for <code>Sex</code> are the two
 letters and for <code>BirdID</code> are the first and last identifiers
 alphabetically. That is <code>describe</code> being useful rather than
 fussy. The column I actually care about is <code>nmissing</code>, and
-every entry in it is zero, so this file has no holes in it. Say the
-numbers out loud, Toto.</p></div>
+every entry in it is zero, so this file has no holes in it. And notice
+how you asked for them: <code>:mean</code>, <code>:nmissing</code>, a
+word with a colon in front. That is a <strong>Symbol</strong>, a name
+written down as a value, so a function can be handed the <em>name</em>
+of a thing without Julia looking the thing up. DataFrames uses one
+wherever a column is referred to rather than read. Say the numbers out
+loud, Toto.</p></div>
 <div id="look-numbers" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mean_wing <span class="op">=</span> <span class="fu">mean</span>(sparrows.Wing)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sd_wing <span class="op">=</span> <span class="fu">std</span>(sparrows.Wing)</span>
@@ -420,7 +434,9 @@ how big a sparrow is — running from 16.9 to 20.55. Note the dot in
 <code>sparrows.Wing</code>. That is how you reach a column, and what
 comes back is a plain vector of numbers you can hand to any function in
 the language. Not a special data-frame object with its own rules. A
-vector.</p></div>
+vector. And <code>extrema</code> returned two numbers at once, which is
+why that line has two names on the left with a comma between them: a
+function may return several things, and you catch them all.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>Which is why <code>mean</code> works on it without knowing what a data
 frame is.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Exactly why, and it is worth a moment. <code>mean</code> comes from
@@ -456,6 +472,7 @@ right tail that keeps it from tapering away evenly, nothing stranded at
 zero because somebody typed a missing value as a number. The dashed line
 is the mean. Look at this before you believe any summary; it takes four
 seconds and it is the cheapest thing in this book.</p></div>
+<p>Two things about how that cell is written, because every figure in this book is written the same way. Everything after the semicolon in a call — <code>xlabel</code>, <code>bins</code>, <code>color</code> — is a <strong>keyword argument</strong>: named, any order, and the semicolon marks where the positional ones stop. And the <code>!</code> on <code>hist!</code> is a convention, not syntax: it warns that the function changes something you handed it, here by drawing onto <code>ax</code>.</p>
 <h3 id="the-first-figure-of-the-grammar" class="anchored">The first figure of the grammar</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Now two columns at once. This book has a small set of house figures, and
 the first of them is the one you draw before you have a model: the
@@ -520,9 +537,12 @@ be filtered second —
 <code>filter(row -&gt; row.Sex == "M", sparrows)</code>. That little
 arrow makes an anonymous function: “given a row, is its <code>Sex</code>
 equal to <code>M</code>”. <code>subset</code> is the DataFrames verb,
-takes the frame first, and reads closer to <code>dplyr</code>. Use
-either. Do not mix them up in the same script and expect to be able to
-read it in a year.</p></div>
+takes the frame first, and reads closer to <code>dplyr</code> once you
+know two things: <code>==("F")</code> is a comparison with one side left
+open, which makes it a function asking “is this equal to F”, and
+<code>ByRow</code> says to ask that of every row in turn. Use either. Do
+not mix them up in the same script and expect to be able to read it in a
+year.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And you get 82 and 89, which add up.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Which add up to 171, and I want you to notice that I checked. Every time
 you split something, add the pieces back up. It costs one line and it
@@ -581,6 +601,7 @@ computes something on each. And the arrow pairs say what to compute and
 what to call it: take <code>Wing</code>, apply <code>mean</code>, name
 the answer <code>mean_wing</code>. <code>nrow =&gt; :n</code> counts the
 pile.</p></div>
+<p>Then the two lines under it, which pull one number out of that table and carry the most important piece of Julia in this book. <code>by_sex.Sex .== "F"</code> has a <strong>dot in front of the operator</strong>, and a dot means <em>do this to every element</em>: without it <code>==</code> would ask whether the whole column is the letter F; with it, every entry is asked in turn and you get back trues and falses, one per row. Square brackets around that vector keep the rows where it is true, and the <code>[1]</code> takes the first — here the only — one out, so <code>wing_f</code> is a number and not a vector of length one. The dot works on any operator and, from next week, on any function. Once you can read it you can read most of the code in this book.</p>
 <div class="line"><span class="who toto">Toto</span><p>Males have longer wings.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Males average 79.25 millimetres, females 76.57, a gap of 2.68. And now
 the sentence I want you to be uncomfortable with: <strong>that gap is
@@ -940,10 +961,16 @@ number in the brackets is the seed, the starting point it counts from.</p></div>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>I got 0.483, which is not a half.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It is not a half, and it should not be. 1000 flips of a fair coin lands
-near a half, not on it, and how near is a question with an actual answer
-that Appendix A works out. What matters this morning is the other thing:
-run it again.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Before the number, the line above it, which is the first function you
+have written. <code>flip(n; rng) = rand(rng, Bool, n)</code>
+<strong>defines a function</strong>: a name, its arguments, an equals
+sign, the expression it returns — all a function needs when its body is
+one line. After the semicolon comes a keyword, as in a call, and this
+one has no default, so <code>flip</code> cannot be called without naming
+a generator. The comment states the house rule; the language enforces
+it. And <code>rand(rng, Bool, n)</code> reads “from <code>rng</code>,
+draw <code>n</code> trues or falses”, which is a coin.</p></div>
+<p>Now the number. It is not a half, and it should not be. 1000 flips of a fair coin lands near a half, not on it, and how near is a question with an actual answer that Appendix A works out. What matters this morning is the other thing: run it again.</p>
 <div id="seed-again" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>run_b <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>))</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>run_c <span class="op">=</span> <span class="fu">flip</span>(n_flips; rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260908</span>))</span>
@@ -1004,12 +1031,19 @@ anything, and both calm down towards the dotted line without ever quite
 arriving. That picture is the reason a small sample can tell you almost
 anything you want to hear, and it is the same picture underneath every
 confidence interval in this book — the range of values a sample leaves
-you unable to rule out. Appendix A turns it into arithmetic.</p></div>
+you unable to rule out. Appendix A turns it into arithmetic. In the
+cell, <code>1:n_flips</code> is a <strong>range</strong>, the whole
+numbers from one to a thousand without writing them out, and
+<code>./</code> is the dot again, dividing each running total by its own
+count.</p></div>
 <h3 id="the-formula-you-are-not-going-to-fit" class="anchored">The formula you are not going to fit</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>One last thing, and then you are free. Next week’s model has a shape,
 and I want you to have seen the shape before you meet the model. In
 Julia a model formula is a <strong>value</strong>, like a number or a
-vector, that you can make and look at on its own.</p></div>
+vector, that you can make and look at on its own. <code>@formula</code>
+is the morning’s second macro, and the <code>@</code> is why it can take
+<code>Wing ~ Tarsus</code> as you would write it on paper: a function
+would try to evaluate <code>Wing</code> and find no such thing.</p></div>
 <div id="cell-formula-object" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> <span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="formula-object" class="cell-output cell-output-display" data-execution_count="26">
@@ -1068,29 +1102,32 @@ climb.</p></div>
 <li><strong>A seed promises reproducibility, not correctness.</strong> The same seed gives the same draws in the same order, so anyone can reproduce your accident exactly. A different seed gives a different accident with a similar answer. If a conclusion moves when the seed moves, the seed is doing the arguing, and the repair is many seeds, which is Appendix A.</li>
 <li><strong>Reading an error is a statistical skill, not a computing chore.</strong> The evidence is not folklore: developers spend a substantial fraction of a debugging task simply <em>reading</em> error messages, and reading them is about as hard as reading source code (Barik et al.&nbsp;2017). Time spent learning the shape of these messages is time bought back on every chapter after this one.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
+<p>Each of these appeared for the first time in this class, and the book leans on every one from here on.</p>
 <ul>
-<li><code>using Pkg1, Pkg2</code>: makes packages visible, and compiles what it needs the first time in a session. The pause on first use is normal and happens once. R’s <code>library</code> is the closest analogue.</li>
-<li><code>CSV.read("path.csv", DataFrame)</code>: two packages doing two jobs — <code>CSV</code> parses, <code>DataFrames</code> holds. Paths are relative to the file being executed, so a chapter in <code>book/</code> reaches the data with <code>"../data/..."</code>.</li>
-<li><code>nrow(df)</code>, <code>ncol(df)</code>, <code>names(df)</code>: size and column names.</li>
-<li><code>first(df, 5)</code>: the first rows <strong>and the column types</strong>. Read the type row; it is the cheapest data check in this book and R prints no equivalent.</li>
-<li><code>describe(df, :mean, :std, :min, :max, :nmissing)</code>: the per-column summary. It does not fall over on text columns, and <code>nmissing</code> is the column to read first.</li>
-<li><code>df.Wing</code>: a column, returned as a plain <code>Vector</code>. Any function that takes a vector takes it, which is why <code>mean</code> from <code>Statistics</code> works on a <code>DataFrames</code> column without either package knowing about the other.</li>
-<li><code>filter(row -&gt; row.Sex == "M", df)</code>: <strong>function first, data second.</strong> This is reversed from <code>dplyr::filter</code> and it is the argument-order slip in the error section.</li>
-<li><code>subset(df, :Sex =&gt; ByRow(==("F")))</code>: the DataFrames verb, data first, closer to <code>dplyr</code>’s reading order.</li>
-<li><code>combine(groupby(df, :Sex), :Wing =&gt; mean =&gt; :mean_wing, nrow =&gt; :n)</code>: group, then compute per group. The double arrow reads “take this column, apply this function, call the answer this”. <code>nrow =&gt; :n</code> counts each group.</li>
-<li><code>fig_data_cloud(x, y; xlabel, ylabel, title)</code> from <code>tools/figures.jl</code>: the house data cloud, the first figure of the grammar and the only one you can draw before you have a model. The file also sets the book’s theme through <code>tools/theme_itchy.jl</code>; <code>set_theme!(theme_itchy(:light))</code> is what makes a figure look like it belongs to this book.</li>
-<li><code>Figure</code>, <code>Axis</code>, <code>scatter!</code>, <code>lines!</code>, <code>hist!</code>, <code>hlines!</code>, <code>vlines!</code>, <code>axislegend</code>: the CairoMakie verbs the house figures are built from, for when you want one that is not in the grammar. The exclamation mark is a Julia convention meaning “this modifies the thing you gave it” — here, it draws onto an existing axis.</li>
-<li><code>@formula(y ~ x)</code>: a <strong>value</strong>, not an action. You can make one, print it, and pass it around without any data in sight.</li>
-<li><code>bf(@formula(y ~ x))</code>: the “big formula” box <code>drm</code> takes. It always shows two slots — <code>mu</code> holds what you wrote, <code>sigma</code> holds the constant <code>1</code> until Class 4 puts something in it.</li>
-<li><code>MersenneTwister(seed)</code>: a named stream of random numbers. <strong>Every random draw in this book comes from one of these, handed in explicitly.</strong> Never <code>Random.seed!</code>, which sets a hidden switch for the whole session and makes your results depend on what else ran before them.</li>
-<li><code>rand(rng, Bool, n)</code>: <code>n</code> coin flips from the generator <code>rng</code>. <code>mean</code> of a <code>Bool</code> vector is the proportion of <code>true</code>s.</li>
-<li><code>f(n; rng)</code>: a keyword argument with <strong>no default</strong>. Writing your own random helpers this way makes it impossible to forget the generator, which is the mistake that silently makes a script give a different answer every run.</li>
-<li><strong>Three calls you will meet, and cannot use today.</strong> Nothing fitted a model today, so nothing today can call <code>aic(fit)</code> (the Akaike information criterion, a score that trades fit against complexity, lower is better — Class 2’s referee when you add a predictor), <code>residuals(fit; type = :quantile, rng = rng_sim)</code> (a residual rescaled so a good model’s residuals look like a standard bell curve — Class 3’s diagnostic, which works for every family) or <code>simulate(fit; nsim = 200, rng = rng_sim)</code> (the simulation thread, from Class 2 to Appendix A). They are listed here for one reason: the keyword you learned this morning is the <em>same keyword</em> in all three. Hand the generator in; never let a function reach for the global one.</li>
-<li><strong>Errors, in three questions.</strong> <em>What did I ask for?</em> — the first line, written in types. <em>What exists?</em> — the list under <code>Closest candidates are:</code>. <em>Which argument is wrong?</em> — the one printed <strong>in red</strong> inside each candidate (the same marker appears as the word <code>!Matched</code> in front of that argument wherever there is no colour, such as a plain terminal or a log file).</li>
-<li><strong>The candidate list is only worth reading for a specific function.</strong> For <code>filter</code>, three candidates were enough to prove the argument order was wrong. For <code>+</code>, which has hundreds of methods, the three “closest” were irrelevant and the red marker pointed at arguments that were never supplied. Read the first line always; read the candidates when the function is narrow.</li>
-<li><strong>The <code>Stacktrace</code> is who called whom, innermost first</strong> — this page trims it to <code>(stack trace omitted)</code>, but in your own REPL it is there. The frame that points at your own code is the one saying <code>top-level scope</code>, at the bottom, and in a notebook it names the cell. A stack trace containing <em>none</em> of your code — as the missing-package error’s does — says the mistake is in what you asked for, not in what you did with it.</li>
-<li><strong>The last line of an error is not automatically the fix.</strong> <code>ArgumentError: column name ... existing most similar names are:</code> is a diagnosis, computed by checking your columns. <code>Package X not found ... Run import Pkg; Pkg.add("X")</code> is the default suggestion printed for every missing name, checked against nothing, and it is wrong whenever the real problem was a typo.</li>
+<li><strong>The dot: <code>.==</code>, <code>./</code>, and any operator or function.</strong> A dot in front of an operator means <em>do this to every element</em>, and gives back a vector. <code>by_sex.Sex .== "F"</code> asks every row whether it is a female and returns trues and falses; <code>cumsum(v) ./ (1:length(v))</code> divides element by element. This is the single most-used piece of Julia in the book.</li>
+<li><strong>The colon: <code>:Wing</code>, <code>:mean</code>.</strong> A <strong>Symbol</strong> is a name written as a value. It lets you hand a function the <em>name</em> of a column or a statistic without Julia trying to look it up. DataFrames takes Symbols wherever it refers to a column.</li>
+<li><strong>The <code>@</code>: <code>@printf</code>, <code>@formula</code>.</strong> A <strong>macro</strong>, which rewrites the code it is given before running it. <code>@printf</code> fills a pattern — <code>%d</code> a whole number, <code>%.4f</code> four decimals, <code>\n</code> a line end — from the values after the comma; <code>@formula</code> accepts <code>Wing ~ Tarsus</code> written as on paper.</li>
+<li><strong>The semicolon in a call: <code>Axis(fig[1, 1]; xlabel = ...)</code>.</strong> What follows it is a <strong>keyword argument</strong>: named, any order, optional unless the function says otherwise.</li>
+<li><strong>The <code>!</code>: <code>hist!</code>, <code>scatter!</code>.</strong> A convention meaning “this changes something you gave it” — here, it draws onto an existing axis.</li>
+<li><strong><code>row -&gt; row.Sex == "M"</code>.</strong> An <strong>anonymous function</strong>: “given a row, is its Sex M”. <code>==("F")</code> is the same idea for one operator with one side left open, and <code>ByRow</code> applies it to every row.</li>
+<li><strong><code>v[mask]</code> and <code>[1]</code>.</strong> Square brackets with a vector of trues and falses keep the rows where it is true; a trailing <code>[1]</code> takes the first element out, so you get a number rather than a vector of length one.</li>
+<li><strong><code>lo, hi = extrema(x)</code>.</strong> A function can return several values, and a comma-separated left-hand side catches them all.</li>
+<li><strong><code>flip(n; rng) = rand(rng, Bool, n)</code>.</strong> A <strong>function definition</strong> in one line: name, arguments, <code>=</code>, the expression it returns. A keyword after the <code>;</code> with no default must be supplied by the caller, which is how this book makes it impossible to forget the generator.</li>
+<li><strong><code>1:n_flips</code>.</strong> A <strong>range</strong>: the whole numbers from one to <em>n</em>, without writing them out.</li>
+<li><strong>Errors, in three questions.</strong> <em>What did I ask for?</em> — the first line, in types. <em>What exists?</em> — the list under <code>Closest candidates are:</code>, worth reading only when the function is narrow (<code>filter</code>, not <code>+</code>). <em>Which argument is wrong?</em> — the one printed <strong>in red</strong>, or marked <code>!Matched</code> where there is no colour. In the <code>Stacktrace</code>, <code>top-level scope</code> is the line that is yours. The last line is not automatically the fix: a near-miss computed from your columns is a diagnosis; <code>Pkg.add("X")</code> is a default printed for every missing name.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>using Pkg1, Pkg2</code>: makes packages visible and compiles what it needs the first time in a session; the pause happens once. <code>include("../tools/figures.jl")</code> runs the book’s own helper file.</li>
+<li><code>CSV.read("path.csv", DataFrame)</code>: <code>CSV</code> parses, <code>DataFrames</code> holds. Paths are relative to the file being run.</li>
+<li><code>nrow(df)</code>, <code>ncol(df)</code>, <code>names(df)</code>, <code>first(df, 5)</code>, <code>describe(df, :mean, :std, :min, :max, :nmissing)</code>: the four looks. Read the type row under <code>first</code>; R prints no equivalent.</li>
+<li><code>df.Wing</code>: a column, as a plain <code>Vector</code>, which any function that takes a vector will take.</li>
+<li><code>filter(row -&gt; ..., df)</code>: <strong>function first, data second</strong>, the reverse of <code>dplyr::filter</code>. <code>subset(df, :Sex =&gt; ByRow(==("F")))</code>: data first.</li>
+<li><code>combine(groupby(df, :Sex), :Wing =&gt; mean =&gt; :mean_wing, nrow =&gt; :n)</code>: group, then compute per group; the double arrow reads “take this column, apply this function, call the answer this”.</li>
+<li><code>fig_data_cloud(x, y; xlabel, ylabel, title)</code> from <code>tools/figures.jl</code>: the house data cloud, the first figure of the grammar. <code>Figure</code>, <code>Axis</code>, <code>scatter!</code>, <code>lines!</code>, <code>hist!</code>, <code>hlines!</code>, <code>vlines!</code>, <code>Legend</code>: the CairoMakie verbs the house figures are built from.</li>
+<li><code>@formula(y ~ x)</code> and <code>bf(...)</code>: the formula as a value, and the “big formula” box <code>drm</code> takes, with its <code>mu</code> slot holding what you wrote and its <code>sigma</code> slot holding the constant <code>1</code> until Class 4.</li>
+<li><code>MersenneTwister(seed)</code> and <code>rand(rng, Bool, n)</code>: a named stream of random numbers, and <em>n</em> coin flips from it. <strong>Every draw in this book takes its generator as an <code>rng</code> argument</strong> — <code>rand(rng_sim, Bool, n)</code> today, <code>residuals(fit; type = :quantile, rng = rng_sim)</code> and <code>simulate(fit; nsim = 200, rng = rng_sim)</code> from Class 2 on, the same keyword in all three — never <code>Random.seed!</code>, which sets a hidden switch for the whole session.</li>
 </ul>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
@@ -1105,17 +1142,33 @@ climb.</p></div>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has not opened Julia.</p>
+<p>Graded by depth: the first three take ten minutes each. Every exercise names a file under <code>data/</code> that exists; do it on your own organism as well where you have one. A <em>check</em> is a number computed from that file when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has not opened Julia. The worked answer under question 3 shows what that explanation should look like.</p>
 <ol type="1">
-<li><p><strong>Get your own file in.</strong> Read one of your own CSV files with <code>CSV.read</code>. Report <code>nrow</code>, <code>ncol</code>, and <code>names</code>. Then run <code>first(df, 5)</code> and write one sentence about the <strong>type row</strong>: is every column the type you expected? If one is not, say which and guess why before you check.</p></li>
-<li><p><strong>Four looks.</strong> Run <code>describe(df, :mean, :std, :min, :max, :nmissing)</code> on the same file. Report the <code>nmissing</code> column. Then draw a histogram of one numeric column. Name one thing the histogram shows that the summary line for the same column does not.</p></li>
-<li><p><strong>Split and add up.</strong> Filter your data into two groups on some column, using <code>filter</code> once and <code>subset</code> once. Report both counts and check that they sum to <code>nrow(df)</code>. If they do not, find out why before you go on — the reason is worth more than the exercise.</p></li>
-<li><p><strong>A group mean, and its limits.</strong> Use <code>combine(groupby(df, :Group), :y =&gt; mean =&gt; :mean_y, nrow =&gt; :n)</code> to get a mean per group. Then draw the same data as a cloud with the groups marked. Write two sentences: one saying what the numbers say, one saying what the picture says that the numbers do not.</p></li>
-<li><p><strong>Toto’s water fleas.</strong> Draw a data cloud with <code>fig_data_cloud</code> for two of Toto’s measurements. Do not fit anything. Then write down, in one sentence, what you expect a straight line through it to do — and keep the sentence, because Class 2 will check it.</p></li>
-<li><p><strong>Break it four ways.</strong> On your own data, reproduce each of this chapter’s four errors: a misspelled column, a package name that does not exist, a number added to a piece of text, and <code>filter</code> with the arguments the wrong way round. For each, quote the <strong>one line</strong> of the message that told you what to fix, and say whether that line was a diagnosis or a guess.</p></li>
-<li><p><strong>A fifth error, unplanned.</strong> Make a mistake this chapter did not cover — any mistake — and answer the three questions on it: what did you ask for, what exists, which argument was wrong. If the message does not answer all three, say which one is missing and what you had to do instead.</p></li>
-<li><p><strong>Two seeds.</strong> Adapt the coin-flip cell to your own choice of seeds. Report the proportion of heads for a seed of your choosing, the proportion for the same seed run a second time, and the proportion for that seed plus one. Then answer in one sentence: which of those three numbers was guaranteed to be equal to which, and why “the same seed gives the same answer” is a weaker statement than what actually happened.</p></li>
-<li><p><strong>The box that is already holding a slot open.</strong> Write <code>bf(@formula(y ~ x))</code> for a response and a predictor from your own data and print it. Say what is in the <code>mu</code> slot, what is in the <code>sigma</code> slot, and — in one sentence, guessing is fine — what kind of scientific question would make you want to put something other than a constant in the second one.</p></li>
+<li><p><strong>Get a file in, and read the type row.</strong> Read <code>data/2012/BodySize.csv</code> with <code>CSV.read</code>. Report <code>nrow</code>, <code>ncol</code> and <code>names</code>, then run <code>first(df, 5)</code> and write one sentence about the <strong>type row</strong>: is every column the type you expected? Some measurement columns are not, and the reason is in the file. <em>Check:</em> 460 rows, 8 columns, and 4 of the six measurement columns printing as text rather than <code>Float64</code>. Class 6 opens with what to do about it.</p></li>
+<li><p><strong>Four looks, and the one the summary cannot give.</strong> <code>data/2012/Anscombe.csv</code> has three columns: <code>Food</code>, <code>Drink</code> and a <code>Type</code> with four levels. Run <code>describe</code>, then <code>combine(groupby(df, :Type), :Drink =&gt; mean =&gt; :mean_drink, :Drink =&gt; std =&gt; :sd_drink, nrow =&gt; :n)</code>. Then draw four data clouds with <code>fig_data_cloud</code>, one per type, using <code>filter</code> to pick each. Name what the pictures show that the table cannot. <em>Check:</em> all four means round to 7.5 and all four SDs to 2.03; the four clouds are not the same shape, and only one of them is a cloud.</p></li>
+<li><p><strong>Split and add up.</strong> On the chapter’s file, split the sparrows into those with a tarsus above the mean and those at or below it, using <code>filter</code> for one half and <code>subset</code> for the other. Report both counts and check that they sum to <code>nrow(sparrows)</code>. <em>Check:</em> 86 above and 85 at or below, summing to 171.</p></li>
+</ol>
+<p><strong>A worked answer, and its marking.</strong> Toto handed this in. His code first, then his explanation, then what Itchy wrote in the margin.</p>
+<div id="worked-answer" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>big <span class="op">=</span> <span class="fu">filter</span>(row <span class="op">-&gt;</span> row.Tarsus <span class="op">&gt;</span> <span class="fu">mean</span>(sparrows.Tarsus), sparrows)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>small <span class="op">=</span> <span class="fu">subset</span>(sparrows, <span class="op">:</span>Tarsus <span class="op">=&gt;</span> <span class="fu">ByRow</span>(<span class="op">&lt;=</span>(<span class="fu">mean</span>(sparrows.Tarsus))))</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"above: %d   at or below: %d   total: %d</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">nrow</span>(big), <span class="fu">nrow</span>(small), <span class="fu">nrow</span>(big) <span class="op">+</span> <span class="fu">nrow</span>(small))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>above: 86   at or below: 85   total: 171</code></pre>
+</div>
+</div>
+<div class="line"><span class="who toto">Toto</span><p class="aside">Line one keeps every row whose tarsus is bigger than the average tarsus;
+the arrow makes a small function that asks the question of one row, and
+<code>filter</code> asks it of every row. Line two does the same for the
+other half with the other verb: <code>ByRow</code> asks the question row
+by row, and <code>&lt;=(...)</code> is “is it at most this”. Line three
+prints the two counts and their sum, so I can see they add up to 171.</p></div>
+<p><strong>Itchy, in the margin:</strong> Three lines, three sentences, and each sentence says what the line <em>does</em> rather than repeating what it <em>says</em> — that is the standard. One correction. In line one you wrote “the average tarsus” as if it were a number you knew; it is <code>mean(sparrows.Tarsus)</code>, computed on the spot, and if you had misspelled the column there the error would have come from <code>mean</code>, not from <code>filter</code>. Say where each number comes from. And one thing you did not say: the two conditions are <code>&gt;</code> and <code>&lt;=</code>, which between them cover every bird exactly once. That is <em>why</em> the sum has to come out right, and the sentence I most wanted was that one.</p>
+<ol start="4" type="1">
+<li><p><strong>A group mean, and its limits.</strong> <code>data/2012/ChickSurvival.csv</code> holds 1576 chicks with a <code>Sex</code> column and their mass at two days old, <code>Mass2</code>. Compute the mean mass per sex with <code>combine(groupby(df, :Sex), :Mass2 =&gt; mean =&gt; :mean_mass, nrow =&gt; :n)</code>. Then draw the chicks as a cloud of <code>Mass2</code> against <code>JulianDate</code> (the hatching date) with the sexes marked, as the chapter’s second figure did. Two sentences: what the numbers say, and what the picture says that the numbers do not. <em>Check:</em> the two means are 3.625 g and 3.63 g, and the gap between them is smaller than the gap between any two chicks you could point at.</p></li>
+<li><p><strong>Break it five ways.</strong> On the chapter’s file, reproduce each of the four errors: a misspelled column, a package name that does not exist, a number added to a piece of text, and <code>filter</code> with its arguments the wrong way round. For each, quote the <strong>one line</strong> of the message that told you what to fix, and say whether that line was a diagnosis or a guess. Then make a fifth mistake this chapter did not cover — any mistake — and answer the three questions on it: what did you ask for, what exists, which argument was wrong. <em>Check:</em> the first two are <code>ArgumentError</code>s and the last two <code>MethodError</code>s; the chapter’s verdict on each one’s last line is on the page, so compare yours with it.</p></li>
+<li><p><strong>Two seeds.</strong> Adapt the coin-flip cell to <code>MersenneTwister(1)</code> and <code>MersenneTwister(2)</code>. Report the proportion of heads for seed 1, for seed 1 run a second time, and for seed 2. Then answer in one sentence: which of those three numbers was guaranteed to equal which, and why “the same seed gives the same answer” is a weaker statement than what actually happened. <em>Check:</em> seed 1 gives 0.492 both times, seed 2 gives 0.491.</p></li>
+<li><p><strong>The box that is already holding a slot open.</strong> Write <code>bf(@formula(Weight ~ Tarsus))</code> for the chapter’s sparrows and print it. Say what is in the <code>mu</code> slot, what is in the <code>sigma</code> slot, and — in one sentence, guessing is fine — what kind of scientific question would make you want to put something other than a constant in the second one. <em>Check:</em> the printout has three slots; the second holds <code>1</code> and the third holds <code>nothing</code>, and you typed neither.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

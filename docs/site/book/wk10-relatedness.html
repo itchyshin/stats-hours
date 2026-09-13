@@ -421,7 +421,15 @@ strangers 0.</p>
 </blockquote>
 <div class="line"><span class="who itchy">Itchy</span><p>That is not an approximation to the recursion, it is the recursion
 evaluated. Build it, and then — this is the part nobody does and
-everybody should — <strong>check it</strong>.</p></div>
+everybody should — <strong>check it</strong>. The build is a
+comprehension with two <code>for</code>s in one set of brackets,
+<code>for i in 1:n, j in 1:n</code>, which makes a
+<strong>matrix</strong> rather than a vector.
+<code>sire[i] == sire[j]</code> is true or false, and a quarter times a
+truth is a quarter or nothing, which is the board’s indicator.
+<code>offdiag</code> is a comprehension whose second <code>for</code>
+depends on the first, so it flattens into one vector of the entries
+above the diagonal; and <code>A'</code> is the transpose.</p></div>
 <div id="build-a" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A_ij = 1/4 * [same sire] + 1/4 * [same dam] off the diagonal, 1 on it: the general</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># recursion evaluated for ONE generation with unrelated, non-inbred founders.</span></span>
@@ -457,7 +465,10 @@ be a covariance at all: a covariance may never say some combination of
 the chicks has <em>negative</em> variance, and a positive smallest
 eigenvalue rules that out. A matrix that is <em>shaped</em> right can
 still be <em>indexed</em> wrong, though, and no eigenvalue will tell
-you. So check entries against the file, by name.</p></div>
+you. So check entries against the file, by name. The hunt is
+<code>findfirst</code> with <code>any</code> inside it: the first chick
+for which <em>any</em> other chick is a full sib <em>and</em> any other
+is a half sib.</p></div>
 <div id="check-a" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find a chick that has all three kinds of relative in the file, then read A at</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># each pair BY NAME.</span></span>
@@ -974,7 +985,10 @@ them. When every individual has one record there is a shortcut: rotate
 the data by the eigenvectors of <em>A</em>, and the model becomes a
 search over one number, the heritability. The cell below is that fit —
 and because it is the likelihood written out, it can also do the one
-thing the engine would not, which is REML.</p></div>
+thing the engine would not, which is REML. The linear algebra in it —
+<code>eigen</code>, the transpose <code>'</code>, and <code>\</code> for
+solving a system of equations — is not something this book teaches; read
+the two printed lines and skip the rest.</p></div>
 <div id="sim-machinery" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># With A = U diag(lambda) U', the covariance of U'y is diagonal: h2 * lambda_i + (1 - h2),</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># times the total variance. Fixed effects and total variance have closed forms at each h2.</span></span>
@@ -1288,14 +1302,27 @@ The matrix is a hypothesis. Test it like one.</p></div>
 <li><strong>A ratio of estimates is not the estimate of a ratio.</strong> <code>heritability</code> returns <code>estimate</code>, <code>bias</code> and <code>corrected</code>; on the two-component fit the correction is 18% of the headline number, as Class 6 forecast. Report <code>corrected</code> and <code>bias</code>. A bound of exactly 0 or 1 is the engine pushing a value that fell outside back to the edge; say so when you report it.</li>
 <li><strong>Four faces, one model.</strong> <code>animal</code> (pedigree), <code>relmat</code> (any matrix), <code>phylo</code> (a tree), <code>spatial</code> (coordinates): four sources for one matrix. <code>spatial</code> additionally estimates a range, because nobody hands you the correlation between two places.</li>
 </ul>
-<h3 id="julia-stuff" class="anchored">Julia stuff</h3>
+<h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><code>animal(1 | id)</code> in the mean formula, with <code>A = A</code> as a keyword to <code>drm</code>: the animal model. <code>relmat(1 | id)</code> with <code>K = K</code> is the same term with a matrix you name yourself.</li>
-<li><strong>The matrix is indexed by the levels of the grouping factor in the order they first appear in the data.</strong> Get that ordering wrong and you will fit a well-conditioned model of nothing. Build the matrix from the same column you group on, in one cell, and it cannot drift.</li>
-<li><code>heritability(fit)</code> and <code>repeatability(fit)</code>: the two ratios, each returning <code>estimate</code>, <code>bias</code>, <code>corrected</code>, <code>se</code> and <code>ci</code>. With more than one structured component, pass <code>component = :name</code> — <code>heritability</code> divides by <em>all</em> the components plus the residual, <code>repeatability</code> by the chosen component plus the residual only.</li>
-<li><code>lrt_boundary(full, reduced; q = 1)</code>: the boundary-corrected likelihood-ratio test for a variance component at zero. Both fits must be ML on the same rows.</li>
+<li><strong><code>[expr for i in 1:n, j in 1:n]</code>.</strong> A comprehension with two <code>for</code>s in one bracket builds a <strong>matrix</strong>. <code>[A[i, j] for i in 1:n for j in (i + 1):n]</code>, with the second <code>for</code> depending on the first, flattens into one vector.</li>
+<li><strong><code>0.25 * (sire[i] == sire[j])</code>.</strong> A comparison is true or false, and arithmetic treats true as one and false as zero. <code>(a == b) + (c == d) == 1</code> counts how many of two things hold.</li>
+<li><strong><code>A'</code>.</strong> The transpose. <code>A == A'</code> is the symmetry check.</li>
+<li><strong><code>findfirst(i -&gt; any(j -&gt; f(i, j), 1:n), 1:n)</code>.</strong> <code>any</code> asks whether a function is true for some element; <code>findfirst</code> returns the first position where its function is true.</li>
+<li><strong><code>v[1:min(end, 18)]</code>.</strong> <code>end</code> inside brackets means the last position.</li>
+<li><strong><code>groupby(df, [:Dad, :Mum])</code>.</strong> Grouping by two columns at once.</li>
+<li><strong><code>Matrix{Float64}(I, n, n)</code>, <code>vcat</code>, <code>fill(1, 3)</code>.</strong> An identity matrix, vectors joined end to end, and a vector of one repeated value.</li>
+<li><strong><code>let m = Dict(...) ... end</code>.</strong> A block with a temporary name that does not leak out.</li>
+<li><strong><code>if k == 1 ... else ... end</code>.</strong> The full form of <code>if</code>, for when the branches are statements rather than values.</li>
+<li><strong><code>cholesky(Symmetric(A)).L</code>.</strong> How you <em>draw</em> a correlated random effect: <code>σ_A * L * randn(rng, n)</code> has covariance σ_A² A. Beyond it, the matrix algebra of the profile cell — <code>eigen</code>, <code>\</code>, <code>hcat</code> — is not taught here.</li>
+</ul>
+<h3 id="calls-you-used" class="anchored">Calls you used</h3>
+<ul>
+<li><code>animal(1 | id)</code> in the mean formula, with <code>A = A</code> as a keyword to <code>drm</code>: the animal model. <code>relmat(1 | id)</code> with <code>K = K</code> is the same term with a matrix you name yourself; <code>algorithm = :sparse</code> assembles the same fit in seconds rather than minutes.</li>
+<li><strong>The matrix is indexed by the levels of the grouping factor in the order they first appear in the data.</strong> Build it from the same column you group on, in one cell, and it cannot drift.</li>
+<li><code>heritability(fit)</code> and <code>repeatability(fit)</code>: the two ratios, each returning <code>estimate</code>, <code>bias</code>, <code>corrected</code>, <code>se</code> and <code>ci</code>. With more than one structured component, pass <code>component = :name</code>.</li>
+<li><code>re_sd(fit)[:id]</code>, <code>sigma(fit)</code>, <code>is_converged(fit)</code>, <code>dof(fit)</code>: the component SDs, the residual SD, whether the optimiser finished, and the parameter count.</li>
+<li><code>lrt_boundary(full, reduced; q = 1)</code>: the boundary-corrected test for a variance component at zero. Both fits must be ML on the same rows.</li>
 <li><code>residuals(fit; type = :quantile)</code>: Class 5’s quantile residuals, available on a structured fit like any other.</li>
-<li><code>cholesky(Symmetric(A)).L</code>: how you <em>draw</em> a correlated random effect. <code>σ_A * L * randn(rng, n)</code> has covariance σ_A² A.</li>
 <li><strong>The simulation thread.</strong> Every chapter ends by asking the fit to invent data; here the cell is a reminder.</li>
 </ul>
 <div id="simulate-refit" class="cell" data-execution_count="20">
@@ -1330,15 +1357,12 @@ catalogue of papers.</p>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 10.</p>
+<p>Graded by depth: the first two take ten minutes each. Every exercise names a file under <code>data/</code> that exists, or uses the objects this chapter built; do it on your own organism as well where you have one. A <em>check</em> is a number computed when this page was built — match it before going on. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 10.</p>
 <ol type="1">
-<li><p><strong>Build a matrix and check it.</strong> Take any dataset with a grouping factor and invent a relatedness rule you can defend — clonal lines, family blocks, or a pedigree. Build the matrix, print the distinct off-diagonal values, check three entries by name against the raw file, and print its smallest eigenvalue. Then say what your matrix claims about your organism, and whether the eigenvalue check could ever have failed given how you built it.</p></li>
-<li><p><strong>Find the confound.</strong> Name one thing, other than genes, that makes relatives in your dataset resemble each other. Decide whether your design can separate it from relatedness — count the related pairs that never shared it — and then either fit it and report what happened to h², or state in two sentences that you cannot, and what would have to change in the fieldwork.</p></li>
-<li><p><strong>The third world.</strong> Simulate from your own design with the genetic variance set to <strong>exactly zero</strong> and the confounding effect set to something plausible. Fit the animal-only model to each replicate. Report the mean estimated h² and the proportion of replicates whose interval excludes zero, and state the number of replicates.</p></li>
-<li><p><strong>Toto’s water fleas.</strong> <em>(Daphnia)</em> Clonal lines make the relatedness matrix trivial: members of a line are genetically identical, so their entry is 1 and everyone else’s is 0. Write that matrix down, then explain in two sentences why the resulting ratio is a <strong>broad</strong>-sense heritability and not the narrow-sense one this chapter estimated.</p></li>
-<li><p><strong>The ceiling, if you can have it.</strong> If your organism can be measured twice, compute the repeatability of your trait as in Class 6 and state the bound on h², and separately the √R bound on any correlation you plan to report. If it cannot, write the paragraph for your discussion explaining why no bound is available and what a second measurement would have bought you.</p></li>
-<li><p><strong>Order matters.</strong> Deliberately shuffle the rows of your relatedness matrix without shuffling the data, refit, and report what happens to σ_A and h². Then write one sentence explaining why nothing in the output warned you.</p></li>
-<li><p><strong>The other three faces.</strong> Pick whichever of <code>phylo</code>, <code>spatial</code> or <code>relmat</code> is closest to your own work, find or build a real matrix — a published tree, your own site coordinates, a genomic kinship matrix — and fit it. Report the variance component and the ratio, and say what “heritability” is called in your field when the matrix is that one.</p></li>
+<li><p><strong>Build a matrix and check it.</strong> Momo’s tadpoles in <code>data/ch8/tadpoles.csv</code> have no pedigree, so invent the rule a clonal design would give: every tadpole in a pond is treated as genetically identical to its pond-mates, so their entry is 1, and everyone else’s is 0. Build that matrix with a two-<code>for</code> comprehension as the chapter built <code>A</code>, print its distinct off-diagonal values and count the pairs that share a pond, check three entries by name against the file, and print its smallest eigenvalue. Then two sentences: why the eigenvalue check fails on this matrix and had to, and why the ratio a fit to it would return is a <strong>broad</strong>-sense heritability and not the narrow-sense one this chapter estimated. <em>Check:</em> off-diagonal values 0.0 and 1.0; 522 of the 6786 pairs share a pond; the smallest eigenvalue rounds to 0.0, so <code>isposdef</code> says false — a block of ones has rank one, and this matrix is <code>(1 | pond)</code> from Class 6 wearing a different name.</p></li>
+<li><p><strong>Find the confound, in pairs.</strong> The chapter counted the related pairs that never shared a nest. Split that count: from <code>A</code> and <code>chicks.BroodNo</code>, count the <strong>full</strong>-sib pairs (entry ½) in different broods and the <strong>half</strong>-sib pairs (entry ¼) in different broods, with the chapter’s double-<code>for</code> comprehension. Then two sentences: which of the two kinds of pair does the separating of genes from nest, and what a field season that produced none of them would leave you unable to estimate. <em>Check:</em> 9825 full-sib pairs and 9911 half-sib pairs never shared a brood.</p></li>
+<li><p><strong>The third world, with the confound halved.</strong> The chapter’s third world had no genetic variance and the fitted brood SD. Call the chapter’s <code>recover</code> with the genetic SD at exactly zero, the brood SD at <strong>half</strong> the fitted <code>sB</code>, the residual SD at <code>sE</code>, and <code>MersenneTwister(104)</code>. Report the mean estimated h² and the proportion of replicates whose interval excludes zero, and state the number of replicates. Then answer: did halving the confound halve the phantom heritability, and what does the answer tell you about how the nest variance is being counted? <em>Check:</em> mean h² 0.04 over 500 replicates, interval excluding zero in a proportion 0.42 of them — against the chapter’s third world at 0.157.</p></li>
+<li><p><strong>Order matters.</strong> Take the chapter’s <code>A</code>, shuffle its rows and columns with one permutation, <code>perm = randperm(MersenneTwister(1), n)</code> and <code>A[perm, perm]</code>, and refit the animal-only model with the shuffled matrix and the data untouched — this takes the engine several minutes. Report <code>is_converged</code>, σ_A and h². Then write one sentence explaining why nothing in the output warned you. <em>Check:</em> the check is what is missing — <code>is_converged</code> says true, no warning appears, and the printout looks like any other fit. Whatever σ_A came out, nothing told you that every chick had just been handed a stranger’s relatives.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

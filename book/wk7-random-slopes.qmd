@@ -87,7 +87,7 @@ gi = [row_of[b] for b in sparrows.BirdID]      # each row's bird, as an index
 nothing
 ```
 
-**Itchy:** The file, cleaned as Class 6 cleaned it, except that the column we need complete today is mass rather than tarsus.
+**Itchy:** The file, cleaned as Class 6 cleaned it, except that the column we need complete today is mass rather than tarsus. Two new things in the cell. `leftjoin(sparrows, bird_mass, on = :BirdID)` attaches each bird's mean mass to every one of its rows, matching on the identifier: a **join** does what Class 6's `Dict` did by hand. And the cell ends with `nothing`, which is how you stop a cell printing its last value when that value is a whole data frame.
 
 ```{julia}
 #| label: counts
@@ -103,7 +103,7 @@ k_med = median(per_bird.k)
 
 **Momo:** Two, three or four. That is not a lot of points to fit a line through.
 
-**Itchy:** It is not, and hold that thought until the caterpillar, where it becomes the whole lesson. First: which of these columns moves *within* a bird? You already have the tool. A repeatability is the share of variance that sits **between** individuals, so one minus it is the share that sits within.
+**Itchy:** It is not, and hold that thought until the caterpillar, where it becomes the whole lesson. First: which of these columns moves *within* a bird? You already have the tool. A repeatability is the share of variance that sits **between** individuals, so one minus it is the share that sits within. The cell loops over five columns and stores what it finds in two lookup tables: `Dict{Symbol,Float64}()` is an empty `Dict` that will hold a number under each column's name, filled by `share_within[c] = ...`. `Float64.(...)` converts a column to plain decimals. And inside `combine`, `:y => (v -> ...) => :sw` is Class 1's double arrow with an anonymous function in the middle, here one that returns `missing` for a bird measured only once, which `skipmissing` then steps over.
 
 ```{julia}
 #| label: within-bird
@@ -248,7 +248,7 @@ rs_fit
 
 **Momo:** That cannot be a real difference between models.
 
-**Itchy:** It is not a real difference between models, and I am going to prove that in the next ten minutes with a number. Read the new block first. There is no `resd` line this time; there is a random-effect covariance block, printed in the form the optimiser works with rather than as σ_0, σ_1 and ρ. `vc(fit)` hands you Σ itself, and the next cell takes the three numbers out of it.
+**Itchy:** It is not a real difference between models, and I am going to prove that in the next ten minutes with a number. Read the new block first. There is no `resd` line this time; there is a random-effect covariance block, printed in the form the optimiser works with rather than as σ_0, σ_1 and ρ. `vc(fit)` hands you Σ itself, and the next cell takes the three numbers out of it: `V[1, 1]` is row one, column one of a matrix, `V[1, 2]` the entry beside it.
 
 ```{julia}
 #| label: read-the-block
@@ -274,7 +274,7 @@ b_rs = coef(rs_fit, :mu)
 
 **Momo:** I want to go back. You said you could prove the crash was not a real difference between models.
 
-**Itchy:** And ρ is how. Fit the same model at four origins, changing nothing else — twenty grams, twenty-four, the mean, thirty.
+**Itchy:** And ρ is how. Fit the same model at four origins, changing nothing else — twenty grams, twenty-four, the mean, thirty. `at_origin` does one fit and ends with `return` and a NamedTuple, the explicit way of saying what a function hands back; `map(at_origin, origins)` calls it on each origin and collects the four results, which is a comprehension by another name.
 
 ```{julia}
 #| label: origins
@@ -692,14 +692,25 @@ lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
 - **A random slope on an unsplit covariate does two jobs.** Its variance absorbs the between-versus-within contrast the fixed part refused to separate; separating them cut σ_1 by `{julia} string(round(Int, 100 * (1 - sd1_sep / sd1)), "%")` and the random slope survived. **Fit the decomposition first; then ask whether the within slope varies.**
 - **Maximal or parsimonious.** Barr et al. (2013) argue for the maximal random-effects structure; Bates et al. (2015) argue that over-parameterised structures should be reduced. This chapter is a small worked example: the maximal model wins by AIC, and most of the case for it evaporated when the fixed part was specified properly.
 
-### Julia stuff
+### Julia you used
 
-- `@formula(y ~ x + (1 + x|g))`: the random slope. Everything else about the call is unchanged from Class 6, including the `bf` box and the positional family.
-- `vc(fit)`: the accessor for a correlated random-effect block. Returns a `Dict` of covariance matrices by grouping term; take `sqrt` of the diagonal for the standard deviations and divide the off-diagonal by their product for the correlation. What the printed block is, and why `re_sd` is empty for this fit, is in [Where the engine stops](appendix-b-engine.html).
-- `ranef(fit)[:g]`: for a random-slope fit, a matrix of groups by terms — intercept deviations in column one, slope deviations in column two, in the order of `sort(unique(df.g))`.
-- `aic(fit)`, `loglik(fit)`: the cheap comparison, and the ingredient of the test.
-- `lrtest(reduced, full)`: the naive likelihood-ratio test. It warns, correctly, when the extra parameters include a variance component. The Stram and Lee mixture for a random slope is `0.5 * ccdf(Chisq(1), stat) + 0.5 * ccdf(Chisq(2), stat)`, one line of `Distributions`.
-- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: randomised quantile residuals, seeded in the cell; on a mixed fit they are marginal.
+- **`leftjoin(df, other, on = :BirdID)`.** Attaches the columns of `other` to every row of `df` whose key matches. The join that replaces a hand-built `Dict`.
+- **`nothing` as a cell's last line.** Stops the cell printing a value nobody needs to see.
+- **`Dict{Symbol,Float64}()` and `d[k] = v`.** An empty lookup table with declared key and value types, filled one entry at a time. `argmin(d)` on a Dict returns the *key* of the smallest value.
+- **`:y => (v -> cond ? a : missing) => :sw`.** An anonymous function inside `combine`, and `missing` as a value a later `skipmissing` steps over. `Float64.(col)` converts a column element by element.
+- **`V[1, 2]`.** Row one, column two of a matrix. `B[:, 2]` is the whole second column; `[a b; c d]` writes a small matrix by hand.
+- **`return (; sd0 = s0, ...)` and `map(f, xs)`.** An explicit return of a NamedTuple, and a function applied to each element of a list with the results collected.
+- **`[b for b in ids if k_of[b] >= 3]`.** A comprehension with a filter. `Dict(r.BirdID => r.k for r in eachrow(df))` builds a lookup from a frame walked row by row.
+- **`findall(v)`, `setdiff(1:n, bad)`.** The positions where a true/false vector is true, and one set of positions with another removed.
+- **`isnan(x) ? "-" : @sprintf("%.4f", x)`.** The one-line `if` again, with `@sprintf`, which is `@printf` returning a string instead of printing it.
+
+### Calls you used
+
+- `@formula(y ~ x + (1 + x|g))`: the random slope. Everything else about the call is unchanged from Class 6.
+- `vc(fit)[:g]`: the 2 × 2 covariance of a correlated block; the diagonal's square roots are σ₀ and σ₁, the off-diagonal over their product is ρ. Why `re_sd` is empty here is in [Where the engine stops](appendix-b-engine.html).
+- `ranef(fit)[:g]`: groups by terms — intercept deviations in column one, slope deviations in column two, in the order of `sort(unique(df.g))`.
+- `aic(fit)`, `loglik(fit)`, `lrtest(reduced, full)`: the comparison and the naive test, which warns when the extra parameters include a variance. The Stram and Lee mixture is one line of `Distributions`: `0.5 * ccdf(Chisq(1), s) + 0.5 * ccdf(Chisq(2), s)`.
+- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: seeded, and marginal on a mixed fit.
 
 ---
 
@@ -719,18 +730,59 @@ lr_sep = 2 * (loglik(sep_rs) - loglik(sep_ri))
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 7.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named file.
+ex_td = CSV.read("../data/ch8/tadpoles.csv", DataFrame)
+ex_J = length(unique(ex_td.pond))
+ex_pm = combine(groupby(ex_td, :pond), :days => mean => :m)
+ex_joined = leftjoin(ex_td, ex_pm, on = :pond)
+ex_td.dc = ex_td.days .- mean(ex_td.days)
+ex_td.dmean = ex_joined.m .- mean(ex_td.days)
+ex_td.ddev = ex_td.days .- ex_joined.m
+ex_days_fit = drm(bf(@formula(days ~ 1 + (1|pond))), Gaussian(); data = ex_td)
+ex_days_within = 1 - repeatability(ex_days_fit).estimate
+ex_ri = drm(bf(@formula(length ~ dc + (1|pond))), Gaussian(); data = ex_td)
+ex_sep = drm(bf(@formula(length ~ ddev + dmean + (1|pond))), Gaussian(); data = ex_td)
+ex_rs = drm(bf(@formula(length ~ dc + (1 + dc|pond))), Gaussian(); data = ex_td)
+ex_V = vc(ex_rs)[:pond]
+ex_sd1 = sqrt(ex_V[2, 2])
+ex_rho = ex_V[1, 2] / (sqrt(ex_V[1, 1]) * ex_sd1)
+ex_stat = 2 * (loglik(ex_rs) - loglik(ex_ri))
+ex_p_naive = lrtest(ex_ri, ex_rs).pvalue
+ex_p_mix = p_sl(ex_stat)
+ex_rho_at = Dict{Float64,Float64}()
+for o in (0.0, 40.0)
+    ex_td.dx = ex_td.days .- o
+    f = drm(bf(@formula(length ~ dx + (1 + dx|pond))), Gaussian(); data = ex_td)
+    W = vc(f)[:pond]
+    ex_rho_at[o] = W[1, 2] / sqrt(W[1, 1] * W[2, 2])
+end
+ex_B = ranef(ex_rs)[:pond]
+ex_groups = unique(ex_td.pond)
+ex_model_slope = coef(ex_rs, :mu)[2] .+ ex_B[:, 2]
+ex_own_slope = [(x = ex_td.dc[ex_td.pond .== g]; y = ex_td.length[ex_td.pond .== g];
+                 cov(x, y) / var(x)) for g in ex_groups]
+ex_spread_ratio = std(ex_model_slope) / std(ex_own_slope)
+ex_gi = [findfirst(==(g), ex_groups) for g in ex_td.pond]
+ex_cond = ex_td.length .- fitted(ex_rs) .- ex_B[ex_gi, 1] .- ex_B[ex_gi, 2] .* ex_td.dc
+ex_flagged = count(abs.(ex_cond ./ std(ex_cond)) .> 3)
+```
 
-1. **Within and between, in the right order.** Take a grouped dataset of your own with a covariate that varies within groups. Split it into the group's own mean and each row's departure from it, and fit `y ~ dev + mean + (1 | g)` against `y ~ x + (1 | g)`. Report the two fixed slopes with their standard errors and the AIC of both fits. Two sentences: which of the two slopes your unsplit coefficient was closer to, and how much AIC one extra fixed parameter bought.
+Graded by depth: the first three take ten minutes each. The exercises run on Momo's tadpole file, `data/ch8/tadpoles.csv`, which Class 8 simulates from a stated seed and says so: `{julia} nrow(ex_td)` tadpoles in `{julia} ex_J` ponds, each with its `days` since hatching and its body `length` — a grouped dataset with a covariate that varies within groups, so that nobody is stopped for want of one. Do every exercise on your own organism as well where you have one. A *check* is a number computed from that file when this page was built. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 6 and not Class 7.
 
-2. **Check before you fit.** For every candidate covariate in that dataset, compute one minus its repeatability — the share of its variation that lives *within* groups. Report the table. Then write one sentence naming the covariate you would put a random slope on and one sentence naming a covariate for which the question has no answer, and say why.
+1. **Within and between, in the right order.** Centre `days` on its mean, then split it as the chapter split mass: each pond's own mean, and each tadpole's departure from it (`combine`, `leftjoin`, two subtractions). Fit `length ~ ddev + dmean + (1 | pond)` against `length ~ dc + (1 | pond)`. Report the two fixed slopes with their standard errors and the AIC of both fits. Two sentences: which of the two slopes the unsplit coefficient was closer to, and how much AIC the extra fixed parameter bought. *Check:* within-pond slope `{julia} round(coef(ex_sep, :mu)[2], digits = 3)`, between-pond slope `{julia} round(coef(ex_sep, :mu)[3], digits = 3)`, unsplit `{julia} round(coef(ex_ri, :mu)[2], digits = 3)`; the split changes AIC by `{julia} round(aic(ex_sep) - aic(ex_ri), digits = 2)`.
 
-3. **Both fits, one term.** Fit your response on that covariate with `(1 | g)` and then with `(1 + x | g)`. Report both fixed slopes, both standard errors, the residual SD of each fit, and the covariance block from `vc`. Before you look, predict whether the standard error will rise or fall, then explain whichever way it went with **both** effects from class. Then fit `y ~ dev + mean + (1 + dev | g)` and report σ_1 and ρ against the unsplit values: does your random slope survive the repair?
+2. **Check before you fit.** Compute one minus the repeatability of `days` itself, the share of its variation that lives within ponds, as the chapter's table did for every candidate. Then say in one sentence whether `days` is a thing that happened to each tadpole or a thing that happened to each pond, and why that decides whether a random slope on it is a question with an answer. *Check:* the within share is `{julia} round(ex_days_within, digits = 2)`.
 
-4. **Move the origin.** Refit your random-slope model at three origins for *x*: its mean, a value below its range, and a value above. Report σ_0, σ_1, ρ and the AIC for each, and say which of those four moved. If a far-away origin makes the fit fail, paste the error and write one sentence on what you would say to a colleague who reported it to you as a boundary.
+3. **Both fits, one term.** Fit `length ~ dc + (1 | pond)` and then `(1 + dc | pond)`. Before you look, predict whether the standard error on the slope will rise or fall. Report both fixed slopes, both standard errors, the residual SD of each fit, and the covariance block from `vc`; then explain whichever way the standard error went with **both** effects from class. *Check:* σ₁ = `{julia} round(ex_sd1, digits = 3)` and ρ = `{julia} round(ex_rho, digits = 2)`; the standard error moves from `{julia} round(stderror(ex_ri)[2], digits = 4)` to `{julia} round(stderror(ex_rs)[2], digits = 4)`.
 
-5. **The caterpillar, for slopes.** Compute each group's own least-squares slope, for groups with at least three observations, and plot them against the model's slopes with a stated rule for choosing which groups to show. Report the ratio of the two spreads. Which group moved furthest, and is that because it had the fewest observations, the least spread in *x*, or the most extreme own slope? The numbers decide; say which one you checked.
+4. **The right mixture.** Compare the two fits of question 3 with `lrtest`, then with the Stram and Lee mixture `p_sl` computed by hand as the chapter did. Report both p-values. Write two sentences saying which one you would report and why, **without** using the word "conservative" on its own — say what it is conservative *about*. Then say what the data-generating process in Class 8's cell tells you the right answer was. *Check:* naive p = `{julia} round(ex_p_naive, digits = 2)`, mixture p = `{julia} round(ex_p_mix, digits = 2)`.
 
-6. **The right mixture.** Compare your two fits with `lrtest`, then with the Stram and Lee mixture computed by hand. Report both p-values. Write two sentences saying which one you would report and why, **without** using the word "conservative" on its own — say what it is conservative *about*.
+5. **Move the origin.** Refit the random-slope model with `days` measured from zero, from its mean, and from day 40, which is beyond the data. Report σ₀, σ₁, ρ and the AIC for each, and say which of the four moved. *Check:* ρ runs from `{julia} round(ex_rho_at[0.0], digits = 2)` at day zero to `{julia} round(ex_rho_at[40.0], digits = 2)` at day 40, and σ₁ and the AIC do not move at all.
 
-7. **Two rows, or a shape?** Compute the conditional residuals of your random-slope fit and, before you draw anything, list the rows more than three residual SDs from their own group's line. Standardise by the spread of the remaining rows and draw the worm plot with the flagged rows left in. Then three sentences: what those rows have in common; whether the recording granularity of your response makes a dropped digit as likely as a biological explanation; and whether you would drop them, model them with a heavier-tailed family, or leave them and say so in the paper.
+6. **The caterpillar, for slopes.** Compute each pond's own least-squares slope from its points alone, and plot them against the model's slopes as the chapter's figure did. Report the ratio of the two spreads. Which pond moved furthest, and is that because it had the fewest tadpoles, the least spread in `days`, or the most extreme own slope? The numbers decide; say which one you checked. *Check:* the model's slopes have `{julia} round(ex_spread_ratio, digits = 2)` of the spread of the ponds' own slopes.
+
+7. **Two rows, or a shape?** Compute the conditional residuals of the random-slope fit and, before you draw anything, count the rows more than three residual SDs from their own pond's line. Draw the worm plot. Then two sentences: what you would do with any flagged rows, and why a file simulated from a Gaussian is the wrong place to expect any. *Check:* `{julia} ex_flagged` rows flagged.

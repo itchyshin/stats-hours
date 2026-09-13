@@ -10,9 +10,9 @@ tags: [book, julia, linear-model, DRM.jl, drmTMB]
 deck: "The linear model, taught in one engine — and the morning a student notices that Julia and R disagree about a number."
 status_tag: Draft
 status_note: "Draft. Every number and figure on this page comes from code that was actually run when the site was built; the prose is still being written."
-provenance: "Everything printed below came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The three errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in."
+provenance: "Everything printed below came from running this chapter's code from top to bottom when the site was built; nothing is typed from memory. The two errors are real errors, left in on purpose. The R output in the grey boxes was run once by hand, in R, on 2026-09-06, on the same birds, and pasted in."
 caveat: "The data are real: 171 house sparrows measured on Lundy Island in the author's 2012 course, read from data/2012/MBodySize.csv through a copy, data/ch2/sparrows.csv, with the sex column spelled out as female/male (where the file came from is recorded in data/2012/README.md)."
-footer_note: "Stats Hours with Itchy · Class 2 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-07"
+footer_note: "Stats Hours with Itchy · Class 2 of a planned 13 (ten in version 1, plus a coda) · draft · code last run 2026-09-12"
 ---
 
 # Class 2: one line through a cloud of sparrows
@@ -98,7 +98,7 @@ sparrows = CSV.read("../data/ch2/sparrows.csv", DataFrame);
 first(sparrows, 6)
 ```
 
-**Itchy:** `{julia} nrow(sparrows)` birds. Look before you model, always. Toto, means and spreads.
+**Itchy:** `{julia} nrow(sparrows)` birds. Look before you model, always. Toto, means and spreads of the two columns we need: `sparrows[!, [:Tarsus, :Wing]]` picks them out by name, the `!` in the row slot meaning every row and the square brackets holding a list of the Symbols you met last week.
 
 ```{julia}
 describe(sparrows[!, [:Tarsus, :Wing]], :mean, :std, :min, :max)
@@ -130,7 +130,7 @@ fit1 = drm(bf(@formula(Wing ~ Tarsus)), Gaussian(); data = sparrows);
 
 **Momo:** Stop. Why is there a `bf` in the way? In R I write `lm(Wing ~ Tarsus, sparrows)` and I am done. You have added two words and a semicolon.
 
-**Itchy:** Correct, and I am going to defend the two words rather than pretend they are not there. `bf` stands for "**b**ig **f**ormula", and it is a box that can hold **more than one formula at a time**: one for μ, one for σ, later one for the correlation between two traits. Today the box holds one formula, so it looks like packaging with nothing in it.
+**Itchy:** Correct, and I am going to defend the two words rather than pretend they are not there. The semicolon needs no defence: a semicolon at the end of a line **hides its printout**, and I hid this one because the next cell shows the fit properly. You will see it on any line whose output would only be noise. `bf` stands for "**b**ig **f**ormula", and it is a box that can hold **more than one formula at a time**: one for μ, one for σ, later one for the correlation between two traits. Today the box holds one formula, so it looks like packaging with nothing in it.
 
 **Momo:** So it is overhead I pay now for a feature I get in Class 4.
 
@@ -142,6 +142,10 @@ fit1
 
 <details class="drmtmb">
 <summary>Same fit in drmTMB, the same engine in R</summary>
+
+The `mu:` rows are the μ table above; `sigma:(Intercept)` is the `(Intercept)` row of the
+σ table, on the log scale; the `sigma (constant)` line at the bottom is **Residual SD (response
+scale)** from the header.
 
 ```r
 # Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;
@@ -188,7 +192,7 @@ sigma1 = round(exp(coef(fit1, :sigma)[1]); digits = 2)
 exp(coef(fit1, :sigma)[1])
 ```
 
-**Itchy:** There it is: **`{julia} sigma1` mm.** That is the residual standard deviation, in millimetres, on the natural scale. Now look back at the top of the fit, where it says **Residual SD (response scale)** — the same spread, in millimetres — next to `dof_residual`, the number of birds left over after the model has used up what it needs: `{julia} nobs(fit1)` birds, minus an intercept, a slope and one number for the spread, leaves `{julia} dof_residual(fit1)`. The engine prints that number for you. I made you compute it by hand once so that the header means something when you read it, and so that you never mistake the `sigma:` row, which is on the log scale, for the millimetres it is not. And now answer my earlier question, Toto. The raw wing lengths wandered by `{julia} wing_sd` mm. After we account for tarsus, they wander by `{julia} sigma1`. Was tarsus worth it?
+**Itchy:** There it is: **`{julia} sigma1` mm.** That is the residual standard deviation, in millimetres, on the natural scale. Now look back at the top of the fit, where it says **Residual SD (response scale)** — the same spread, in millimetres. The engine prints it for you. I made you compute it by hand once so that the header means something when you read it, and so that you never mistake the `sigma:` row, which is on the log scale, for the millimetres it is not. And now answer my earlier question, Toto. The raw wing lengths wandered by `{julia} wing_sd` mm. After we account for tarsus, they wander by `{julia} sigma1`. Was tarsus worth it?
 
 **Toto:** ...a bit? It went down but not loads.
 
@@ -208,7 +212,7 @@ exp(coef(fit1, :sigma)[1])
 
 **Toto:** So I ignore it.
 
-**Itchy:** You ignore *that* one, and the same heading tells you when not to. The second line is about a σ **slope**, where zero means "these groups vary by the same amount", and that is a real question about real animals. We will ask it before you go home. The rule is: read the null, then decide whether you care. A number the software is willing to compute is not automatically a number you should report.
+**Itchy:** You ignore *that* one, and the same heading tells you when not to. The second line is about a σ **slope**, where zero means "these groups vary by the same amount", and that is a real question about real animals. We will ask it in Class 4, when σ gets a predictor. The rule is: read the null, then decide whether you care. A number the software is willing to compute is not automatically a number you should report.
 
 **Toto:** Can I see all of it in one table?
 
@@ -282,6 +286,9 @@ fit2 = drm(bf(@formula(Wing ~ Tarsus + Sex)), Gaussian(); data = sparrows)
 <details class="drmtmb">
 <summary>Same fit in drmTMB, the same engine in R</summary>
 
+Rows correspond as before: `mu:` to the μ table, `sigma:(Intercept)` to the σ table's intercept
+on the log scale, `sigma (constant)` to the header's residual SD.
+
 ```r
 # Run once by hand in R on 2026-09-06 (drmTMB 0.7.0, R 4.6.0) and pasted in;
 # not re-run with the page. The same 171 Lundy Island sparrows, read from
@@ -326,12 +333,6 @@ In `fit2` it answers: *pick two sparrows of the same sex differing by one millim
 **Toto:** So the first one was wrong?
 
 **Itchy:** No, and I want to be careful here because this is where people get superstitious. The first one was **a different question, correctly answered**. Neither is wrong. But if you are trying to say something about growth, the second is almost certainly the question you meant. A coefficient without the rest of the model attached to it means nothing; that is why you never report one on its own.
-
-```{julia}
-#| label: fig-diagnostic
-#| fig-cap: "The residuals from fit2, plotted against what a normal distribution would predict. Class 3 explains what these residuals are and Class 5 explains how to read this picture; for now, a flat scatter is what you want."
-fig_diagnostic(residuals(fit2; type = :quantile); title = "fit2 diagnostic")
-```
 
 ### Is the second model better?
 
@@ -385,30 +386,48 @@ lm(Wing ~ Tarsus + Sex, data = sparrows)                                # R
 drm(bf(@formula(Wing ~ Tarsus + Sex)), Gaussian(); data = sparrows)     # Julia
 ```
 
+```{julia}
+#| echo: false
+#| output: false
+# The R column below is Momo's lm() printout, run once by hand in R on
+# 2026-09-06 and typed in here; the Julia column and every ratio are computed
+# from fit2 when the page is built.
+using Printf
+s6(x) = @sprintf("%.6f", x)
+r_slope, r_sex, r_sd, r_se, r_ll = 1.011631, 2.501172, 1.425747, 0.145977, -301.778141
+j_slope = coef(fit2, :mu)[2]
+j_sex   = coef(fit2, :mu)[3]
+j_sd    = sigma(fit2)[1]
+j_se    = coeftable(fit2).cols[2][2]
+j_ll    = loglik(fit2)
+df_r    = nobs(fit2) - length(coef(fit2, :mu))
+```
+
 | quantity | R `lm()` | DRM.jl `drm` | ratio |
 |---|---|---|---|
-| Tarsus slope | 1.011631 | 1.011631 | 1.000000 |
-| Sex (male) | 2.501172 | 2.501172 | 1.000000 |
-| residual SD | **1.425747** | **1.413185** | **1.008889** |
-| SE of Tarsus slope | **0.145977** | **0.144691** | **1.008889** |
-| log-likelihood | −301.778141 | −301.778141 | 1.000000 |
-| reference distribution | *t* on 168 degrees of freedom | *z* (normal) | |
+| Tarsus slope | `{julia} s6(r_slope)` | `{julia} s6(j_slope)` | `{julia} s6(r_slope / j_slope)` |
+| Sex (male) | `{julia} s6(r_sex)` | `{julia} s6(j_sex)` | `{julia} s6(r_sex / j_sex)` |
+| residual SD | **`{julia} s6(r_sd)`** | **`{julia} s6(j_sd)`** | **`{julia} s6(r_sd / j_sd)`** |
+| SE of Tarsus slope | **`{julia} s6(r_se)`** | **`{julia} s6(j_se)`** | **`{julia} s6(r_se / j_se)`** |
+| log-likelihood | `{julia} s6(r_ll)` | `{julia} s6(j_ll)` | `{julia} s6(r_ll / j_ll)` |
+| reference distribution | *t* on `{julia} df_r` degrees of freedom | *z* (normal) | |
 
 **The mechanism.** Both fits maximise the same likelihood and land on the same coefficients.
 They then divide the squared residuals by different numbers. `lm()` divides by **n − p**, where
 *p* counts only the mean coefficients (here
-`{julia} nobs(fit2)` − `{julia} length(coef(fit2, :mu))` = `{julia} nobs(fit2) - length(coef(fit2, :mu))` —
-not the `{julia} dof_residual(fit2)` in fit2's own header above, which also charges for σ),
+`{julia} nobs(fit2)` − `{julia} length(coef(fit2, :mu))` = `{julia} df_r`),
 which makes the variance estimate — the SD squared — unbiased: its average across repeated samples lands on the true value rather than drifting to one side. Our engine reports the **maximum likelihood** estimate,
 which divides by **n** (`{julia} nobs(fit2)`). The ratio is therefore exactly
 √(n / (n − p)) = √(`{julia} nobs(fit2)`/`{julia} nobs(fit2) - length(coef(fit2, :mu))`) =
 `{julia} round(sqrt(nobs(fit2) / (nobs(fit2) - length(coef(fit2, :mu)))); digits = 6)`, which is
-precisely what you see, to six decimal places, in both the SD and the standard error. It is one
-arithmetic choice, not a bug in either package.
+what you see in both the SD and the standard error, to the last digit R's six-decimal printout can
+support. It is one arithmetic choice, not a bug in either package. (The `dof_residual` in the fit's own header is one
+smaller, because the engine counts σ among the things it estimated; R does not, and the ratio
+needs R's count.)
 
 ```{julia}
 #| label: fig-disagree
-#| fig-cap: "Left: the fitted line for females (fit2) with DRM.jl's ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the 0.89% gap that would sit under a fraction of a pixel at wing-length scale (left) is a full-height separation here."
+#| fig-cap: "Left: the fitted line for females (fit2) with DRM.jl's ±σ band (÷n) — data filtered to females, since that is what the line and band actually describe. Right: the same two residual SDs from the table above, ÷n and ÷(n−p), replotted on a zoomed axis; the gap, which would sit under a fraction of a pixel at wing-length scale (left), is a full-height separation here."
 # fit2's mu coefficients are [Intercept, Tarsus, Sex:male]; female is the
 # baseline. A smooth grid at Sex = female avoids the zigzag that
 # plotting fitted() at each observation would give once Sex is in the model.
@@ -447,6 +466,8 @@ scatter!(ax2, [2], [sigma_ours]; markersize = 14, marker = :diamond, color = Cyc
 fig
 ```
 
+**Two habits from Class 1, now doing work.** In the cell above, `b[1] .+ b[2] .* xs` is the dot doing arithmetic: the intercept is added to, and the slope multiplied into, every point of the grid `xs` at once, which is how a fitted line is drawn in this book from here on. And `females = sparrows.Sex .== "female"` followed by `sparrows.Tarsus[females]` is the true/false vector used to keep rows, exactly as `wing_f` was picked out last week.
+
 **When it stops mattering.** The gap is √(n/(n − p)), so it shrinks as your sample grows relative
 to the number of things you are estimating: about `{julia} round(100*(sqrt(nobs(fit2)/(nobs(fit2)-length(coef(fit2,:mu))))-1); digits = 2)`%
 here, and it would fall further still with more birds at the same three parameters — enormous if
@@ -464,10 +485,6 @@ come in families or sites — is the difference between plain maximum likelihood
 maximum likelihood (REML), and there the disagreement is not under one percent on a number you
 never wanted; it is the spread between groups, the number you came for. Our engine uses ML in both
 languages. `lme4`, the usual R package for those models, uses REML. Neither told you. That is Class 8.
-
-<p class="provenance">DRM.jl 0.7.1 (Julia 1.10.0) · R 4.6.0 `stats::lm` and drmTMB 0.7.0 · R numbers
-run once by hand on 2026-09-06 on the same 171 Lundy Island sparrows and pasted in; the Julia numbers
-are computed with the page</p>
 
 :::
 
@@ -498,102 +515,15 @@ r2_correct = round(1 - (exp(coef(fit2, :sigma)[1]) / std(sparrows.Wing; correcte
 r2_constant_sigma(fit2)
 ```
 
-**Itchy:** `{julia} round(r2_constant_sigma(fit2); digits = 4)`, which is R's `lm` R² to every digit R prints. I made you do it the long way first because the long way is where the divisor lives and the button will not teach you that. Two things before we move on. R-squared causes at least as much trouble as it prevents once we get above this rung, and I will show you why in Class 5. And the function is called `r2_constant_sigma` and not `r2`, which is not fussiness. You will find out why in about four minutes.
+**Itchy:** `{julia} round(r2_constant_sigma(fit2); digits = 4)`, which is R's `lm` R² to every digit R prints. I made you do it the long way first because the long way is where the divisor lives and the button will not teach you that.
 
-### One glance up the mountain
+**Momo:** And why is the button called `r2_constant_sigma` and not `r2`?
 
-**Itchy:** Last thing, and it is a peek, not a lesson. Look at the σ table one more time. It has been sitting there all morning with a single intercept in it, doing nothing.
+**Itchy:** Because the name is a promise about when the number means anything. R² is a share: the residual spread set against the total spread. That is one number only while there is one residual spread to set against it — the third claim on the board, the same σ for every bird. Take that claim away, as we will in Class 4 when σ gets predictors of its own, and "the variance of the data" is several different quantities; give the model a count or a yes/no to explain, as in Class 3, and there is no single σ at all. Every R² you are offered above this rung has quietly picked a denominator for you, and two papers can quote two different R²s for the same model with neither being wrong. So the function computes R² where R² means one thing, and declines everywhere else. Report it today. From next week, report the residual spread in the units of your organism, and the comparison between models, and let R² go.
 
-**Momo:** You are going to put `Sex` in it.
+**Momo:** *(packing up)* So the number R prints on every regression is the one you want me to stop reporting.
 
-```{julia}
-fit3 = drm(bf(@formula(Wing ~ Tarsus + Sex), @formula(sigma ~ Sex)),
-          Gaussian(); data = sparrows)
-```
-
-```{julia}
-exp.(coef(fit3, :sigma))
-```
-
-**Itchy:** By hand, as before, and then look at the header. **Residual SD (response scale) varies with the σ model**, and it prints the range rather than a single number, because with `Sex` in σ there is no single number to print.
-
-```{julia}
-aic(fit3)
-```
-
-```{julia}
-#| echo: false
-#| output: false
-sigma3 = exp.(coef(fit3, :sigma))
-sigma3_f = round(sigma3[1]; digits = 2)
-sigma3_m = round(sigma3[1] * sigma3[2]; digits = 2)
-aic3_vs_aic2 = round(aic(fit3) - aic(fit2); digits = 2)
-ct3 = coeftable(fit3)
-sex_sigma_row = findfirst(==("sigma: Sex: male"), ct3.rownms)
-sex_sigma_z = round(ct3.cols[3][sex_sigma_row]; digits = 3)
-sex_sigma_p = round(ct3.cols[4][sex_sigma_row]; digits = 2)
-```
-
-```{julia}
-#| echo: false
-#| output: false
-sex_sigma_b     = ct3.cols[1][sex_sigma_row]
-sex_sigma_se    = ct3.cols[2][sex_sigma_row]
-sex_sigma_ratio = round(exp(sex_sigma_b); digits = 3)
-sex_sigma_lo    = round(exp(sex_sigma_b - 1.96 * sex_sigma_se); digits = 3)
-sex_sigma_hi    = round(exp(sex_sigma_b + 1.96 * sex_sigma_se); digits = 3)
-sex_sigma_mdr   = round(exp((1.96 + 0.84) * sex_sigma_se); digits = 3)
-```
-
-**Itchy:** One extra formula in the same box, and this time I want you to watch me lose the argument. Females vary by about `{julia} sigma3_f` mm around their line; males by about `{julia} sigma3_m` mm — a little *more*, not less. But look at the AIC: `{julia} round(aic(fit3); digits=2)` against fit2's `{julia} round(aic(fit2); digits=2)`. Adding `Sex` to σ made the AIC *worse*, by about `{julia} aic3_vs_aic2`. The third assumption I made you recite at nine o'clock — the one about the width being the same for every bird — is technically false in these data, sex-in-σ is not the story that pays for itself here.
-
-**Toto:** So the whole thing was pointless?
-
-**Itchy:** No — it was the *correct* thing to try, and it just did not survive contact with real sparrows. That is a better lesson than the one I was expecting to teach you. AIC is not a formality you run to confirm what you already believed; it is the referee, and today it overruled me. We added seven characters, asked a real question, and the honest answer was not "no" — it was *not detected*, and those are different claims.
-
-**Itchy:** And now the row I promised you this morning. Look at `Sex: male` in the σ table. It has a z of `{julia} sex_sigma_z` and a *p* of `{julia} sex_sigma_p`, and the null printed above it is the one that is worth testing: equal dispersion, males and females varying by the same amount. Read the coefficient as a ratio and the claim gets sharper: males vary `{julia} sex_sigma_ratio`× as much as females, 95% interval [`{julia} sex_sigma_lo`, `{julia} sex_sigma_hi`] — an interval that sits on both sides of 1. And at `{julia} nobs(fit3)` sparrows, the smallest ratio this sample would have caught four times out of five — that is what "80% power" means — is `{julia} sex_sigma_mdr`-fold; ours is nowhere near that. That is not a unit-dependent curiosity like the intercept's σ = 1. That is a question about sparrows, and the honest answer is not disproved, it is not detected: the interval includes 1, and this sample could not have told us about a sex difference smaller than `{julia} sex_sigma_mdr`-fold even if one were sitting right there in the birds. Two referees, arriving from different directions, agreeing.
-
-**Itchy:** *(chalk, not keyboard)* Let me put that last sentence on the board instead of in your ears.
-
-```{julia}
-#| label: fig-sigma-sex-ratio
-#| fig-cap: "The male:female ratio of residual SD from fit3 (Sex in σ), with its 95% interval. The dashed line at 1 marks equal dispersion — no sex difference in spread. The interval straddles it: not disproved, not detected."
-fig = Figure(size = (300, 380))
-ax = Axis(fig[1, 1];
-    xticks = ([1], ["male : female"]),
-    ylabel = "residual-SD ratio",
-    title = "Sex effect on spread (fit3)")
-xlims!(ax, 0.5, 1.5)
-hlines!(ax, [1.0]; linestyle = :dash, color = (:grey, 0.6))
-rangebars!(ax, [1], [sex_sigma_lo], [sex_sigma_hi]; whiskerwidth = 14, color = Cycled(1))
-scatter!(ax, [1], [sex_sigma_ratio]; markersize = 16, color = Cycled(1))
-fig
-```
-
-**Toto:** The dot's above the line, but the bar still crosses it.
-
-**Itchy:** That is exactly the finding, in one glance, and it took me four sentences to say it in words a minute ago. The point estimate says males vary a bit more — that dot sitting above 1 is real, it is what the fit actually returned. The bar is what tells you not to trust it yet: it reaches down past 1, so "males vary a bit more" and "no difference at all" are both still standing after `{julia} nobs(fit3)` sparrows.
-
-**Momo:** Then give me the R² for this one and I will go home.
-
-**Itchy:** Try it.
-
-```{julia}
-#| error: true
-r2_constant_sigma(fit3)
-```
-
-**Toto:** It refused.
-
-**Itchy:** It refused, and read what it says, because it is the best sentence in the package. The total variance now **changes with the covariates** — the predictors, Tarsus and Sex — so R² has no single denominator: males and females have different spreads, so "the variance of the data" is several different quantities and the function will not pick one and pretend. That is what the name has been telling you since four minutes ago. `r2_constant_sigma` computes R² where R² means one thing, and declines everywhere else.
-
-**Momo:** So R would have given me a number here.
-
-**Itchy:** R would not have been asked, because `lm` cannot fit this model. Something else in R would give you a number, and you would have to find out for yourself which denominator it picked. One caution, and then we really are done: that refusal is what the function does **today**, not a promise for ever. The package's own documentation marks `r2_constant_sigma` as **experimental**, and is precise about which half is which: the number is settled, and it is the refusals that may widen later. The `{julia} round(r2_constant_sigma(fit2); digits = 4)` you got for the last model is not going to move. What the function declines to answer might.
-
-**Momo:** *(packing up)* AIC said no and you are still pleased about it.
-
-**Itchy:** I am. A model that only ever confirms the story you walked in with is not doing any work. Ask me again in Class 4, once there are more sparrows in the room.
+**Itchy:** On this rung it is fine. One rung up it stops meaning one thing. Ask me again in Class 4.
 
 **Toto:** Do water fleas have tarsi?
 
@@ -607,33 +537,38 @@ r2_constant_sigma(fit3)
 
 ### Stats stuff
 
-- **Linear model.** Three claims, not one: the response is normally distributed around its own mean; that mean is a straight-line function of the predictors; the spread is constant. Only the second is usually tested; today we tested the third for the first time.
+- **Linear model.** Three claims, not one: the response is normally distributed around its own mean; that mean is a straight-line function of the predictors; the spread is constant. Only the second is usually tested.
 - **μ and σ.** The two halves of every model in this book. μ says where the values sit, σ says how far they scatter. R prints σ as "Residual standard error"; we print it as a table because we will later give it predictors.
 - **Intercept.** The fitted mean when every predictor is zero. Often outside the data and therefore not biology. Centre a predictor on its mean and the intercept becomes interpretable.
 - **Slope.** The expected change in the response for a one-unit change in a predictor, **holding the other predictors fixed**. The last clause is why a slope changes when you add a term, and why a coefficient reported without its model is meaningless.
 - **How a text column becomes a number (dummy coding).** A text predictor with two levels becomes one coefficient measured against the alphabetically first level (here, female). More levels means more coefficients, all against the same baseline.
 - **Confidence interval.** The range of parameter values the data are consistent with. Read it before the *p*-value; it is in the units of your organism.
 - **Nested models.** Model A is nested in B if you can get A by fixing some of B's parameters (usually to zero). Likelihood-ratio tests and, in spirit, AIC comparisons require this.
-- **AIC.** Log-likelihood penalised for the number of parameters. Lower is better; differences of a few points are worth attending to, differences below about two are not — and a *worse* AIC after adding a term is a real answer, not a failed attempt.
+- **AIC.** Log-likelihood penalised for the number of parameters. Lower is better; differences of a few points are worth attending to, differences below about two are not.
 - **Maximum likelihood (ML) versus the unbiased variance.** Maximum likelihood divides the squared residuals by *n* (the number of birds); the unbiased version divides by *n − p* (birds minus the number of coefficients). This is the whole of today's disagreement box, and the seed of Class 8, where the same choice is called ML versus REML.
-- **Residual standard deviation as an effect size.** Raw spread versus residual spread tells you whether a model is *useful*, which no *p*-value does — and here it also tells you, honestly, when a fancier model was not worth the extra parameter.
+- **Residual standard deviation as an effect size.** Raw spread versus residual spread tells you whether a model is *useful*, which no *p*-value does.
 
-### Julia stuff
+### Julia you used
 
-- `using DRM, DataFrames, CSV, Statistics`: the four packages this chapter needs.
-- `CSV.read("file.csv", DataFrame)`: read a table. Text columns arrive as `String7` and similar; that is Julia being efficient, not a different type of text.
-- `first(df, 6)`, `describe(df[!, [:a, :b]], :mean, :std, :min, :max)`: look before you model.
-- `@formula(y ~ x)`: the formula. **Required**; `drm` will not accept a formula written any other way.
-- `bf(...)`: the "big formula" box. Holds one formula today, several later (`bf(@formula(y ~ x), @formula(sigma ~ z))`). **Required, even when it holds only one.**
-- `drm(bf(...), Gaussian(); data = df)`: the fit. Verb, box, family, data. This exact shape carries every model in the book. Note the family is **positional** and the data is a **keyword**.
-- `coef(fit, :mu)`, `coef(fit, :sigma)`: the coefficients of one sub-model, as a plain vector.
-- `exp(coef(fit, :sigma)[1])`: the residual SD in the units of your response. The fit's header prints the same number as "Residual SD (response scale)"; do it by hand once so you know what the header means.
-- `coeftable(fit)`: everything, with 95% intervals. `summary(fit)` gives the same table.
-- `confint(fit)`: the intervals as named tuples, if you want them programmatically.
-- `loglik(fit)`, `aic(fit)`, `bic(fit)`, `nobs(fit)`, `dof_residual(fit)`: the log-likelihood, AIC, BIC (the Bayesian information criterion, AIC's stricter cousin, which charges more for each parameter), the number of birds and the residual degrees of freedom. Note the Julia spellings; there is no `logLik` or `AIC`.
-- `lrtest(fit_small, fit_big)`: likelihood-ratio test for nested models.
-- **Reading a `MethodError`.** Line one is what you asked for; the candidates below are what exists; the argument that was wrong is printed **in red** (the same marker appears as `!Matched` where there is no colour). It is verbose because it is complete.
-- **Reading an `ArgumentError` from a formula.** Misspell a column and the engine suggests the nearest real name. Use it.
+- **The trailing semicolon: `fit1 = drm(...);`.** Hides the printout of that line. The value is still made and kept.
+- **`df[!, [:Tarsus, :Wing]]`.** Columns picked by name: `!` in the row slot means every row; the vector of Symbols names the columns.
+- **The dot, now for arithmetic: `b[1] .+ b[2] .* xs`.** Adds the intercept to, and multiplies the slope into, every point of `xs` at once. `sims .- fitted(fit1)` does the same to every column of a matrix.
+- **The dot on a function: `std.(eachcol(sims))`.** Applies `std` to each thing `eachcol` hands it, which is one column of the matrix at a time.
+- **`[rand(rng, Normal(m, s)) for m in mu_hat]`.** A **comprehension**: a `for` loop in one line whose square brackets collect each result into a vector. Class 3 writes the loop out.
+- **`Normal(m, s)`.** A distribution object from `Distributions`, which `rand(rng, ...)` draws from; the package also supplies `cdf` and `quantile` for it.
+- **`DataFrame(BirdID = ids, Wing = wing_sim)`.** Builds a table from named columns of the same length.
+
+### Calls you used
+
+- `using DRM, DataFrames, CSV, Statistics`, then `using Random, Distributions` for the simulation.
+- `@formula(y ~ x)` inside `bf(...)`: the formula and the "big formula" box, both **required**. `bf(@formula(y ~ x), @formula(sigma ~ z))` is the two-formula form Class 4 uses.
+- `drm(bf(...), Gaussian(); data = df)`: the fit. Verb, box, family, data. The family is **positional** and the data is a **keyword**; this exact shape carries every model in the book.
+- `coef(fit, :mu)`, `coef(fit, :sigma)`: one sub-model's coefficients, as a vector. `exp(coef(fit, :sigma)[1])` is the residual SD in the response's units, the same number the header prints as "Residual SD (response scale)".
+- `coeftable(fit)`, `confint(fit)`: the table with 95% intervals, and the intervals alone as named tuples.
+- `aic(fit)`, `loglik(fit)`, `nobs(fit)`, `lrtest(fit_small, fit_big)`: the comparison toolkit; the test needs nested models on the same rows.
+- `fitted(fit)`, `sigma(fit)`, `r2_constant_sigma(fit)`: fitted means, response-scale σ per bird, and R² where R² means one thing.
+- `simulate(fit; nsim = k, rng = rng_sim)`: a birds-by-simulations matrix of new responses; the generator is the same `rng` keyword `rand` took last week.
+- **Two errors.** Forget `bf` and you get a `MethodError` whose red argument is the formula; misspell a column and the `ArgumentError` names the nearest real one.
 
 **Simulating from a fitted model.** Every model in this book can generate data as easily as it can fit it, and doing so is the fastest way to check you understand what you fitted.
 
@@ -659,6 +594,8 @@ model, and the tarsus slope above wanders from `fit1`'s to a slightly different 
 data-generating process (the same recipe for making wing lengths), different noise, different estimate. That wander *is* sampling
 variability, made visible instead of assumed.
 
+Read the cell line by line, because you will adapt it. `mu_hat` is the fitted line evaluated at every bird, with the dots from the disagreement box. `Normal(m, sigma_hat)` is a distribution object from `Distributions`, and `rand(rng_sim, ...)` draws one number from it. The line that draws is a **comprehension**: `[rand(...) for m in mu_hat]` reads "for each fitted mean `m`, draw one wing, and collect the draws in a vector" — a `for` loop folded into one line, the square brackets collecting the results; Class 3 writes the same loop out longhand. `DataFrame(BirdID = ..., Wing = wing_sim)` builds a table from named columns.
+
 ```{julia}
 rng_sim = MersenneTwister(200)   # a seed is a promise: the same draw every time this is run
 sims = simulate(fit1; nsim = 200, rng = rng_sim);
@@ -668,8 +605,7 @@ sims = simulate(fit1; nsim = 200, rng = rng_sim);
 mean(std.(eachcol(sims .- fitted(fit1)))), mean(std.(eachcol(sims)))
 ```
 
-`simulate(fit; nsim = n)` (exported — meaning DRM makes it public, so you can call it directly after `using DRM` — `nsim` matching R's own keyword) does the same thing two
-hundred times at once, returning a birds-by-simulations matrix. The trap: each simulated column
+`simulate(fit; nsim = n)` does the same thing two hundred times at once, returning a birds-by-simulations matrix, and the one-line check on it uses the dot on a *function* for the first time: `std.(eachcol(sims))` takes the standard deviation of each column, with `eachcol` walking the matrix one column at a time, and `sims .- fitted(fit1)` subtracts the vector of fitted means from every column of the matrix. The trap: each simulated column
 still carries fit1's fitted mean structure, so its raw spread is close to the *raw* wing spread,
 not `sigma_hat`. Subtract `fitted(fit1)` from each column first — the first number above, near
 `{julia} sigma1` — and only then does it match the model's own σ; the second number, without the
@@ -685,7 +621,7 @@ can. Appendix A takes this idea further and simulates whole sparrow datasets fro
 1. **Crawley, M. J. (2007) *The R Book*. Wiley, Chichester.** Itchy's own teacher's book, and the reason there was a 2012 sparrow manual at all. Read the linear-models chapter for the sheer density of worked examples; ignore the software, keep the statistics.
 2. **Zuur, A. F., Ieno, E. N. & Elphick, C. S. (2010) "A protocol for data exploration to avoid common statistical problems", *Methods in Ecology and Evolution* 1:3–14.** doi:10.1111/j.2041-210X.2009.00001.x. Eight pages on the things you should look at before you fit anything. If you only read one item on this list, read this one; it is the paper version of "look before you model".
 3. **Gelman, A. & Hill, J. (2007) *Data Analysis Using Regression and Multilevel/Hierarchical Models*. Cambridge University Press.** Chapters 3 and 4 are the best plain-language account I know of what a regression coefficient means and how badly people misread the intercept. It is also the on-ramp to Class 4.
-4. **Rigby, R. A. & Stasinopoulos, D. M. (2005) "Generalized additive models for location, scale and shape", *Journal of the Royal Statistical Society: Series C (Applied Statistics)* 54:507–554.** doi:10.1111/j.1467-9876.2005.00510.x. The paper that made "put a model on σ too" a respectable thing to do. Hard, and worth knowing exists; `fit3` at the end of class is a one-line child of this idea.
+4. **Rigby, R. A. & Stasinopoulos, D. M. (2005) "Generalized additive models for location, scale and shape", *Journal of the Royal Statistical Society: Series C (Applied Statistics)* 54:507–554.** doi:10.1111/j.1467-9876.2005.00510.x. The paper that made "put a model on σ too" a respectable thing to do. Hard, and worth knowing exists; the second formula Class 4 puts in the box is a one-line child of this idea.
 5. **DRM.jl documentation, `getting-started` and `capabilities`.** The capability page is unusually honest about what the package cannot do and where its own arithmetic is less exact than it would like. Read the warning boxes; they are the interesting part.
 6. **The StatsModels.jl `@formula` documentation.** Everything the formula grammar can express, including interactions, transformations and how contrasts are chosen. This grammar is shared across the Julia statistics ecosystem, so learning it once pays everywhere.
 
@@ -693,20 +629,44 @@ can. Appendix A takes this idea further and simulates whole sparrow datasets fro
 
 ## Exercises
 
-Use your own organism where one is named. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 1 and not Class 2.
+Graded by depth: the first three take ten minutes each. Every exercise names a file under `data/` that exists; do it on your own organism as well where you have one. A *check* is a number computed from that file when this page was built — match it before going on. **For every question, paste your code and then explain in your own words what each line does**, as if to somebody who has done Class 1 and not Class 2; Class 1's worked answer is the model.
 
-1. **Centre the intercept.** Add a column `TarsusC = Tarsus - mean(Tarsus)` and refit `Wing ~ TarsusC`. Which numbers changed and which did not? Write one sentence saying what the new intercept means, in millimetres, about a real sparrow.
+```{julia}
+#| label: exercise-checks
+#| echo: false
+#| output: false
+# Numbers the exercise checks quote, computed from the named files.
+ex_sp = copy(sparrows)
+ex_sp.TarsusC = ex_sp.Tarsus .- mean(ex_sp.Tarsus)
+ex_fc = drm(bf(@formula(Wing ~ TarsusC)), Gaussian(); data = ex_sp)
+ex_b = coef(fit2, :mu)
+ex_male19 = ex_b[1] + ex_b[2] * 19.0 + ex_b[3]
+ex_female19 = ex_b[1] + ex_b[2] * 19.0
+ex_full = CSV.read("../data/2012/MBodySize.csv", DataFrame)
+ex_fw = drm(bf(@formula(Weight ~ Tarsus)), Gaussian(); data = ex_full)
+ex_fw_ci = confint(ex_fw)[2]
+ex_fs = drm(bf(@formula(Wing ~ Sex)), Gaussian(); data = ex_sp)
+ex_an = CSV.read("../data/2012/Anscombe.csv", DataFrame)
+ex_fa = drm(bf(@formula(Drink ~ Type)), Gaussian(); data = ex_an)
+ex_fa_max = maximum(abs.(coef(ex_fa, :mu)[2:4]))
+ex_rng = MersenneTwister(2)
+ex_sims = simulate(fit2; nsim = 200, rng = ex_rng)
+ex_refit_sex(y) = coef(drm(bf(@formula(Wing ~ Tarsus + Sex)), Gaussian();
+                           data = DataFrame(Wing = y, Tarsus = ex_sp.Tarsus, Sex = ex_sp.Sex)), :mu)[3]
+ex_sex_sd = std([ex_refit_sex(y) for y in eachcol(ex_sims)])
+ex_sex_se = stderror(fit2)[3]
+```
 
-2. **Predict a bird.** Using `fit2`, compute by hand (from the coefficients, not with a function) the expected wing length of a male sparrow with a 19.0 mm tarsus. Then compute it for a female with the same tarsus. Explain in one sentence what the difference between your two answers is, and why it does not depend on the tarsus value you chose.
+1. **Centre the intercept.** Add a column `TarsusC = sparrows.Tarsus .- mean(sparrows.Tarsus)` and refit `Wing ~ TarsusC`. Which numbers changed and which did not? Write one sentence saying what the new intercept means, in millimetres, about a real sparrow. *Check:* the slope is still `{julia} round(coef(ex_fc, :mu)[2], digits = 3)`, and the intercept is now `{julia} round(coef(ex_fc, :mu)[1], digits = 2)`, which is also the mean wing length.
 
-3. **Break it deliberately.** Fit `Wing ~ Sex` alone, then `Wing ~ Tarsus + Sex`. The sex coefficient changes. Explain why, using the same reasoning Itchy used for the tarsus slope. Which of the two numbers would you put in a paper about sexual size dimorphism, and why?
+2. **Predict a bird.** Using `fit2`, compute by hand — from the coefficients, not with a function — the expected wing length of a male sparrow with a 19.0 mm tarsus, then of a female with the same tarsus. Explain in one sentence what the difference between your two answers is, and why it does not depend on the tarsus value you chose. *Check:* `{julia} round(ex_male19, digits = 2)` mm and `{julia} round(ex_female19, digits = 2)` mm.
 
-4. **Toto's water fleas.** *(Daphnia)* Regress body length on carapace length. Report the slope with its 95% interval, and the residual SD on the natural scale using `exp`. Then answer: was the predictor worth it? Compare the residual SD to the raw SD of body length and say so in one sentence with numbers in it.
+3. **Was the predictor worth it?** Read `data/2012/MBodySize.csv`, the file this chapter's sparrows came from, which has four more columns; one of them is `Weight`. Regress `Weight ~ Tarsus`. Report the slope with its 95% interval and the residual SD on the natural scale with `exp`. Then compare that residual SD with the raw SD of `Weight` and say, in one sentence with both numbers in it, how much of the scatter in mass a sparrow's tarsus accounts for. *Check:* slope `{julia} round(ex_fw_ci.estimate, digits = 2)` g per mm, interval `{julia} round(ex_fw_ci.lower, digits = 2)` to `{julia} round(ex_fw_ci.upper, digits = 2)`; residual SD `{julia} round(exp(coef(ex_fw, :sigma)[1]), digits = 2)` g against a raw SD of `{julia} round(std(ex_full.Weight), digits = 2)` g.
 
-5. **Momo's tadpoles.** Fit a model with a categorical predictor of **three** levels (for example, three ponds). You will get two coefficients, not three. Explain what happened to the third pond, and write down how you would get the mean of each pond from the coefficients you were given.
+4. **Break it deliberately.** Fit `Wing ~ Sex` alone, then `Wing ~ Tarsus + Sex`. The sex coefficient changes. Explain why, using the same reasoning Itchy used for the tarsus slope, and say which of the two numbers you would put in a paper about sexual size dimorphism. *Check:* `{julia} round(coef(ex_fs, :mu)[2], digits = 2)` mm alone, `{julia} round(ex_b[3], digits = 2)` mm with tarsus in the model.
 
-6. **Eddie's dunnocks.** Fit `Wing ~ Tarsus` and then the same model with `@formula(sigma ~ Tarsus)` added to the `bf`. Report both AICs. Does the spread of dunnock wing lengths change with body size? Write two sentences: one about the statistics, one about the birds.
+5. **Four levels, three coefficients.** `data/2012/Anscombe.csv` has a `Type` column with four levels. Fit `Drink ~ Type`. You get three coefficients for four types. Explain what happened to the fourth, and write down how to get each type's mean from the coefficients you were given; then check your four means against `combine(groupby(df, :Type), :Drink => mean => :m)`, which you learned in Class 1. *Check:* the intercept is `{julia} round(coef(ex_fa, :mu)[1], digits = 2)` and none of the other three is larger than `{julia} round(ex_fa_max, digits = 3)` in size — the four types have the same mean, so the three comparisons against the baseline are all nearly zero.
 
-7. **The disagreement, on your own data.** Fit your model both in Julia with `drm` and in R with `lm`. Confirm the coefficients match and the residual SDs do not. Verify numerically that the ratio equals √(n/(n − p)) for your *n* and *p*. Then answer in one sentence: if a referee asked you to report "the residual standard deviation", which of the two would you give them, and would you say which one it was?
+6. **Simulate and refit, in a comprehension.** Simulate 200 datasets from `fit2` with `simulate(fit2; nsim = 200, rng = MersenneTwister(2))`. Write a one-line function that takes a simulated `Wing` column, builds a `DataFrame` with the real `Tarsus` and `Sex`, refits `Wing ~ Tarsus + Sex`, and returns the sex coefficient. Collect the 200 refitted sex coefficients with a comprehension over `eachcol(sims)`, and report their standard deviation next to the standard error `fit2` printed for the same coefficient. One sentence on why they should agree. *Check:* SD of the refits `{julia} round(ex_sex_sd, digits = 3)`, reported SE `{julia} round(ex_sex_se, digits = 3)`.
 
-8. **Simulate the σ~Sex question yourself.** Simulate 200 new wing-length datasets from `fit2` (constant σ, no `Sex` in the σ formula) with `simulate(fit2; nsim = 200, rng = MersenneTwister(1))`, refit `fit3`'s σ~Sex model to each, and record the AIC difference each time. Where does today's actual AIC difference (fit3 minus fit2) fall in that distribution? Write one sentence about whether today's result looks like ordinary sampling noise or a real signal.
+**If you have R.** Fit `Wing ~ Tarsus + Sex` in R with `lm` on `data/ch2/sparrows.csv`. Confirm the coefficients match `fit2` and the residual SDs do not, and verify numerically that the ratio is √(n/(n − p)) for n = `{julia} nobs(fit2)` and p = 3. Then answer in one sentence: if a referee asked for "the residual standard deviation", which would you give, and would you say which one it was? *Check:* the ratio is `{julia} round(sqrt(nobs(fit2) / (nobs(fit2) - 3)), digits = 4)`.
