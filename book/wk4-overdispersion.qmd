@@ -10,23 +10,12 @@ tags: [book, julia, overdispersion, exposure, beta-binomial, negative-binomial, 
 deck: "Class 3 let the family decree the spread. Today the decree turns out to be false — but only after the column nobody looked at has been ruled out, and the repair is then the same one verb in three families: a second formula in the box."
 status_tag: Draft
 status_note: "All ten classes of version 1 are drafted and their code runs end to end (1–10), with Appendix A, the preface and the coda. Every number and figure on this page was produced when the site was built; the book itself is not written."
-provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time. The one R block was run once by hand, on the date shown, with R against the same file, and is labelled as such."
+provenance: "Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time."
 caveat: "The data are real: the 2012 Lundy Island female-breeding and sparrow-morphology records, read directly from data/2012/FemaleSuccess.csv and data/2012/MBodySize.csv (where the files came from is recorded in data/2012/README.md). Nothing here is simulated except the one block of invented refits at the end, which says so and carries its seed."
 footer_note: "Stats Hours with Itchy · Class 4 of a planned 13, ten in v1, plus a coda · draft, all code run, 2026-09-07"
 ---
 
 # Class 4: when the family lies about the spread
-
-> **What this chapter pretends.** Every model today is fixed effects only. The females
-> breed in the same population and the sparrows were caught on the same island, and no
-> fit here knows it. That is the pretence Class 2 made, Class 3 made, and **Class 6 stops
-> making**. Note what the repair costs: neither file records the grouping — `FemaleSuccess.csv`
-> carries no female identifier at all, and `MBodySize.csv` is one row per bird — so ending the
-> pretence needs a *different dataset* (`BodySize.csv`, which repeats birds), not a different
-> formula on these. Everything here about modelling the spread survives that repair; the
-> standard errors printed here will move when it arrives.
-
----
 
 ## Objectives
 
@@ -36,8 +25,8 @@ By the end of this class you should be able to:
 2. Look for an **exposure** — a denominator already sitting in your data — before you blame the family, and say what an offset is.
 3. Fit a grouped binomial and its overdispersed cousin `BetaBinomial()`, and say why *n*·p(1 − p) is a claim data can break where p(1 − p) is not.
 4. Fit `NegBinomial2()`, say what the dispersion parameter θ means in the units of the variance, and predict what admitting the extra spread will and will not change: the estimate barely, the standard errors a lot.
-5. Judge an overdispersion check against its own error bar, and a ±1 SD band against the coverage — the share of data such a band is meant to hold — the model itself claims for it.
-6. Put a second formula on σ in a Gaussian model, read the null hypothesis printed above the σ table, and report a **not detected** honestly — with the smallest difference the design could have seen. Then say why that is the same move as changing the family, and name the rung where it gets a chapter of its own.
+5. Judge a ±1 SD band against the coverage — the share of data such a band is meant to hold — that the model itself claims for it.
+6. Put a second formula on σ in a Gaussian model and report a **not detected** honestly — with the smallest difference the design could have seen. Then say why that is the same move as changing the family.
 
 ---
 
@@ -54,12 +43,17 @@ By the end of this class you should be able to:
 ```{julia}
 #| label: setup
 # tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.
-# It also defines erfinv_approx, which the worm-plot arithmetic below reuses so that
-# what we count is exactly what the figure draws.
 include("../tools/figures.jl")
 using DRM, DataFrames, CSV, Statistics, Random, Printf, CairoMakie
 import Distributions          # qualified: DRM exports its own Poisson, Binomial, …
 set_theme!(theme_itchy(:light))
+
+# confint(fit) returns one row per coefficient, each with .estimate, .lower and
+# .upper. This picks a row by block and name, so no table is ever read by column number.
+function ci_row(fit, block, name)
+    rows = confint(fit; parm = block)
+    rows[findfirst(r -> r.coef == name, rows)]
+end
 
 females = CSV.read("../data/2012/FemaleSuccess.csv", DataFrame)
 
@@ -83,8 +77,6 @@ ratio_raw = v_counts / m_counts
 **Itchy:** For now. What is false is a claim the model never printed and you never agreed to: **the variance equals the mean**. That is the whole of today, and it has a name.
 
 ### The decree, stated as an equation
-
-<!-- eq: hand-typed; replace with equations(fit) when Symbolizer.jl lands -->
 
 > **y_i ~ Poisson(μ_i),  log μ_i = β0 + β1 x_i,  Var(y_i | x_i) = μ_i**
 
@@ -122,15 +114,12 @@ X2_pois = sum((females.Fledglings .- mu_p) .^ 2 ./ mu_p)
 disp_pois = X2_pois / dof_residual(pois)
 
 qres_pois = residuals(pois; type = :quantile, rng = MersenneTwister(4))
-mcse_rqr = 1 / sqrt(2 * n_fem)
-z_pois = abs(std(qres_pois) - 1) / mcse_rqr
 
 @printf("Pearson X2 %.3f on %d df  ->  X2/df = %.4f\n", X2_pois, dof_residual(pois), disp_pois)
-@printf("quantile residual SD %.4f  (%.2f Monte Carlo SE of %.4f from 1)\n",
-        std(qres_pois), z_pois, mcse_rqr)
+@printf("quantile residual SD %.4f\n", std(qres_pois))
 ```
 
-**Itchy:** `{julia} round(disp_pois, digits = 2)` and `{julia} round(std(qres_pois), digits = 2)`, and the second one is `{julia} round(z_pois, digits = 1)` of its own Monte Carlo standard errors — the wobble you would expect in an SD computed from this many random draws — away from one, so neither is noise. Two checks, different arithmetic, same verdict. Note that I did not call them *independent*: they are two functions of one fitted model on one residual vector, and a pair of checks that share a model can be wrong together.
+**Itchy:** `{julia} round(disp_pois, digits = 2)` and `{julia} round(std(qres_pois), digits = 2)`, both well above one. Two checks, different arithmetic, same verdict. Note that I did not call them *independent*: they are two functions of one fitted model on one residual vector, and a pair of checks that share a model can be wrong together.
 
 **Momo:** Good. Give me the negative binomial.
 
@@ -213,10 +202,7 @@ X2_poe = sum((females.Fledglings .- mu_e) .^ 2 ./ mu_e)
 disp_poe = X2_poe / dof_residual(poe)
 d_aic_exposure = aic(pois) - aic(poe)
 
-ct_e = coeftable(poe)
-r_egg = findfirst(==("mu: logEgg"), ct_e.rownms)
-b_egg = ct_e.cols[1][r_egg]
-egg_lo_ci, egg_hi_ci = ct_e.cols[5][r_egg], ct_e.cols[6][r_egg]
+egg = ci_row(poe, :mu, "logEgg")      # the log(EggNo) row: estimate, lower, upper
 
 over_poe = sum(1 - Distributions.cdf(Distributions.Poisson(mu_e[i]), females.EggNo[i])
                for i in 1:n_fem)
@@ -225,83 +211,30 @@ over_poe = sum(1 - Distributions.cdf(Distributions.Poisson(mu_e[i]), females.Egg
 @printf("AIC, Age + log(EggNo): %.4f   (drop of %.4f for one parameter)\n",
         aic(poe), d_aic_exposure)
 @printf("Pearson X2/df        : %.4f  ->  %.4f\n", disp_pois, disp_poe)
-@printf("log(EggNo) coefficient: %.4f  [%.4f, %.4f]\n", b_egg, egg_lo_ci, egg_hi_ci)
+@printf("log(EggNo) coefficient: %.4f  [%.4f, %.4f]\n", egg.estimate, egg.lower, egg.upper)
 @printf("expected impossible rows: %.2f  ->  %.2f\n", over_pois, over_poe)
 ```
 
 **Momo:** That is a much bigger number than I was expecting.
 
-**Itchy:** **`{julia} round(d_aic_exposure, digits = 1)` AIC, for one parameter, from a column that was already in your file.** The Pearson statistic falls from `{julia} round(disp_pois, digits = 2)` to `{julia} round(disp_poe, digits = 2)` — that is most of the way to a met assumption — and the impossible mass falls from about `{julia} round(over_pois, digits = 1)` birds to about `{julia} round(over_poe, digits = 1)`. Now look at the coefficient itself, because it is the answer to your offset question. It came out at `{julia} round(b_egg, digits = 2)`, with an interval of `{julia} round(egg_lo_ci, digits = 2)` to `{julia} round(egg_hi_ci, digits = 2)`.
+**Itchy:** **`{julia} round(d_aic_exposure, digits = 1)` AIC, for one parameter, from a column that was already in your file.** The Pearson statistic falls from `{julia} round(disp_pois, digits = 2)` to `{julia} round(disp_poe, digits = 2)` — that is most of the way to a met assumption — and the impossible mass falls from about `{julia} round(over_pois, digits = 1)` birds to about `{julia} round(over_poe, digits = 1)`. Now look at the coefficient itself, because it is the answer to your offset question. It came out at `{julia} round(egg.estimate, digits = 2)`, with an interval of `{julia} round(egg.lower, digits = 2)` to `{julia} round(egg.upper, digits = 2)`.
 
 **Toto:** That interval contains one.
 
-**Itchy:** That interval contains one, and **an offset is precisely this coefficient pinned at one instead of estimated**. It is the stronger, cheaper model when the proportionality really holds, and here the data have no complaint about it. Our engine cannot write it yet — a known limitation, reported to the engine's authors — so I am teaching the free coefficient and showing you the version with the coefficient held at one in R, where it is one word.
-
-<!-- box: translate | id: exposure-offset | ch: 04 | checked: 2026-09-07 -->
-
-> **↔ TRANSLATE: the same fit to every digit, and one model R can write that we cannot**
->
-> `drmTMB` fits `Fledglings ~ Age + log(EggNo)` and returns the identical estimates and
-> standard errors — `{julia} round(b_egg, digits = 4)` on `log(EggNo)`, and the same log-likelihood — which is the
-> reassuring half. The interesting half is the model above it, `offset(log(EggNo))`, which pins
-> that coefficient at one and therefore spends **no parameter at all**. R writes it in one word;
-> we cannot write it yet.
->
-> Both AICs are printed in the block below. **The offset's is the lower of the two**, on one
-> parameter fewer than the fit above — and the free coefficient's is the number printed above,
-> so read it off the Julia output rather than from here. That is the whole
-> argument for an offset: a better AIC *and* one fewer parameter, because the constraint the
-> offset imposes happens to be true here. If the coefficient had come back at, say, half, the
-> offset would have been a bad model confidently stated, and fitting it free is how you find
-> that out.
->
-> The R block below was **run once, by hand**, with R on 2026-09-07 against the same archived
-> file this chapter reads, and pasted in; it is not re-run when the page is built.
-
-```r
-# R output, run once by hand on 2026-09-07 and pasted here; not re-run when the page is built.
-# drmTMB 0.7.0 / R 4.6.0. Run with Rscript, reading
-# data/2012/FemaleSuccess.csv:
-#   m1 <- drmTMB(bf(Fledglings ~ Age + offset(log(EggNo))), family = poisson(), data = d)
-#   m2 <- drmTMB(bf(Fledglings ~ Age + log(EggNo)),         family = poisson(), data = d)
-
-<summary.drmTMB>                      # m1: the offset
-estimator: ML
-                  estimate std_error
-mu:(Intercept) -1.27349825 0.1088804
-mu:Age          0.07809204 0.0481982
-logLik: -323.5
-convergence: 0
-
-AIC: 651.0224
-
-<summary.drmTMB>                      # m2: the free coefficient, as fitted above in Julia
-estimator: ML
-                  estimate  std_error
-mu:(Intercept) -1.16947064 0.25461252
-mu:Age          0.08518277 0.05070874
-mu:log(EggNo)   0.95030758 0.11022826
-logLik: -323.4
-convergence: 0
-
-AIC: 652.8208
-```
-
-**Itchy:** Now the part that should frighten you. Momo, what happened to your biology?
+**Itchy:** That interval contains one, and **an offset is precisely this coefficient pinned at one instead of estimated**. It is the stronger, cheaper model when the proportionality really holds, and fitting the coefficient free first is how you find out whether it does: had it come back at a half, the offset would have been a bad model confidently stated. Here the data have no complaint. This engine has no offset term yet, so the free coefficient is the model we keep, which is the one you should fit first in any case ([Where the engine stops](appendix-b-engine.html)). Now the part that should frighten you. Momo, what happened to your biology?
 
 ```{julia}
 #| label: biology-moved
-ct_p = coeftable(pois)
-r_age_p = findfirst(==("mu: Age"), ct_p.rownms)
-r_age_e = findfirst(==("mu: Age"), ct_e.rownms)
+age_p = ci_row(pois, :mu, "Age")
+age_e = ci_row(poe, :mu, "Age")
 
-rr_naive = exp(coef(pois, :mu)[2])
-rr_expos = exp(coef(poe, :mu)[2])
+rr_naive = exp(age_p.estimate)
+rr_expos = exp(age_e.estimate)
 
 @printf("rate ratio on Age, Age only         : %.4f  [%.4f, %.4f]\n",
-        rr_naive, exp(ct_p.cols[5][r_age_p]), exp(ct_p.cols[6][r_age_p]))
+        rr_naive, exp(age_p.lower), exp(age_p.upper))
 @printf("rate ratio on Age, Age + log(EggNo) : %.4f  [%.4f, %.4f]\n",
-        rr_expos, exp(ct_e.cols[5][r_age_e]), exp(ct_e.cols[6][r_age_e]))
+        rr_expos, exp(age_e.lower), exp(age_e.upper))
 ```
 
 **Momo:** It went from `{julia} round(rr_naive, digits = 2)` to `{julia} round(rr_expos, digits = 2)` and the interval covers one.
@@ -340,23 +273,12 @@ v_bin = females.EggNo .* p_bin .* (1 .- p_bin)
 
 disp_bin = sum((females.Fledglings .- m_bin) .^ 2 ./ v_bin) / dof_residual(bin)
 
-# The two Pearson statistics are computed on DIFFERENT responses, so most of the
-# jump between them is arithmetic: the binomial divides by n p (1 - p) where the
-# count model divides by n p, which is smaller by a factor (1 - p).
-mech_inflation = sum(m_bin) / sum(v_bin)
-
 @printf("Binomial: Pearson X2/df = %.4f\n", disp_bin)
-@printf("ratio to the exposure Poisson's %.4f : %.4f\n", disp_poe, disp_bin / disp_poe)
-@printf("inflation predicted by the change of variance function alone: %.4f\n", mech_inflation)
 ```
 
 **Toto:** That is worse than the Poisson one was.
 
-**Itchy:** Do not say that, and I am going to forbid the same move for AIC in about twenty minutes, so let me forbid it here first. Those two statistics are computed on **different responses**. At the same fitted mean the binomial divides the same squared deviations by something smaller, by a factor of one minus p, so it *must* come out bigger. Predict the inflation from that alone and you get `{julia} round(mech_inflation, digits = 3)`; the ratio you actually saw is `{julia} round(disp_bin / disp_poe, digits = 3)`. **They agree, so the jump from `{julia} round(disp_poe, digits = 2)` to `{julia} round(disp_bin, digits = 2)` is not evidence of anything.**
-
-**Toto:** Then what is?
-
-**Itchy:** `{julia} round(disp_bin, digits = 2)` on its own terms, against the one it is allowed to be compared with. This model already knows about the eggs, and its own variance claim is still rejected by its own residuals — a rejection that owes nothing to the comparison you just drew. **This is the overdispersion the chapter is named for.** A brood is not `EggNo` independent coin flips: a good territory, a good mate or a good year moves all of a female's chicks together, and the binomial has no way to say so. So free the variance, exactly as before — one verb, a second formula in the box, a different family.
+**Itchy:** Do not say that, and I am going to forbid the same move for AIC in about twenty minutes, so let me forbid it here first. Those two statistics are computed on **different responses** — at the same fitted mean the binomial divides the same squared deviations by something smaller, so it *must* come out bigger — and a Pearson statistic is never compared across responses. Read `{julia} round(disp_bin, digits = 2)` on its own terms: this model already knows about the eggs, and its own variance claim is still rejected by its own residuals. **This is the overdispersion the chapter is named for.** A brood is not `EggNo` independent coin flips: a good territory, a good mate or a good year moves all of a female's chicks together, and the binomial has no way to say so. So free the variance, exactly as before — one verb, a second formula in the box, a different family.
 
 ```{julia}
 #| label: fit-betabinomial
@@ -367,7 +289,7 @@ bbin
 
 **Momo:** The σ table came back.
 
-**Itchy:** The σ table came back, and that is the sentence I want you to leave the room with. In Class 3 there was nothing to print because the family had already spent the parameter. Say `BetaBinomial()` — or `NegBinomial2()`, in a minute — and the family hands it back, so the engine has something to estimate and something to print. **The absent table in Class 3 and the present table today are the same fact seen from two sides.** The beta-binomial lets each female have her own success probability, drawn from a beta distribution with mean p and precision φ, and the σ slot carries φ = 1/σ² the way θ will carry the negative binomial's.
+**Itchy:** The σ table came back, and that is the sentence I want you to leave the room with. In Class 3 there was nothing to print because the family had already spent the parameter. Say `BetaBinomial()` — or `NegBinomial2()`, in a minute — and the family hands it back, so the engine has something to estimate and something to print. **The absent table in Class 3 and the present table today are the same fact seen from two sides.** The beta-binomial lets each female have her own success probability, drawn from a beta distribution with mean p and precision φ. The σ slot carries that precision: the engine reports log σ, and φ = 1/σ², so φ = exp(−2 log σ), which is the first line of the next cell. θ will come out of the negative binomial's σ by the same arithmetic.
 
 ```{julia}
 #| label: betabinomial-paid
@@ -390,7 +312,7 @@ d_aic_bb = aic(bin) - aic(bbin)
 
 **Momo:** How do I choose between the two responses, then?
 
-**Itchy:** By what you are asking, not by AIC. If the biology is about production — how many chicks come out of this female — model the count and put the eggs in as an exposure. If it is about **success rate given the attempt**, model the proportion, and then the ceiling is built in rather than negotiated. Now the check I have been putting off, because it is the one this book has been sloppy about.
+**Itchy:** By what you are asking, not by AIC. If the biology is about production — how many chicks come out of this female — model the count and put the eggs in as an exposure. If it is about **success rate given the attempt**, model the proportion, and then the ceiling is built in rather than negotiated.
 
 ### A band is not a promise that the dots are inside it
 
@@ -427,78 +349,24 @@ claim_bin, claim_bb = claimed_coverage(dist_bin, m_bin, v_bin), claimed_coverage
 **Itchy:** A lot of the birds are outside both bands, **and that is not a criticism** — a ±1 SD band is not supposed to contain the data. Its **coverage** is simply the share of birds it actually holds, and the number to compare it with is the share the model says it should hold. For these counts the binomial's own band should hold about `{julia} round(claim_bin, digits = 2)` of the birds and holds `{julia} round(cov_bin, digits = 2)`, a shortfall of `{julia} round(Int, 100 * (claim_bin - cov_bin))` percentage points. The beta-binomial claims `{julia} round(claim_bb, digits = 2)` and delivers `{julia} round(cov_bb, digits = 2)`. **Compare a band with its own claim, never with your intuition about what a band should hold.** Now the plot from Class 3, on the repaired model.
 
 ```{julia}
-#| label: worm-arithmetic
-#| output: false
-# The ±2SE envelope fig_diagnostic draws, reproduced here so that what we COUNT is
-# exactly what the figure SHOWS. erfinv_approx comes from tools/figures.jl.
-function worm_outside(q)
-    m = length(q)
-    p = ((1:m) .- 0.5) ./ m
-    theo = sqrt(2) .* erfinv_approx.(2 .* p .- 1)
-    dev = sort(q) .- theo
-    se = sqrt.(p .* (1 .- p) ./ m) ./ (exp.(-theo .^ 2 ./ 2) ./ sqrt(2π))
-    out = abs.(dev) .> 2 .* se
-    longest = 0; run_len = 0; sgn = 0
-    for i in 1:m
-        if out[i]
-            run_len = (run_len > 0 && sign(dev[i]) == sgn) ? run_len + 1 : 1
-            sgn = sign(dev[i])
-        else
-            run_len = 0; sgn = 0
-        end
-        longest = max(longest, run_len)
-    end
-    idx = findall(out)
-    span = isempty(idx) ? (NaN, NaN) : (minimum(theo[idx]), maximum(theo[idx]))
-    (out = count(out), longest = longest, lo = span[1], hi = span[2],
-     neg_left = count(dev[1:div(m, 3)] .< 0), third = div(m, 3))
-end
-```
-
-```{julia}
 #| label: fig-diagnostic
 #| fig-cap: "A **detrended** worm plot of the beta-binomial fit: each randomised quantile residual minus the normal quantile it should have been, against that quantile, inside a pointwise ±2 SE envelope. A correct model gives a flat scatter about **zero** — not a diagonal — so read the horizontal line, not a 45° one."
 qres_bin = residuals(bin; type = :quantile, rng = MersenneTwister(6))
 qres_bb = residuals(bbin; type = :quantile, rng = MersenneTwister(7))
 
-w_bin, w_bb = worm_outside(qres_bin), worm_outside(qres_bb)
-
-@printf("Binomial     : quantile residual SD %.4f (%.2f Monte Carlo SE from 1), %d of %d outside the envelope, longest same-sign run %d\n",
-        std(qres_bin), abs(std(qres_bin) - 1) / mcse_rqr, w_bin.out, n_fem, w_bin.longest)
-@printf("BetaBinomial : quantile residual SD %.4f (%.2f Monte Carlo SE from 1), %d of %d outside the envelope, longest same-sign run %d\n",
-        std(qres_bb), abs(std(qres_bb) - 1) / mcse_rqr, w_bb.out, n_fem, w_bb.longest)
-@printf("BetaBinomial : those %d sit between theoretical quantile %.2f and %.2f, and %d of the lowest %d deviations are negative\n",
-        w_bb.out, w_bb.lo, w_bb.hi, w_bb.neg_left, w_bb.third)
+@printf("Binomial     : quantile residual SD %.4f\n", std(qres_bin))
+@printf("BetaBinomial : quantile residual SD %.4f\n", std(qres_bb))
 
 fig_diagnostic(qres_bb; title = "beta-binomial fit")
 ```
 
 **Momo:** From `{julia} round(std(qres_bin), digits = 2)` down to `{julia} round(std(qres_bb), digits = 2)`.
 
-**Itchy:** And read that second number against its error bar rather than its digits: `{julia} round(std(qres_bb), digits = 2)` is `{julia} round(abs(std(qres_bb) - 1) / mcse_rqr, digits = 1)` Monte Carlo standard errors from one, which is noise. The picture mostly agrees: `{julia} w_bb.out` of `{julia} n_fem` points leave the envelope, with a longest same-sign run of `{julia} w_bb.longest`. Put that next to the Poisson worm plot at the end of Class 3, which left the envelope for most of its length in a systematic S. **A scattered handful outside a pointwise envelope is what an envelope is for; a long one-sided run down the plot is a diagnosis.** This one has the handful and not the run.
+**Itchy:** Near one, which is as much as the SD of `{julia} n_fem` random draws can tell you; the picture is the better judge. Put it next to the Poisson worm plot at the end of Class 3, which left the envelope for most of its length in a systematic S. **A scattered few outside a pointwise envelope is what an envelope is for; a long one-sided run down the plot is a diagnosis.**
 
 **Toto:** But it is not flat. It sags on the left and bulges in the middle.
 
-**Itchy:** It does, and I am glad you said it rather than me, because that is the part a caption will not tell you. All `{julia} w_bb.out` of the escaping points sit between theoretical quantile `{julia} round(w_bb.lo, digits = 1)` and `{julia} round(w_bb.hi, digits = 1)` — one short stretch on the left flank. Now the sag itself, and here I am going to make you do the thing I told you to do with the SD, because a count of signs is a randomisation draw exactly as an SD is.
-
-```{julia}
-#| label: worm-seed-sweep
-# How many of the lowest third of the deviations are negative? That is one draw
-# from the residual randomiser, so recount it over two hundred rngs. Only the
-# residuals are redrawn; the fitted model never moves.
-neg_by_seed = [worm_outside(residuals(bbin; type = :quantile,
-                                      rng = MersenneTwister(s))).neg_left for s in 1:200]
-neg_med = median(neg_by_seed)
-neg_lo, neg_hi = quantile(neg_by_seed, 0.1), quantile(neg_by_seed, 0.9)
-neg_sym = div(w_bb.third, 2)     # what a symmetric residual would give
-neg_share_above = mean(neg_by_seed .> neg_sym)   # share of the 200 draws that clear the symmetric count
-
-@printf("negatives among the lowest %d deviations, over 200 rngs: median %.1f, 10th to 90th %.1f to %.1f\n",
-        w_bb.third, neg_med, neg_lo, neg_hi)
-@printf("the draw shown above gave: %d;  a symmetric residual would give %d\n", w_bb.neg_left, neg_sym)
-```
-
-**Itchy:** The typical count is `{julia} round(neg_med, digits = 1)` of `{julia} w_bb.third`, with an ordinary range of `{julia} round(Int, neg_lo)` to `{julia} round(Int, neg_hi)`, against the `{julia} neg_sym` a symmetric residual would give. **The sag is real** — `{julia} round(neg_med, digits = 1)` sits well above `{julia} neg_sym` in `{julia} string(round(Int, 100 * neg_share_above), "%")` of the two hundred draws, and only `{julia} string(round(Int, 100 * (1 - neg_share_above)), "%")` of them fall back to `{julia} neg_sym` or lower. And the particular draw shown above gives `{julia} w_bb.neg_left`, near the top of that range, so quoting *that* number as the evidence would have overstated the shape by a third. **That is the same lesson as the SD, on a statistic that looks like a count rather than an estimate.** **The sag is a shape, it is inside the envelope almost everywhere, and it is honest to report it as a shape rather than as a pass.** What it is not is the whole-plot S that convicted the Poisson. Deviations in a worm plot are **order statistics** — the same residuals sorted smallest to largest, one per rank — and therefore heavily **autocorrelated**: sorting pins each one between its neighbours, so a smooth wander is the ordinary condition; what you convict on is a run that leaves the envelope and stays out.
+**Itchy:** It does, and the sag is where the few escaping points are: one short stretch on the left flank. Report that as a shape rather than as a pass. What it is not is the S that convicted the Poisson. Class 5 is where you learn to count what is outside, and to decide whether a shape is a finding.
 
 **Toto:** So this model is right?
 
@@ -507,8 +375,6 @@ neg_share_above = mean(neg_by_seed .> neg_sym)   # share of the 200 draws that c
 ### So where does the negative binomial come in
 
 **Itchy:** Momo has been patient for the second time this morning. The negative binomial is the repair everyone reaches for first, it is the one Class 3 promised you, and it deserves ten minutes rather than an hour. It changes exactly one line of the decree:
-
-<!-- eq: hand-typed; replace with equations(fit) when Symbolizer.jl lands -->
 
 > **y_i ~ NegBinomial2(μ_i, θ),  log μ_i = β0 + β1 x_i,  Var(y_i | x_i) = μ_i + μ_i²/θ**
 
@@ -543,15 +409,15 @@ quasi_ratio = sqrt(disp_pois)
 
 **Toto:** The Poisson was lying about the error bar, not the answer.
 
-**Itchy:** Written on the board. **Overdispersion is a disease of standard errors** — and it is not a coincidence, it is a theorem. The equations a Poisson fit solves to find β have the right answer as their solution, on average, *whatever* the true variance is — the statisticians' phrase is that the score equations are unbiased estimating equations — so the estimate stays trustworthy even when the variance model is wrong; the only thing the wrong variance corrupts is the standard error. Note the direction, too: the Poisson model does not shrink the interval because of overdispersion, it shrinks it because it refuses to admit the overdispersion, which is the worst possible failure mode. Nobody rejects a paper for being too confident.
+**Itchy:** Written on the board. **Overdispersion is a disease of standard errors** — and it is not a coincidence, it is a theorem. The equations a Poisson fit solves to find β have the right answer as their solution, on average, *whatever* the true variance is, so the estimate stays trustworthy even when the variance model is wrong; the only thing the wrong variance corrupts is the standard error. Note the direction, too: the Poisson model does not shrink the interval because of overdispersion, it shrinks it because it refuses to admit the overdispersion, which is the worst possible failure mode. Nobody rejects a paper for being too confident.
 
 **Momo:** And the quasi-Poisson? My old software offered me that.
 
-**Itchy:** One line, and it is why Ver Hoef and Boveng are first on the reading list. The quasi-Poisson keeps the Poisson mean and multiplies every standard error by the square root of the Pearson statistic: `{julia} round(quasi_ratio, digits = 3)` here, against the negative binomial's `{julia} round(se_ratio, digits = 3)`. They are close and they are not the same, because they weight the birds differently — the quasi-Poisson inflates every bird equally, the negative binomial downweights the big-mean birds. On another dataset they disagree about which coefficient matters. Now, the σ table, and a warning about the line the engine prints above it.
+**Itchy:** One line, and it is why Ver Hoef and Boveng are first on the reading list. The quasi-Poisson keeps the Poisson mean and multiplies every standard error by the square root of the Pearson statistic: `{julia} round(quasi_ratio, digits = 3)` here, against the negative binomial's `{julia} round(se_ratio, digits = 3)`. They are close and they are not the same, because they weight the birds differently — the quasi-Poisson inflates every bird equally, the negative binomial downweights the big-mean birds. On another dataset they disagree about which coefficient matters.
 
-**Momo:** It says σ = 1 is unit-dependent.
+**Momo:** The line above the σ table says σ = 1 is unit-dependent.
 
-**Itchy:** It says that above **every** σ table, and for the Gaussian sparrows in twenty minutes it will be true: σ = 1 mm is a curiosity about millimetres. Here it is false. For `NegBinomial2()` σ is **dimensionless**, and σ = 1 means θ = 1, that is Var = μ + μ², which is a real and interpretable dispersion hypothesis. The z printed on that row is a genuine test of it, and it rejects. The engine prints that warning without checking which family you asked for, so here it prints something untrue. That is a fault in the software rather than something for you to learn. Read the line, then decide whether it applies to your family.
+**Itchy:** For the Gaussian sparrows in twenty minutes it will be. Here σ is dimensionless, σ = 1 means θ = 1, and the z on that row is a real test of it, which rejects; the header is a habit of the engine, not a fact about the family ([Where the engine stops](appendix-b-engine.html)).
 
 **Momo:** Can I see the assumption itself rather than its consequences?
 
@@ -644,8 +510,6 @@ combine(groupby(sparrows, :Sex), nrow => :n, :Wing => std => :wing_sd)
 
 **Itchy:** Class 2 fitted wing on tarsus and sex, and printed a single residual standard deviation for every bird on the island. Here is that model and here is the same model with a second formula in the box.
 
-<!-- eq: hand-typed; replace with equations(fit) when Symbolizer.jl lands -->
-
 > **y_i ~ N(μ_i, σ_i²),  μ_i = β0 + β1 tarsus_i + β2 male_i,  log σ_i = γ0 + γ1 male_i**
 
 ```{julia}
@@ -677,20 +541,21 @@ sd_range = extrema(sigma(fit_ls))
 @printf("location-scale model, the range  : %.4f to %.4f mm\n", sd_range[1], sd_range[2])
 ```
 
-**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts, and I already know how this ends because we ran it in Class 2.
+**Itchy:** Females scatter by about `{julia} round(sigma_f, digits = 2)` mm around their line, males by about `{julia} round(sigma_m, digits = 2)` mm. Males a little **more**, which is not what I would have guessed. Now the verdicts.
 
 ```{julia}
 #| label: sparrow-verdicts
-ct_ls = coeftable(fit_ls)
-r_sex = findfirst(==("sigma: Sex: male"), ct_ls.rownms)
-g1 = ct_ls.cols[1][r_sex]
-se_g1 = ct_ls.cols[2][r_sex]
-z_sex = ct_ls.cols[3][r_sex]
-p_sex = ct_ls.cols[4][r_sex]
+g = ci_row(fit_ls, :sigma, "Sex: male")   # log of the male/female sigma ratio
+# By name, not position: same route as ci_row (match the sigma block's own name
+# vector), so this keeps working if a parameter is ever added after sigma.
+se_g1 = stderror(fit_ls)[only(idx for ((p, r), (_, nms)) in zip(fit_ls.blocks, fit_ls.coefnames)
+                                   if p === :sigma for (idx, nm) in zip(r, nms) if nm == "Sex: male")]
+z_sex = g.estimate / se_g1
+p_sex = 2 * Distributions.ccdf(Distributions.Normal(), abs(z_sex))
 d_aic_sp = aic(fit_ls) - aic(fit_const)
 
-ratio_sex = exp(g1)
-ratio_lo, ratio_hi = exp(ct_ls.cols[5][r_sex]), exp(ct_ls.cols[6][r_sex])
+ratio_sex = exp(g.estimate)
+ratio_lo, ratio_hi = exp(g.lower), exp(g.upper)
 
 # Smallest sigma ratio this design could have detected at 80% power, alpha = 0.05.
 z_a = Distributions.quantile(Distributions.Normal(), 0.975)
@@ -711,7 +576,7 @@ mdr = exp((z_a + z_b) * se_g1)
 
 **Momo:** So the answer is not "no".
 
-**Itchy:** The answer is **not detected**, and the two are not the same sentence. With `{julia} n_sp` birds, the smallest ratio this design could have caught four times out of five is `{julia} round(mdr, digits = 2)`. Anything smaller than that was never going to show up, whether or not it is there. **"We could not tell them apart, and we could only have seen a `{julia} round(Int, 100 * (mdr - 1))`% difference" is the honest report; "the answer is no" is an accepted null wearing a lab coat.** Class 2 reports this identical fit in exactly those terms, and it is worth turning back to check that it does, because a book that says "no" in one chapter and "not detected" in another has not decided what it believes.
+**Itchy:** The answer is **not detected**, and the two are not the same sentence. With `{julia} n_sp` birds, the smallest ratio this design could have caught four times out of five is `{julia} round(mdr, digits = 2)`. Anything smaller than that was never going to show up, whether or not it is there. **"We could not tell them apart, and we could only have seen a `{julia} round(Int, 100 * (mdr - 1))`% difference" is the honest report; "the answer is no" is an accepted null wearing a lab coat.**
 
 **Momo:** So one of your repairs worked and the other did not.
 
@@ -762,30 +627,28 @@ fig
 ### Stats stuff
 
 - **Compare like with like.** A Poisson *regression* decrees Var(y | x) = μ(x); it says nothing about the variance-to-mean ratio of the raw counts, which also carries the variation the predictors create. Here the raw ratio is `{julia} round(ratio_raw, digits = 2)` and a perfectly correct Poisson would still imply `{julia} round(ratio_implied, digits = 2)`. Check overdispersion on residuals, not on the marginal moments.
-- **Look for an exposure before you blame the family.** An offset or denominator sitting unused in your data is the commonest cause of "overdispersion" and the cheapest to fix. Here `log(EggNo)` bought about `{julia} round(Int, d_aic_exposure)` AIC for one parameter and moved the age rate ratio from `{julia} round(rr_naive, digits = 2)` to `{julia} round(rr_expos, digits = 2)`, interval covering one. **A missing covariate and a wrong variance function look identical in a residual plot.**
+- **Look for an exposure before you blame the family.** A denominator sitting unused in your data is the commonest cause of "overdispersion" and the cheapest to fix: here `log(EggNo)` bought about `{julia} round(Int, d_aic_exposure)` AIC for one parameter and moved the age rate ratio from `{julia} round(rr_naive, digits = 2)` to `{julia} round(rr_expos, digits = 2)`, interval covering one. **A missing covariate and a wrong variance function look identical in a residual plot.**
 - **An offset is a covariate with its coefficient pinned at one.** Fit it free first: if the interval covers one, the offset is the better model; if it does not, the offset would have been a confident mistake.
-- **Successes out of trials is not a count.** For *n* > 1 the binomial variance is *n*·p(1 − p), which is a real claim — the trials within a row are independent — and data can break it. For *n* = 1 it is an identity, which is why Class 3's logistic diagnostic could not fail.
+- **Successes out of trials is not a count.** For *n* > 1 the binomial variance is *n*·p(1 − p), a real claim — the trials within a row are independent — that data can break. For *n* = 1 it is an identity, which is why Class 3's logistic diagnostic could not fail.
 - **The beta-binomial frees that claim with one parameter**, as the negative binomial frees Var = μ with θ. Here it bought about `{julia} round(Int, d_aic_bb)` AIC and took the Pearson statistic from `{julia} round(disp_bin, digits = 2)` to `{julia} round(disp_bb, digits = 2)`.
-- **AIC compares models of the same response.** Counts and proportions-out-of-a-denominator are different data. Choose between them by the question you are asking, not by the smaller number.
-- **Overdispersion is a disease of standard errors, and that is a theorem.** The Poisson score equations are unbiased estimating equations for β whatever the true variance, so the point estimate stays consistent; only its standard error was wrong. Here it was wrong by a factor of `{julia} round(se_ratio, digits = 2)`, against the quasi-Poisson's `{julia} round(quasi_ratio, digits = 2)` — close, not identical, because the two weight observations differently.
-- **Read the null the engine prints above the σ table, then check it applies to your family.** For a Gaussian, σ = 1 is unit-dependent and rarely interesting. For `NegBinomial2()` and `BetaBinomial()`, σ is dimensionless and σ = 1 is a real dispersion hypothesis that the printed z genuinely tests.
+- **AIC compares models of the same response.** Counts and proportions-out-of-a-denominator are different data; choose between them by the question you are asking, not by the smaller number. The same goes for a Pearson statistic.
+- **Overdispersion is a disease of standard errors, and that is a theorem.** The Poisson point estimate stays trustworthy whatever the true variance; only its standard error was wrong, here by a factor of `{julia} round(se_ratio, digits = 2)`, against the quasi-Poisson's `{julia} round(quasi_ratio, digits = 2)` — close, not identical, because the two weight observations differently.
 - **Judge a band against its own claim.** A ±1 SD band is not supposed to contain the data. Ask the model what coverage it claims and compare: `{julia} round(cov_bin, digits = 2)` against `{julia} round(claim_bin, digits = 2)` for the binomial, `{julia} round(cov_bb, digits = 2)` against `{julia} round(claim_bb, digits = 2)` for the beta-binomial.
 - **"Not detected" is not "no".** The sparrows' σ ratio is `{julia} round(ratio_sex, digits = 2)` with an interval of `{julia} round(ratio_lo, digits = 2)` to `{julia} round(ratio_hi, digits = 2)`, and the smallest ratio this design could have caught at 80% power is `{julia} round(mdr, digits = 2)`. Report the interval and the detectable size, not a verdict.
 - **A model comparison that goes against you is a result.** The counts earned their beta-binomial parameter and the sparrows lost their σ term by about `{julia} round(d_aic_sp, digits = 1)` AIC. Reporting only the one that worked is how a literature goes wrong.
-- **Plot the assumption, not only its consequences.** Mean against variance, binned, with the family's claim drawn as a curve and marker area showing sample size, is the fastest way to see a variance assumption fail or hold.
-- **This chapter still pretends rows are independent**, and these files cannot stop it. `FemaleSuccess.csv` carries no female identifier at all; `MBodySize.csv` does carry `BirdID`, but one row per bird, so there is nothing for a random intercept to group. The repeated-measures file is `BodySize.csv`. Class 6 removes the pretence there, and Class 9 puts today's freed variance and Class 6's freed correlation into the same model.
+- **Plot the assumption, not only its consequences.** Mean against variance, binned, with the family's claim drawn as a curve and marker area showing sample size.
+- **What this chapter still pretends.** Every model here treats its rows as strangers, and these files cannot stop it: `FemaleSuccess.csv` carries no female identifier, and `MBodySize.csv` is one row per bird. Class 6 ends the pretence on a file that repeats birds, and the standard errors printed here will move when it does.
 
 ### Julia stuff
 
 - `drm(bf(@formula(cbind(k, n - k) ~ x)), Binomial(); data = df)`: a **grouped** binomial. The response is two columns — successes and failures — and `cbind` is DRM's own marker, not R's function.
 - `drm(bf(@formula(cbind(k, n - k) ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)`: the overdispersed version. `coef(fit, :sigma)` is log σ and the precision is φ = 1/σ², so `exp(-2 * coef(fit, :sigma)[1])`.
-- `drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), NegBinomial2(); data = df)`: overdispersed counts, with θ = 1/σ² by the same arithmetic. Neither engine prints θ or φ for you.
-- **There is no `offset` in DRM.jl 0.7.1** — a known limitation, reported to the engine's authors. Add `log(exposure)` as an ordinary covariate and check whether its interval covers one; `drmTMB` writes `offset(log(exposure))` directly.
+- `drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), NegBinomial2(); data = df)`: overdispersed counts, with θ = 1/σ² by the same arithmetic.
 - `drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)`: a location-scale Gaussian fit. `coef(fit, :sigma)` is on the log scale; exponentiate for millimetres.
-- `sigma(fit)`: the response-scale σ per observation for a Gaussian fit. On a constant-σ fit every element is the same number; on a modelled σ it is a range, which is what the fit header prints. On `BetaBinomial()` it returns the σ **and** the trial counts, so read θ or φ off `coef(fit, :sigma)` instead.
-- `coeftable(fit)`: row names are prefixed by block, so `"mu: Age"` and `"sigma: Sex: male"`. Columns 5 and 6 are the confidence limits, on the **link** scale, so exponentiate them for a rate ratio or a σ ratio.
-- `dof_residual(fit)`: exported and needed for a Pearson dispersion statistic, which the engine does not compute for you.
-- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: standard normal under a correct model for every family here. **Pass the `rng`** — and know that *which* rng you pass moves the second decimal, so quote the SD against its Monte Carlo standard error of 1/√(2n) rather than reading its digits.
+- `sigma(fit)`: the response-scale σ per observation for a Gaussian fit. On a constant-σ fit every element is the same number; on a modelled σ it is a range, which is what the fit header prints.
+- `confint(fit; parm = :sigma)`: one row per coefficient of that block, each with `.estimate`, `.lower` and `.upper` on the **link** scale, so exponentiate for a rate ratio or a σ ratio. `ci_row` above picks one row by name.
+- `dof_residual(fit)`: the residual degrees of freedom, for a Pearson dispersion statistic.
+- `residuals(fit; type = :quantile, rng = MersenneTwister(seed))`: standard normal under a correct model for every family here. **Pass the `rng`**, and know that *which* rng you pass moves the second decimal, so do not read the SD's digits.
 - `import Distributions`: needed here because DRM exports its own `Poisson`, `Binomial` and `BetaBinomial`. Qualify the distribution as `Distributions.Poisson(μ)` when you want a pmf or a cdf.
 - **Marker size as sample size.** `markersize = 3 .* sqrt.(n)` in a binned plot. Area, not radius, is what the eye reads.
 - **The simulation thread.** Ask the negative-binomial fit to invent two hundred new sets of females, refit each, and watch which parameter is well pinned down and which is not.
@@ -808,29 +671,16 @@ pairs_out = [refit_pair(ysim[:, k]) for k in 1:size(ysim, 2)]
 slopes = first.(pairs_out)
 thetas = last.(pairs_out)
 
-# Monte-Carlo SE of a median, so the "bias" claim carries its own error bar.
-# The textbook 1.2533 * SD / sqrt(n) is a LARGE-SAMPLE formula and runs wide for a
-# statistic this skewed, so resample the refits themselves and use that instead.
-rng_boot = MersenneTwister(4321)
-n_ref = length(thetas)
-boot_med = [median(thetas[rand(rng_boot, 1:n_ref, n_ref)]) for _ in 1:2000]
-mcse_median = std(boot_med)
-mcse_asymptotic = 1.2533 * std(thetas) / sqrt(n_ref)
-bias_pct = 100 * (median(thetas) - theta) / theta
-
 @printf("slope on Age    : fitted %.4f, reported SE %.4f\n", coef(nb, :mu)[2], se_nb[2])
 @printf("                  refits: mean %.4f, SD %.4f\n", mean(slopes), std(slopes))
 @printf("\ntheta           : fitted %.4f\n", theta)
 @printf("                  refits: mean %.4f, median %.4f, SD %.4f\n",
         mean(thetas), median(thetas), std(thetas))
-@printf("                  median is %+.1f%% of the generating value, %.2f Monte Carlo SE (bootstrap Monte Carlo SE %.4f;\n",
-        bias_pct, abs(median(thetas) - theta) / mcse_median, mcse_median)
-@printf("                  the large-sample formula would have said %.4f, which is wider)\n", mcse_asymptotic)
 @printf("                  refits: 10th pct %.4f, 90th pct %.4f, max %.4f\n",
         quantile(thetas, 0.1), quantile(thetas, 0.9), maximum(thetas))
 ```
 
-The numbers above say "strongly asymmetric" six ways; here is the shape itself, so you can see it rather than assemble it from percentiles.
+The numbers above say "strongly asymmetric" several ways; here is the shape itself, so you can see it rather than assemble it from percentiles.
 
 ```{julia}
 #| label: fig-theta-refits
@@ -847,7 +697,7 @@ Legend(fig[1, 2], ax; framevisible = false)
 fig
 ```
 
-The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly **asymmetric** — the mean printed above sits higher than the median, the largest refit is `{julia} round(maximum(thetas) / theta, digits = 1)` times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about `{julia} round(theta, digits = 2)`. The median itself is `{julia} round(bias_pct, digits = 1)`% off the generating value, which is `{julia} round(abs(median(thetas) - theta) / mcse_median, digits = 2)` Monte-Carlo standard errors. Read that as **two hundred refits cannot resolve a bias of a few per cent**, not as *there is no bias*: the two sentences are different, and only the first one is what these two hundred refits measured. Note also which error bar it is measured against. The textbook Monte-Carlo standard error of a median, 1.2533 × SD/√n, is a large-sample approximation, and on a distribution this skewed it comes out at `{julia} round(mcse_asymptotic, digits = 3)` where resampling the refits themselves gives `{julia} round(mcse_median, digits = 3)` — so the formula understates the evidence by being too generous with the error bar, which is a nice inversion of the usual complaint. The asymmetry, though, is unmistakable, and it is why an interval read off the likelihood itself beats the plain estimate-plus-or-minus-two-standard-errors kind — the **Wald** interval, which assumes the uncertainty is the same size on both sides — for this parameter, and why quoting a dispersion to three decimal places is theatre. Appendix A takes that apart properly.
+The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly **asymmetric** — the mean printed above sits higher than the median, the largest refit is `{julia} round(maximum(thetas) / theta, digits = 1)` times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about `{julia} round(theta, digits = 2)`. So quote θ to one decimal, and prefer an interval read off the likelihood itself to the plain estimate-plus-or-minus-two-standard-errors kind — the **Wald** interval, which assumes the uncertainty is the same size on both sides. Appendix A takes that apart properly.
 
 ---
 
@@ -856,7 +706,7 @@ The slope behaves itself: the spread of refitted slopes lands close to the stand
 *Graded by depth. Details checked on 2026-09-07 against OpenAlex, an open catalogue of research papers.*
 
 1. **Ver Hoef, J. M. & Boveng, P. L. (2007) "Quasi-Poisson vs. negative binomial regression: how should we model overdispersed count data?", *Ecology* 88:2766–2772.** doi:10.1890/07-0043.1. Start here, and read it before you choose. It sets the negative binomial against the other standard repair, the quasi-Poisson, and the difference is not cosmetic: they weight observations differently, so they can disagree about which coefficient matters. This class computed both inflation factors in one line; the paper is why they are not the same number.
-2. **Lindén, A. & Mäntyniemi, S. (2011) "Using the negative binomial distribution to model overdispersion in ecological count data", *Ecology* 92:1414–1421.** doi:10.1890/10-1831.1. The ecologist's companion to the equation on the board, and the paper that would have caught this chapter's first mistake: its abstract is about the **mechanisms** that generate overdispersion — sampling, flocking, aggregation, environmental variability — which is exactly the question "is the family wrong, or is something missing from the mean?".
+2. **Lindén, A. & Mäntyniemi, S. (2011) "Using the negative binomial distribution to model overdispersion in ecological count data", *Ecology* 92:1414–1421.** doi:10.1890/10-1831.1. The ecologist's companion to the equation on the board, and the paper that would have caught Momo's first mistake: its abstract is about the **mechanisms** that generate overdispersion — sampling, flocking, aggregation, environmental variability — which is exactly the question "is the family wrong, or is something missing from the mean?".
 3. **Harrison, X. A. (2014) "Using observation-level random effects to model overdispersion in count data in ecology and evolution", *PeerJ* 2:e616.** doi:10.7717/peerj.616. The repair this chapter deliberately did not use, because it needs machinery from Class 6. Read it after Class 6 and then come back: it is a third route to the same problem, and knowing three routes is what stops you believing any one of them is the definition of the problem.
 4. **Rigby, R. A. & Stasinopoulos, D. M. (2005) "Generalized additive models for location, scale and shape", *Journal of the Royal Statistical Society Series C* 54:507–554.** doi:10.1111/j.1467-9876.2005.00510.x. The framework the last part of this class belongs to, and where rung 11 goes. This is the paper that says out loud that every parameter of a distribution can have a linear predictor, not only the mean. Long, and the introduction alone repays the afternoon.
 5. **Hilbe, J. M. (2011) *Negative Binomial Regression*, 2nd edition, Cambridge University Press.** doi:10.1017/cbo9780511973420. The reference book, for when you need the parameterisation you were handed rather than the one you like. Own it if counts are your day job; borrow it otherwise, and read the chapters on model selection and on the varieties of negative binomial.
@@ -869,26 +719,14 @@ Use your own organism where one is named. **For every question, paste your code 
 
 1. **Read the file before the model.** Take any count response of your own and list every other column. For each one, answer in a sentence: is this a predictor, an exposure, or neither? An exposure is anything that changes how much opportunity a row had — area searched, hours observed, eggs laid, individuals at risk. If you find one, you have found this chapter's first lesson in your own data.
 
-2. **Find the lie, honestly.** Report the variance-to-mean ratio of your raw counts. Then fit a Poisson model and report the Pearson X²/df and the standard deviation of `residuals(fit; type = :quantile, rng = MersenneTwister(1))` against its Monte Carlo standard error of 1/√(2n). Say which of the three you would put in a paper, and why the other two are still worth having computed.
+2. **Pay the exposure first.** If question 1 found an exposure, add `log(exposure)` to the mean model. Report both AICs, the coefficient on `log(exposure)` with its interval, and whether that interval covers one. Then report what happened to the coefficient you actually care about, and say in one sentence whether you would now write a different result.
 
-3. **The wrong benchmark.** From your fitted Poisson, compute `(mean(fitted(fit)) + var(fitted(fit))) / mean(fitted(fit))` — the marginal variance-to-mean ratio a *correct* Poisson regression implies for your data. Compare it with the raw ratio from question 2 and with one. Then write two sentences: one naming which of the two comparisons is like-for-like, and one saying how much of your apparent overdispersion survives it.
+3. **Pay the price.** Refit with `NegBinomial2()`, with and without the exposure. Report the coefficient, the standard error and the rate ratio in a four-row table, and report θ in both. Then write one sentence naming what changed and one naming what did not.
 
-4. **Pay the exposure first.** If question 1 found an exposure, add `log(exposure)` to the mean model. Report both AICs, the coefficient on `log(exposure)` with its interval, and whether that interval covers one. Then report what happened to the coefficient you actually care about, and say in one sentence whether you would now write a different result.
+4. **Out of how many?** If your response is a success count out of a known denominator, refit it as `cbind(successes, failures)` with `Binomial()` and then `BetaBinomial()`. Report both AICs, the Pearson X²/df under each, and φ. Then answer in one sentence why you may not compare either AIC with the count models from question 3.
 
-5. **Pay the price.** Refit with `NegBinomial2()`, with and without the exposure. Report the coefficient, the standard error and the rate ratio in a four-row table, and report θ in both. Then write one sentence naming what changed and one naming what did not.
+5. **The referee.** Report the AIC difference for the repair you kept. Then answer: if it had gone the other way, what would you have done, and would you have reported the comparison at all? Two sentences, and be honest in the second one.
 
-6. **Out of how many?** If your response is a success count out of a known denominator, refit it as `cbind(successes, failures)` with `Binomial()` and then `BetaBinomial()`. Report both AICs, the Pearson X²/df under each, and φ. Then answer in one sentence why you may not compare either AIC with the count models from question 5.
+6. **Eddie's dunnocks.** Fit `Wing ~ Tarsus` on Eddie's data, then add `@formula(sigma ~ Sex)` to the `bf`. Report both AICs, the z and p on the σ slope row, **the σ ratio with its interval**, and the smallest ratio your sample size could have detected at 80% power (`exp((1.96 + 0.84) * se)`). Then write the result as a "not detected, and we could only have seen X" sentence rather than a "no".
 
-7. **The referee.** Report the AIC difference for the repair you kept. Then answer: if it had gone the other way, what would you have done, and would you have reported the comparison at all? Two sentences, and be honest in the second one.
-
-8. **Momo's tadpoles.** Count something per pond and fit both families. Draw the mean-against-variance figure from this class, binning by a predictor of your choice, with marker area showing bin sample size. Name the bin you distrust most, say why, and give its n.
-
-9. **Eddie's dunnocks.** Fit `Wing ~ Tarsus` on Eddie's data, then add `@formula(sigma ~ Sex)` to the `bf`. Report both AICs, the z and p on the σ slope row, **the σ ratio with its interval**, and the smallest ratio your sample size could have detected at 80% power (`exp((1.96 + 0.84) * se)`). Then write the result as a "not detected, and we could only have seen X" sentence rather than a "no".
-
-10. **Count the band.** Take any fit from this class's exercises, draw its mean ± 1 SD band, and count how many of your observations fall outside it. Then ask the fitted distribution what fraction it *expects* to fall inside. Report both. One sentence on which of the two numbers a reader can interpret without the other.
-
-11. **The two faces.** Write one paragraph, no code, explaining to a labmate why `BetaBinomial()`, `NegBinomial2()` and `sigma ~ x` are the same move. Your paragraph must contain the phrase "held fixed" and must name what is held fixed in each case.
-
-12. **Simulate and watch it wander.** Adapt this class's last block of code to your own overdispersed fit, with your own seed. Report the SD of the refitted slopes against the reported standard error, and the 10th and 90th percentiles of the refitted dispersion parameter, with the Monte-Carlo standard error of the median. Say which of the two parameters you would be comfortable quoting a symmetric interval for.
-
-13. **The pretence, again.** Name the grouping this chapter is pretending away in your own data, and say whether your file actually records it — if it does not, say what a file that did would have to contain. Then say which number on today's output you expect Class 6 to change, in which direction.
+7. **The two faces.** Write one paragraph, no code, explaining to a labmate why `BetaBinomial()`, `NegBinomial2()` and `sigma ~ x` are the same move. Your paragraph must contain the phrase "held fixed" and must name what is held fixed in each case.

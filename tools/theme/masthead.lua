@@ -67,6 +67,8 @@ local CHAPTERS = {
     name = "Class 10 · Not even the groups are strangers" },
   { chapter = "A",  kicker = "", file = "appendix-a-simulation.html",
     name = "Appendix A · Simulation as a way of thinking" },
+  { chapter = "B",  kicker = "", file = "appendix-b-engine.html",
+    name = "Appendix B · Where the engine stops" },
   { chapter = "13", kicker = "Coda", file = "wk13-coda.html",
     name = "Coda · Where you go next" },
 }

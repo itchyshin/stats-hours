@@ -1,0 +1,51 @@
+---
+title: "Appendix B: where the engine stops"
+book: Stats Hours with Itchy
+chapter: B
+type: book-chapter
+status: draft
+created: 2026-09-12
+engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
+tags: [book, DRM.jl, drmTMB, engine, limitations, appendix]
+deck: "Every chapter that hits a wall in the engine says so in one sentence and sends you here. This is the wall, all of it, in one table."
+status_tag: Draft
+status_note: "A reference page, not a rung: it teaches nothing on its own. Every row was checked against the chapter that met it, at the engine version named above."
+provenance: "This page runs no code and computes nothing. Every row was observed by running a chapter of this book at the engine version named above, not by testing the engine directly on this page."
+caveat: "This is a record of what a reader meets while working through the book, not the engine's own issue tracker. A limitation with no issue number here is a known behaviour, not necessarily an open bug; some are the engine doing exactly what it documents, and the workaround is simply to know it."
+footer_note: "Stats Hours with Itchy · Appendix B of a planned 13, ten in version 1, plus a coda · draft, written 2026-09-12"
+---
+
+# Appendix B: where the engine stops
+
+Every class in this book fits real models with one engine, `drmTMB` in R and `DRM.jl` in Julia.
+Almost always it just works. Where it cannot — a call that refuses, a feature not yet written, an
+accessor that comes back empty — the chapter says so in one sentence and sends you here instead of
+stopping to explain the software. This page is that one place: what happens, what to do about it,
+and where it is tracked.
+
+| Feature | At this version | Workaround | Issue |
+|---|---|---|---|
+| Offset terms | Neither `drm()` nor its formula can pin a coefficient at one, the way `drmTMB` writes `offset(log(exposure))`. | Add the exposure as an ordinary covariate and check whether its estimated coefficient's interval covers one. | DRM.jl #727 |
+| `predict(fit, newdata)` | Takes a NamedTuple or column table, not a `DataFrame`. | Write `(; x = [value])`. | — |
+| Residual types | `residuals(fit; type = ...)` accepts only `:response` and `:quantile`; anything else, including `:pearson`, throws `ArgumentError`. | Compute the Pearson residual by hand: (y − μ̂)/√V(μ̂), with V the family's variance function. | — |
+| The "σ = 1" note | Printed above every scale table without checking which family it is talking to: unremarkable for a Gaussian (unit-dependent), but a real, testable claim for `NegBinomial2()` and `BetaBinomial()` (dimensionless). | Read which family you are in before deciding whether the note applies. | — |
+| `sigma(fit)` on `BetaBinomial()` | Returns the response-scale σ and the trial counts together, not θ or φ. | Read φ off `coef(fit, :sigma)`: the engine stores log σ, so φ = 1/σ² = exp(−2 log σ); the same move gives θ for `NegBinomial2()`. | — |
+| `lrtest`/`anova` refusals (Julia) | Refuses to compare two restricted-likelihood fits with different fixed effects, two fits using different random-effect approximations, or a penalised fit; warns when the tested parameter is a variance component. | Read the message — it names the fix (fit both by ML, match the approximation, or use the boundary-corrected test). | — |
+| `lrt_boundary(fit; q = 2)` | Implements the chi-bar-squared mixture for two *independent* boundary variance components — quarter, half, quarter on 0, 1 and 2 degrees of freedom. The independence assumption is stated in the function's own docstring. A correlated random slope adds one boundary variance and one interior correlation (the covariance), the Stram and Lee (1994) case, not this one — `q = 2` here applies the wrong mixture. | Compute the Stram and Lee mixture by hand: half on χ²(1), half on χ²(2). | — |
+| `anova()` (drmTMB, R) | Refuses every likelihood-ratio comparison, not only the invalid ones — an absence in the R package, not a disagreement between the twins. | Use the Julia engine's `lrtest` for a real comparison. | — |
+| `simulate(fit; nsim = k)` | Draws new responses with every random effect set to zero: population-level draws, not draws that reproduce a mixed model's total spread. | For a null that should have group effects, add them yourself from the same generator, seeded and passed as an argument. | — |
+| Correlated random slope, uncentred covariate | A Gaussian `(1 + x | g)` can throw `DomainError` — the log of a negative number — when the covariate sits far from zero. | Centre the covariate; the near-singular determinant is a numerical artefact of an off-centre origin, not evidence the effect is unidentifiable. | DRM.jl #762 |
+| `re_sd(fit)` on a correlated block | Returns an empty `Dict`; the printed covariance block is a Cholesky factor (`L11`, `L22`, `L21`), not σ₀, σ₁ and ρ. | Use `vc(fit)` instead — a covariance matrix. Take square roots of the diagonal for the SDs and divide for ρ. | DRM.jl #763 |
+| `Binomial()` random slopes | Accepts a random intercept `(1 | g)` but refuses a correlated random slope `(1 + x | g)`, where seven other families and the R twin accept one. | None yet. | DRM.jl #753 |
+| `confint(fit)` on a scale block | The `:resd` and `:sigma` rows come back on the log scale. | Exponentiate the endpoints for an interval on the standard deviation. | — |
+| `ranef(fit)` on a non-Gaussian fit | Returns an empty `Dict`; the failure is silent unless you index it, which raises a `KeyError`. | Compute the per-group effects yourself: a one-dimensional penalised maximisation, about six lines, checked against `ranef` on a Gaussian fit of the same groups. | DRM.jl #759 |
+| A second grouping on the binomial route | Can converge and return `Inf` standard errors for every level, with no warning. | Fit a Gaussian control on the same groups: if its standard errors are finite and its log-likelihood rose, the fault is the engine's binomial route, not your design. | DRM.jl #761 |
+| Quantile residuals on a GLMM | `fitted(fit)` sets every random effect to zero, so a residual is judged against the model's prediction at that point, not the population average — a different number on a nonlinear link. | Average the fitted curve over groups yourself before judging residuals against it. | DRM.jl #760 |
+| Quadrature on the binomial `(1|g)` route | A fixed 32-node, non-adaptive Gauss–Hermite grid centred at zero; `marginal = :AGHQ` is rejected. | Cross-check against `lme4::glmer` at a high `nAGQ`, and name the approximation in your methods sentence. | — |
+| REML on a structured random effect | `method = :REML` is rejected for a model such as `animal(1 | id)`; the error names where REML is available instead. | Fit by ML (the default) and, if the bias matters, measure it with a simulation from the ML fit. | — |
+| Two structured groupings in one model | Both must be written `relmat(1 | g)` with an explicit relatedness matrix; a plain `(1 | g)` will not combine with `animal()`. | Pass `relmat(1 | g)` with an identity matrix for the ordinary grouping. | — |
+| `heritability`/`repeatability` intervals | The `ci` field is centred on `corrected`, not on `estimate`. | Print `estimate`, `bias` and `corrected` together, and report `corrected`. | — |
+| Convergence warnings at a boundary | Can print a line naming a file inside the engine's own source. | That line is for the engine's authors, not you; read the rest of the warning. | — |
+
+The pinned version is named in every chapter's masthead, above. A repaired item is removed from
+this table, and its chapter re-verified, when the pin moves and the chapter runs clean again.

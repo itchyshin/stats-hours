@@ -171,7 +171,7 @@ taught with the same data you model in Class 2.
 
 The second is **simulation**. From Class 2 onward, most chapters end their "Julia stuff" with one
 short block of code that acts out what the model claims: draw new data from the fitted model, refit it, and watch
-the estimate wander (Classes 7 and 8 carry theirs in the body of the hour instead). It is not a rung, because a rung frees a constant and this is a way of
+the estimate wander (Class 8 carries its own in the body of the hour instead, and Class 7 hands the job to Class 8). It is not a rung, because a rung frees a constant and this is a way of
 thinking rather than a model; **Appendix A — simulation as a way of thinking** gathers the whole
 thread in one place: from how random numbers are made repeatable (a seed), to checking whether a
 confidence interval really catches the truth as often as it claims (coverage), to re-fitting a model

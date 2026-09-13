@@ -29,6 +29,7 @@ running organisms, and its habit of leaving the mistakes in.
   <li><a href="book/wk9-glmms.html">Class 9 — both at once</a><span class="status">Draft</span></li>
   <li><a href="book/wk10-relatedness.html">Class 10 — not even the groups are strangers</a><span class="status">Draft</span></li>
   <li><a href="book/appendix-a-simulation.html">Appendix A — simulation as a way of thinking</a><span class="status">Draft</span></li>
+  <li><a href="book/appendix-b-engine.html">Appendix B — where the engine stops</a><span class="status">Draft</span></li>
   <li><a href="book/wk13-coda.html">Coda — where you go next</a><span class="status">Draft</span></li>
 </ul>
 

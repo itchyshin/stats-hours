@@ -182,7 +182,7 @@ What it is not is a surprise on page two hundred.</p></div>
 <p><strong>The errors stay in.</strong> When a piece of code fails in this book, it fails on the page: a real Julia error, raised by the real engine, printed where it happened. Nothing is a screenshot of a failure. Class 1 breaks things on purpose four times, because reading the message afterwards is the skill that decides whether a reader arriving from R stays or bounces, and there is a literature saying so plainly (Barik et al.&nbsp;2017, cited in that chapter).</p>
 <p><strong>Two threads run the length of the climb</strong>, and they are not the same kind of thing.</p>
 <p>The first is Julia itself. Basic Julia is not an appendix and not a prerequisite — it is Class 1, taught with the same data you model in Class 2.</p>
-<p>The second is <strong>simulation</strong>. From Class 2 onward, most chapters end their “Julia stuff” with one short block of code that acts out what the model claims: draw new data from the fitted model, refit it, and watch the estimate wander (Classes 7 and 8 carry theirs in the body of the hour instead). It is not a rung, because a rung frees a constant and this is a way of thinking rather than a model; <strong>Appendix A — simulation as a way of thinking</strong> gathers the whole thread in one place: from how random numbers are made repeatable (a seed), to checking whether a confidence interval really catches the truth as often as it claims (coverage), to re-fitting a model on data it generated itself (the parametric bootstrap).</p>
+<p>The second is <strong>simulation</strong>. From Class 2 onward, most chapters end their “Julia stuff” with one short block of code that acts out what the model claims: draw new data from the fitted model, refit it, and watch the estimate wander (Class 8 carries its own in the body of the hour instead, and Class 7 hands the job to Class 8). It is not a rung, because a rung frees a constant and this is a way of thinking rather than a model; <strong>Appendix A — simulation as a way of thinking</strong> gathers the whole thread in one place: from how random numbers are made repeatable (a seed), to checking whether a confidence interval really catches the truth as often as it claims (coverage), to re-fitting a model on data it generated itself (the parametric bootstrap).</p>
 <p><strong>The exercises</strong> are applied and dataset-driven, and every one of them asks you to explain your code in your own words, to somebody who has not opened Julia. That instruction is the exercise.</p>
 <p><strong>The data are real.</strong> They are 171 house sparrows measured on Lundy Island for that course, plus the repeated-measures, survival and breeding files that came with them; where they came from, how many rows each file has, and how to check the files have not changed are written down in <a href="https://github.com/itchyshin/stats-hours/blob/main/data/2012/README.md">the notes that travel with the data</a>. Where a chapter needs a structure those files do not contain, it makes up data from a stated random-number seed — so the same numbers appear every time — <em>and says so at the top of the page</em>, in the Caveat line, before you read a number.</p>
 <p><strong>You can also run the chapters without installing anything.</strong> Each chapter exists as <a href="https://github.com/itchyshin/stats-hours/blob/main/notebooks">a notebook</a> you can open in a browser, and its first block installs the engine. How long that first install takes has so far only been timed on the author’s own computer, not in the browser; <a href="https://github.com/itchyshin/stats-hours/blob/main/docs/reader-environment.md">the notes on the reader’s set-up</a> say so plainly.</p>
@@ -205,7 +205,7 @@ What it is not is a surprise on page two hundred.</p></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>engine   : DRM.jl 0.7.1
 snapshot : 26f4c4ddc
-built    : 2026-09-08</code></pre>
+built    : 2026-09-12</code></pre>
 </div>
 </div>
 <div class="line"><span class="who eddie">Eddie</span><p>You could have typed all three of those.</p></div>
@@ -213,7 +213,7 @@ built    : 2026-09-08</code></pre>
 was not. Nothing in that block is typed: the version came from the
 package that is loaded, the snapshot label came from a file on disk, and
 the date is the date. If you are reading a copy of this page built some
-later day, it says so itself — this one was built on 2026-09-08, running
+later day, it says so itself — this one was built on 2026-09-12, running
 DRM.jl 0.7.1, engine snapshot 26f4c4ddc.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>And if the engine had not loaded?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Then there would be no page. That is the whole design.</p></div>

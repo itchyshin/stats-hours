@@ -34,3 +34,6 @@ docs/img/_selftest*
 # and without this line a future "git add -A" commits them.
 book/*_files/
 site_libs/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

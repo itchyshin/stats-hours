@@ -99,17 +99,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
     <p class="meta">
       <b>Engines</b> DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)<br>
-      <b>Provenance</b> Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time. The one R block was run once by hand, on the date shown, with R against the same file, and is labelled as such.<br>
+      <b>Provenance</b> Every code block and printed result below was actually run when the site was built, and nothing is typed from memory. Every random draw is seeded where it is made, so the page comes out the same every time.<br>
       <b>Caveat</b> The data are real: the 2012 Lundy Island female-breeding and sparrow-morphology records, read directly from data/2012/FemaleSuccess.csv and data/2012/MBodySize.csv (where the files came from is recorded in data/2012/README.md). Nothing here is simulated except the one block of invented refits at the end, which says so and carries its seed.
     </p>
   </div>
 </header>
 
 <div class="wrap">
-<blockquote>
-<p><strong>What this chapter pretends.</strong> Every model today is fixed effects only. The females breed in the same population and the sparrows were caught on the same island, and no fit here knows it. That is the pretence Class 2 made, Class 3 made, and <strong>Class 6 stops making</strong>. Note what the repair costs: neither file records the grouping — <code>FemaleSuccess.csv</code> carries no female identifier at all, and <code>MBodySize.csv</code> is one row per bird — so ending the pretence needs a <em>different dataset</em> (<code>BodySize.csv</code>, which repeats birds), not a different formula on these. Everything here about modelling the spread survives that repair; the standard errors printed here will move when it arrives.</p>
-</blockquote>
-<hr>
 <h2 id="objectives" class="anchored">Objectives</h2>
 <p>By the end of this class you should be able to:</p>
 <ol type="1">
@@ -117,8 +113,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Look for an <strong>exposure</strong> — a denominator already sitting in your data — before you blame the family, and say what an offset is.</li>
 <li>Fit a grouped binomial and its overdispersed cousin <code>BetaBinomial()</code>, and say why <em>n</em>·p(1 − p) is a claim data can break where p(1 − p) is not.</li>
 <li>Fit <code>NegBinomial2()</code>, say what the dispersion parameter θ means in the units of the variance, and predict what admitting the extra spread will and will not change: the estimate barely, the standard errors a lot.</li>
-<li>Judge an overdispersion check against its own error bar, and a ±1 SD band against the coverage — the share of data such a band is meant to hold — the model itself claims for it.</li>
-<li>Put a second formula on σ in a Gaussian model, read the null hypothesis printed above the σ table, and report a <strong>not detected</strong> honestly — with the smallest difference the design could have seen. Then say why that is the same move as changing the family, and name the rung where it gets a chapter of its own.</li>
+<li>Judge a ±1 SD band against the coverage — the share of data such a band is meant to hold — that the model itself claims for it.</li>
+<li>Put a second formula on σ in a Gaussian model and report a <strong>not detected</strong> honestly — with the smallest difference the design could have seen. Then say why that is the same move as changing the family.</li>
 </ol>
 <hr>
 <h2 id="the-class" class="anchored">The class</h2>
@@ -131,24 +127,29 @@ then made me leave it wrong.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>I did, and today we fix it. Load it back.</p></div>
 <div id="setup" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tools/figures.jl includes tools/theme_itchy.jl itself, so one include does both.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># It also defines erfinv_approx, which the worm-plot arithmetic below reuses so that</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># what we count is exactly what the figure draws.</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ratio_raw <span class="op">=</span> v_counts <span class="op">/</span> m_counts</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">include</span>(<span class="st">"../tools/figures.jl"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DRM</span>, <span class="bu">DataFrames</span>, <span class="bu">CSV</span>, <span class="bu">Statistics</span>, <span class="bu">Random</span>, <span class="bu">Printf</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">Distributions</span>          <span class="co"># qualified: DRM exports its own Poisson, Binomial, …</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme!</span>(<span class="fu">theme_itchy</span>(<span class="op">:</span>light))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># confint(fit) returns one row per coefficient, each with .estimate, .lower and</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># .upper. This picks a row by block and name, so no table is ever read by column number.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">ci_row</span>(fit, block, name)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="fu">confint</span>(fit; parm <span class="op">=</span> block)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    rows[<span class="fu">findfirst</span>(r <span class="op">-&gt;</span> r.coef <span class="op">==</span> name, rows)]</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>females <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/FemaleSuccess.csv"</span>, DataFrame)</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d   columns: %s</span><span class="sc">\n</span><span class="st">"</span>, n_fem, <span class="fu">join</span>(<span class="fu">names</span>(females), <span class="st">", "</span>))</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, ratio_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>n_fem <span class="op">=</span> <span class="fu">nrow</span>(females)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>m_counts <span class="op">=</span> <span class="fu">mean</span>(females.Fledglings)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>v_counts <span class="op">=</span> <span class="fu">var</span>(females.Fledglings)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>ratio_raw <span class="op">=</span> v_counts <span class="op">/</span> m_counts</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d   columns: %s</span><span class="sc">\n</span><span class="st">"</span>, n_fem, <span class="fu">join</span>(<span class="fu">names</span>(females), <span class="st">", "</span>))</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"mean of the counts     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, m_counts)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance of the counts : %.4f</span><span class="sc">\n</span><span class="st">"</span>, v_counts)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"variance / mean        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, ratio_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows: 163   columns: Fledglings, EggNo, Age
 mean of the counts     : 3.2086
@@ -225,24 +226,18 @@ degrees of freedom. The other is the worm plot’s statistic from Class 3.</p></
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>disp_pois <span class="op">=</span> X2_pois <span class="op">/</span> <span class="fu">dof_residual</span>(pois)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>qres_pois <span class="op">=</span> <span class="fu">residuals</span>(pois; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">4</span>))</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>mcse_rqr <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fl">2</span> <span class="op">*</span> n_fem)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>z_pois <span class="op">=</span> <span class="fu">abs</span>(<span class="fu">std</span>(qres_pois) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_rqr</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2 %.3f on %d df  -&gt;  X2/df = %.4f</span><span class="sc">\n</span><span class="st">"</span>, X2_pois, <span class="fu">dof_residual</span>(pois), disp_pois)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD %.4f  (%.2f Monte Carlo SE of %.4f from 1)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(qres_pois), z_pois, mcse_rqr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2 %.3f on %d df  -&gt;  X2/df = %.4f</span><span class="sc">\n</span><span class="st">"</span>, X2_pois, <span class="fu">dof_residual</span>(pois), disp_pois)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quantile residual SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_pois))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Pearson X2 252.424 on 161 df  -&gt;  X2/df = 1.5679
-quantile residual SD 1.2981  (5.38 Monte Carlo SE of 0.0554 from 1)</code></pre>
+quantile residual SD 1.2981</code></pre>
 </div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>1.57 and 1.3, and the second one is 5.4 of its own Monte Carlo standard
-errors — the wobble you would expect in an SD computed from this many
-random draws — away from one, so neither is noise. Two checks, different
-arithmetic, same verdict. Note that I did not call them
-<em>independent</em>: they are two functions of one fitted model on one
-residual vector, and a pair of checks that share a model can be wrong
-together.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>1.57 and 1.3, both well above one. Two checks, different arithmetic,
+same verdict. Note that I did not call them <em>independent</em>: they
+are two functions of one fitted model on one residual vector, and a pair
+of checks that share a model can be wrong together.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Good. Give me the negative binomial.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>No.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>You said we were fixing it today.</p></div>
@@ -350,20 +345,17 @@ Mean model (μ):
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>disp_poe <span class="op">=</span> X2_poe <span class="op">/</span> <span class="fu">dof_residual</span>(poe)</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>d_aic_exposure <span class="op">=</span> <span class="fu">aic</span>(pois) <span class="op">-</span> <span class="fu">aic</span>(poe)</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>ct_e <span class="op">=</span> <span class="fu">coeftable</span>(poe)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>r_egg <span class="op">=</span> <span class="fu">findfirst</span>(<span class="op">==</span>(<span class="st">"mu: logEgg"</span>), ct_e.rownms)</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>b_egg <span class="op">=</span> ct_e.cols[<span class="fl">1</span>][r_egg]</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>egg_lo_ci, egg_hi_ci <span class="op">=</span> ct_e.cols[<span class="fl">5</span>][r_egg], ct_e.cols[<span class="fl">6</span>][r_egg]</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>egg <span class="op">=</span> <span class="fu">ci_row</span>(poe, <span class="op">:</span>mu, <span class="st">"logEgg"</span>)      <span class="co"># the log(EggNo) row: estimate, lower, upper</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>over_poe <span class="op">=</span> <span class="fu">sum</span>(<span class="fl">1</span> <span class="op">-</span> Distributions.<span class="fu">cdf</span>(Distributions.<span class="fu">Poisson</span>(mu_e[i]), females.EggNo[i])</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>               <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem)</span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>over_poe <span class="op">=</span> <span class="fu">sum</span>(<span class="fl">1</span> <span class="op">-</span> Distributions.<span class="fu">cdf</span>(Distributions.<span class="fu">Poisson</span>(mu_e[i]), females.EggNo[i])</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>               <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Age only        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(pois))</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Age + log(EggNo): %.4f   (drop of %.4f for one parameter)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">aic</span>(poe), d_aic_exposure)</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2/df        : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_pois, disp_poe)</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"log(EggNo) coefficient: %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, b_egg, egg_lo_ci, egg_hi_ci)</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"expected impossible rows: %.2f  -&gt;  %.2f</span><span class="sc">\n</span><span class="st">"</span>, over_pois, over_poe)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Age only        : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(pois))</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Age + log(EggNo): %.4f   (drop of %.4f for one parameter)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">aic</span>(poe), d_aic_exposure)</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2/df        : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_pois, disp_poe)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"log(EggNo) coefficient: %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, egg.estimate, egg.lower, egg.upper)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"expected impossible rows: %.2f  -&gt;  %.2f</span><span class="sc">\n</span><span class="st">"</span>, over_pois, over_poe)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>AIC, Age only        : 739.9864
 AIC, Age + log(EggNo): 652.8208   (drop of 87.1656 for one parameter)
@@ -382,58 +374,24 @@ with an interval of 0.73 to 1.17.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>That interval contains one.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>That interval contains one, and <strong>an offset is precisely this
 coefficient pinned at one instead of estimated</strong>. It is the
-stronger, cheaper model when the proportionality really holds, and here
-the data have no complaint about it. Our engine cannot write it yet — a
-known limitation, reported to the engine’s authors — so I am teaching
-the free coefficient and showing you the version with the coefficient
-held at one in R, where it is one word.</p></div>
-<blockquote>
-<p class="scene">↔︎ TRANSLATE: the same fit to every digit, and one model R can write that
-we cannot</p>
-<p><code>drmTMB</code> fits <code>Fledglings ~ Age + log(EggNo)</code> and returns the identical estimates and standard errors — 0.9503 on <code>log(EggNo)</code>, and the same log-likelihood — which is the reassuring half. The interesting half is the model above it, <code>offset(log(EggNo))</code>, which pins that coefficient at one and therefore spends <strong>no parameter at all</strong>. R writes it in one word; we cannot write it yet.</p>
-<p>Both AICs are printed in the block below. <strong>The offset’s is the lower of the two</strong>, on one parameter fewer than the fit above — and the free coefficient’s is the number printed above, so read it off the Julia output rather than from here. That is the whole argument for an offset: a better AIC <em>and</em> one fewer parameter, because the constraint the offset imposes happens to be true here. If the coefficient had come back at, say, half, the offset would have been a bad model confidently stated, and fitting it free is how you find that out.</p>
-<p>The R block below was <strong>run once, by hand</strong>, with R on 2026-09-07 against the same archived file this chapter reads, and pasted in; it is not re-run when the page is built.</p>
-</blockquote>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># R output, run once by hand on 2026-09-07 and pasted here; not re-run when the page is built.</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># drmTMB 0.7.0 / R 4.6.0. Run with Rscript, reading</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data/2012/FemaleSuccess.csv:</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   m1 &lt;- drmTMB(bf(Fledglings ~ Age + offset(log(EggNo))), family = poisson(), data = d)</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   m2 &lt;- drmTMB(bf(Fledglings ~ Age + log(EggNo)),         family = poisson(), data = d)</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="sc">&lt;</span>summary.drmTMB<span class="sc">&gt;</span>                      <span class="co"># m1: the offset</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>estimator<span class="sc">:</span> ML</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                  estimate std_error</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>(Intercept) <span class="sc">-</span><span class="fl">1.27349825</span> <span class="fl">0.1088804</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>Age          <span class="fl">0.07809204</span> <span class="fl">0.0481982</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>logLik<span class="sc">:</span> <span class="sc">-</span><span class="fl">323.5</span></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>convergence<span class="sc">:</span> <span class="dv">0</span></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>AIC<span class="sc">:</span> <span class="fl">651.0224</span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="sc">&lt;</span>summary.drmTMB<span class="sc">&gt;</span>                      <span class="co"># m2: the free coefficient, as fitted above in Julia</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>estimator<span class="sc">:</span> ML</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>                  estimate  std_error</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>(Intercept) <span class="sc">-</span><span class="fl">1.16947064</span> <span class="fl">0.25461252</span></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span>Age          <span class="fl">0.08518277</span> <span class="fl">0.05070874</span></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>mu<span class="sc">:</span><span class="fu">log</span>(EggNo)   <span class="fl">0.95030758</span> <span class="fl">0.11022826</span></span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>logLik<span class="sc">:</span> <span class="sc">-</span><span class="fl">323.4</span></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>convergence<span class="sc">:</span> <span class="dv">0</span></span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>AIC<span class="sc">:</span> <span class="fl">652.8208</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Now the part that should frighten you. Momo, what happened to your
-biology?</p></div>
+stronger, cheaper model when the proportionality really holds, and
+fitting the coefficient free first is how you find out whether it does:
+had it come back at a half, the offset would have been a bad model
+confidently stated. Here the data have no complaint. This engine has no
+offset term yet, so the free coefficient is the model we keep, which is
+the one you should fit first in any case (<a href="appendix-b-engine.html">Where the engine stops</a>). Now the part
+that should frighten you. Momo, what happened to your biology?</p></div>
 <div id="biology-moved" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>ct_p <span class="op">=</span> <span class="fu">coeftable</span>(pois)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>r_age_p <span class="op">=</span> <span class="fu">findfirst</span>(<span class="op">==</span>(<span class="st">"mu: Age"</span>), ct_p.rownms)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>r_age_e <span class="op">=</span> <span class="fu">findfirst</span>(<span class="op">==</span>(<span class="st">"mu: Age"</span>), ct_e.rownms)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>rr_naive <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(pois, <span class="op">:</span>mu)[<span class="fl">2</span>])</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>rr_expos <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">coef</span>(poe, <span class="op">:</span>mu)[<span class="fl">2</span>])</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio on Age, Age only         : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        rr_naive, <span class="fu">exp</span>(ct_p.cols[<span class="fl">5</span>][r_age_p]), <span class="fu">exp</span>(ct_p.cols[<span class="fl">6</span>][r_age_p]))</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio on Age, Age + log(EggNo) : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        rr_expos, <span class="fu">exp</span>(ct_e.cols[<span class="fl">5</span>][r_age_e]), <span class="fu">exp</span>(ct_e.cols[<span class="fl">6</span>][r_age_e]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>age_p <span class="op">=</span> <span class="fu">ci_row</span>(pois, <span class="op">:</span>mu, <span class="st">"Age"</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>age_e <span class="op">=</span> <span class="fu">ci_row</span>(poe, <span class="op">:</span>mu, <span class="st">"Age"</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>rr_naive <span class="op">=</span> <span class="fu">exp</span>(age_p.estimate)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>rr_expos <span class="op">=</span> <span class="fu">exp</span>(age_e.estimate)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio on Age, Age only         : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        rr_naive, <span class="fu">exp</span>(age_p.lower), <span class="fu">exp</span>(age_p.upper))</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rate ratio on Age, Age + log(EggNo) : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>        rr_expos, <span class="fu">exp</span>(age_e.lower), <span class="fu">exp</span>(age_e.upper))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rate ratio on Age, Age only         : 1.2618  [1.1490, 1.3857]
 rate ratio on Age, Age + log(EggNo) : 1.0889  [0.9859, 1.2027]</code></pre>
@@ -467,10 +425,10 @@ stops it being zero is that we are still modelling a
 response that was only ever zero or one. This is the same family with
 the trials counted.</p></div>
 <div id="cell-fit-binomial" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>females.Failures <span class="op">=</span> females.EggNo <span class="op">.-</span> females.Fledglings</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>bin <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(<span class="fu">cbind</span>(Fledglings, Failures) <span class="op">~</span> Age)), <span class="fu">Binomial</span>(); data <span class="op">=</span> females)</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>bin</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>females.Failures <span class="op">=</span> females.EggNo <span class="op">.-</span> females.Fledglings</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>bin <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(<span class="fu">cbind</span>(Fledglings, Failures) <span class="op">~</span> Age)), <span class="fu">Binomial</span>(); data <span class="op">=</span> females)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>bin</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="fit-binomial" class="cell-output cell-output-display" data-execution_count="19">
 <pre><code>Distributional regression fit (Binomial)
   nobs = 163   logLik = -333.1155   converged = true
@@ -493,49 +451,35 @@ variance is <strong>n·p(1 − p)</strong>, and that extra factor is a real
 claim: it says a female’s chicks succeed or fail independently of one
 another. Test it.</p></div>
 <div id="check-binomial" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>p_bin <span class="op">=</span> <span class="fu">fitted</span>(bin)                       <span class="co"># success probabilities</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>m_bin <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bin            <span class="co"># expected fledglings</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>v_bin <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bin <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_bin)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>disp_bin <span class="op">=</span> <span class="fu">sum</span>((females.Fledglings <span class="op">.-</span> m_bin) <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> v_bin) <span class="op">/</span> <span class="fu">dof_residual</span>(bin)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="co"># The two Pearson statistics are computed on DIFFERENT responses, so most of the</span></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># jump between them is arithmetic: the binomial divides by n p (1 - p) where the</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co"># count model divides by n p, which is smaller by a factor (1 - p).</span></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>mech_inflation <span class="op">=</span> <span class="fu">sum</span>(m_bin) <span class="op">/</span> <span class="fu">sum</span>(v_bin)</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial: Pearson X2/df = %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_bin)</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"ratio to the exposure Poisson's %.4f : %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_poe, disp_bin <span class="op">/</span> disp_poe)</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"inflation predicted by the change of variance function alone: %.4f</span><span class="sc">\n</span><span class="st">"</span>, mech_inflation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>p_bin <span class="op">=</span> <span class="fu">fitted</span>(bin)                       <span class="co"># success probabilities</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>m_bin <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bin            <span class="co"># expected fledglings</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>v_bin <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bin <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_bin)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>disp_bin <span class="op">=</span> <span class="fu">sum</span>((females.Fledglings <span class="op">.-</span> m_bin) <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> v_bin) <span class="op">/</span> <span class="fu">dof_residual</span>(bin)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial: Pearson X2/df = %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_bin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Binomial: Pearson X2/df = 1.6417
-ratio to the exposure Poisson's 1.1064 : 1.4838
-inflation predicted by the change of variance function alone: 1.4920</code></pre>
+<pre><code>Binomial: Pearson X2/df = 1.6417</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>That is worse than the Poisson one was.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Do not say that, and I am going to forbid the same move for AIC in about
 twenty minutes, so let me forbid it here first. Those two statistics are
-computed on <strong>different responses</strong>. At the same fitted
+computed on <strong>different responses</strong> — at the same fitted
 mean the binomial divides the same squared deviations by something
-smaller, by a factor of one minus p, so it <em>must</em> come out
-bigger. Predict the inflation from that alone and you get 1.492; the
-ratio you actually saw is 1.484. <strong>They agree, so the jump from
-1.11 to 1.64 is not evidence of anything.</strong></p></div>
-<div class="line"><span class="who toto">Toto</span><p>Then what is?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>1.64 on its own terms, against the one it is allowed to be compared
-with. This model already knows about the eggs, and its own variance
-claim is still rejected by its own residuals — a rejection that owes
-nothing to the comparison you just drew. <strong>This is the
-overdispersion the chapter is named for.</strong> A brood is not
-<code>EggNo</code> independent coin flips: a good territory, a good mate
-or a good year moves all of a female’s chicks together, and the binomial
-has no way to say so. So free the variance, exactly as before — one
-verb, a second formula in the box, a different family.</p></div>
+smaller, so it <em>must</em> come out bigger — and a Pearson statistic
+is never compared across responses. Read 1.64 on its own terms: this
+model already knows about the eggs, and its own variance claim is still
+rejected by its own residuals. <strong>This is the overdispersion the
+chapter is named for.</strong> A brood is not <code>EggNo</code>
+independent coin flips: a good territory, a good mate or a good year
+moves all of a female’s chicks together, and the binomial has no way to
+say so. So free the variance, exactly as before — one verb, a second
+formula in the box, a different family.</p></div>
 <div id="cell-fit-betabinomial" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>bbin <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(<span class="fu">cbind</span>(Fledglings, Failures) <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>           <span class="fu">BetaBinomial</span>(); data <span class="op">=</span> females)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>bbin</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>bbin <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(<span class="fu">cbind</span>(Fledglings, Failures) <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>           <span class="fu">BetaBinomial</span>(); data <span class="op">=</span> females)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>bbin</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="fit-betabinomial" class="cell-output cell-output-display" data-execution_count="22">
 <pre><code>Distributional regression fit (BetaBinomial)
   nobs = 163   logLik = -319.6302   converged = true
@@ -562,22 +506,24 @@ so the engine has something to estimate and something to print.
 <strong>The absent table in Class 3 and the present table today are the
 same fact seen from two sides.</strong> The beta-binomial lets each
 female have her own success probability, drawn from a beta distribution
-with mean p and precision φ, and the σ slot carries φ = 1/σ² the way θ
-will carry the negative binomial’s.</p></div>
+with mean p and precision φ. The σ slot carries that precision: the
+engine reports log σ, and φ = 1/σ², so φ = exp(−2 log σ), which is the
+first line of the next cell. θ will come out of the negative binomial’s
+σ by the same arithmetic.</p></div>
 <div id="betabinomial-paid" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>phi <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(bbin, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>p_bb <span class="op">=</span> <span class="fu">fitted</span>(bbin)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>m_bb <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bb</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># beta-binomial variance: n p (1 - p) inflated by (1 + (n - 1) / (phi + 1))</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>v_bb <span class="op">=</span> m_bb <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_bb) <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.+</span> (females.EggNo <span class="op">.-</span> <span class="fl">1</span>) <span class="op">./</span> (phi <span class="op">+</span> <span class="fl">1</span>))</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>disp_bb <span class="op">=</span> <span class="fu">sum</span>((females.Fledglings <span class="op">.-</span> m_bb) <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> v_bb) <span class="op">/</span> <span class="fu">dof_residual</span>(bbin)</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>d_aic_bb <span class="op">=</span> <span class="fu">aic</span>(bin) <span class="op">-</span> <span class="fu">aic</span>(bbin)</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"phi = 1 / sigma^2 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, phi)</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Binomial     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(bin))</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, BetaBinomial : %.4f   (drop of %.4f for one parameter)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(bbin), d_aic_bb)</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2/df     : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_bin, disp_bb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>phi <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(bbin, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>p_bb <span class="op">=</span> <span class="fu">fitted</span>(bbin)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>m_bb <span class="op">=</span> females.EggNo <span class="op">.*</span> p_bb</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># beta-binomial variance: n p (1 - p) inflated by (1 + (n - 1) / (phi + 1))</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>v_bb <span class="op">=</span> m_bb <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p_bb) <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.+</span> (females.EggNo <span class="op">.-</span> <span class="fl">1</span>) <span class="op">./</span> (phi <span class="op">+</span> <span class="fl">1</span>))</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>disp_bb <span class="op">=</span> <span class="fu">sum</span>((females.Fledglings <span class="op">.-</span> m_bb) <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> v_bb) <span class="op">/</span> <span class="fu">dof_residual</span>(bbin)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>d_aic_bb <span class="op">=</span> <span class="fu">aic</span>(bin) <span class="op">-</span> <span class="fu">aic</span>(bbin)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"phi = 1 / sigma^2 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, phi)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Binomial     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(bin))</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, BetaBinomial : %.4f   (drop of %.4f for one parameter)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(bbin), d_aic_bb)</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Pearson X2/df     : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, disp_bin, disp_bb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>phi = 1 / sigma^2 : 11.7329
 AIC, Binomial     : 670.2311
@@ -599,35 +545,34 @@ against beta-binomial, and Poisson against Poisson.</p></div>
 how many chicks come out of this female — model the count and put the
 eggs in as an exposure. If it is about <strong>success rate given the
 attempt</strong>, model the proportion, and then the ceiling is built in
-rather than negotiated. Now the check I have been putting off, because
-it is the one this book has been sloppy about.</p></div>
+rather than negotiated.</p></div>
 <h3 id="a-band-is-not-a-promise-that-the-dots-are-inside-it" class="anchored">A band is not a promise that the dots are inside it</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Everybody draws mean ± 1 SD and then says “look, the dots are inside”.
 Count them instead, and count them against what the model itself says
 the answer should be.</p></div>
 <div id="honest-coverage" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How many birds sit outside their own model's mean ± 1 SD, and how often does the</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># model itself expect a bird to sit inside? (Sum the fitted pmf over the band.)</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">outside</span>(y, m, v) <span class="op">=</span> <span class="fu">count</span>(<span class="fu">abs</span>.(y <span class="op">.-</span> m) <span class="op">.&gt;</span> <span class="fu">sqrt</span>.(v))</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">claimed_coverage</span>(dists, m, v)</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(<span class="fu">sum</span>(Distributions.<span class="fu">pdf</span>(dists[i], k)</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>             <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">0</span><span class="op">:</span>females.EggNo[i] <span class="cf">if</span> <span class="fu">abs</span>(k <span class="op">-</span> m[i]) <span class="op">&lt;=</span> <span class="fu">sqrt</span>(v[i]))</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>         <span class="cf">for</span> i <span class="kw">in</span> <span class="fu">eachindex</span>(dists))</span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>dist_bin <span class="op">=</span> [Distributions.<span class="fu">Binomial</span>(females.EggNo[i], p_bin[i]) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem]</span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>dist_bb <span class="op">=</span> [Distributions.<span class="fu">BetaBinomial</span>(females.EggNo[i], p_bb[i] <span class="op">*</span> phi, (<span class="fl">1</span> <span class="op">-</span> p_bb[i]) <span class="op">*</span> phi)</span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>           for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem]</span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>out_bin, out_bb <span class="op">=</span> <span class="fu">outside</span>(females.Fledglings, m_bin, v_bin), <span class="fu">outside</span>(females.Fledglings, m_bb, v_bb)</span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>cov_bin, cov_bb <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> out_bin <span class="op">/</span> n_fem, <span class="fl">1</span> <span class="op">-</span> out_bb <span class="op">/</span> n_fem</span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>claim_bin, claim_bb <span class="op">=</span> <span class="fu">claimed_coverage</span>(dist_bin, m_bin, v_bin), <span class="fu">claimed_coverage</span>(dist_bb, m_bb, v_bb)</span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial     : %3d of %d outside  -&gt;  coverage %.3f, model claims %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>        out_bin, n_fem, cov_bin, claim_bin)</span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : %3d of %d outside  -&gt;  coverage %.3f, model claims %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>        out_bb, n_fem, cov_bb, claim_bb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How many birds sit outside their own model's mean ± 1 SD, and how often does the</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># model itself expect a bird to sit inside? (Sum the fitted pmf over the band.)</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">outside</span>(y, m, v) <span class="op">=</span> <span class="fu">count</span>(<span class="fu">abs</span>.(y <span class="op">.-</span> m) <span class="op">.&gt;</span> <span class="fu">sqrt</span>.(v))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">claimed_coverage</span>(dists, m, v)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(<span class="fu">sum</span>(Distributions.<span class="fu">pdf</span>(dists[i], k)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>             <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">0</span><span class="op">:</span>females.EggNo[i] <span class="cf">if</span> <span class="fu">abs</span>(k <span class="op">-</span> m[i]) <span class="op">&lt;=</span> <span class="fu">sqrt</span>(v[i]))</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>         <span class="cf">for</span> i <span class="kw">in</span> <span class="fu">eachindex</span>(dists))</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>dist_bin <span class="op">=</span> [Distributions.<span class="fu">Binomial</span>(females.EggNo[i], p_bin[i]) for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem]</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>dist_bb <span class="op">=</span> [Distributions.<span class="fu">BetaBinomial</span>(females.EggNo[i], p_bb[i] <span class="op">*</span> phi, (<span class="fl">1</span> <span class="op">-</span> p_bb[i]) <span class="op">*</span> phi)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>           for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n_fem]</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>out_bin, out_bb <span class="op">=</span> <span class="fu">outside</span>(females.Fledglings, m_bin, v_bin), <span class="fu">outside</span>(females.Fledglings, m_bb, v_bb)</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>cov_bin, cov_bb <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> out_bin <span class="op">/</span> n_fem, <span class="fl">1</span> <span class="op">-</span> out_bb <span class="op">/</span> n_fem</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>claim_bin, claim_bb <span class="op">=</span> <span class="fu">claimed_coverage</span>(dist_bin, m_bin, v_bin), <span class="fu">claimed_coverage</span>(dist_bb, m_bb, v_bb)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial     : %3d of %d outside  -&gt;  coverage %.3f, model claims %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>        out_bin, n_fem, cov_bin, claim_bin)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : %3d of %d outside  -&gt;  coverage %.3f, model claims %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>        out_bb, n_fem, cov_bb, claim_bb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Binomial     :  77 of 163 outside  -&gt;  coverage 0.528, model claims 0.672
 BetaBinomial :  56 of 163 outside  -&gt;  coverage 0.656, model claims 0.670</code></pre>
@@ -643,52 +588,19 @@ should hold. For these counts the binomial’s own band should hold about
 The beta-binomial claims 0.67 and delivers 0.66. <strong>Compare a band
 with its own claim, never with your intuition about what a band should
 hold.</strong> Now the plot from Class 3, on the repaired model.</p></div>
-<div id="worm-arithmetic" class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The ±2SE envelope fig_diagnostic draws, reproduced here so that what we COUNT is</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># exactly what the figure SHOWS. erfinv_approx comes from tools/figures.jl.</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">worm_outside</span>(q)</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> <span class="fu">length</span>(q)</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> ((<span class="fl">1</span><span class="op">:</span>m) <span class="op">.-</span> <span class="fl">0.5</span>) <span class="op">./</span> m</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    theo <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">.*</span> <span class="fu">erfinv_approx</span>.(<span class="fl">2</span> <span class="op">.*</span> p <span class="op">.-</span> <span class="fl">1</span>)</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    dev <span class="op">=</span> <span class="fu">sort</span>(q) <span class="op">.-</span> theo</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    se <span class="op">=</span> <span class="fu">sqrt</span>.(p <span class="op">.*</span> (<span class="fl">1</span> <span class="op">.-</span> p) <span class="op">./</span> m) <span class="op">./</span> (<span class="fu">exp</span>.(<span class="op">-</span>theo <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> <span class="fl">2</span>) <span class="op">./</span> <span class="fu">sqrt</span>(<span class="fl">2</span>π))</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> <span class="fu">abs</span>.(dev) <span class="op">.&gt;</span> <span class="fl">2</span> <span class="op">.*</span> se</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    longest <span class="op">=</span> <span class="fl">0</span>; run_len <span class="op">=</span> <span class="fl">0</span>; sgn <span class="op">=</span> <span class="fl">0</span></span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>m</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> out[i]</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>            run_len <span class="op">=</span> (run_len <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu">sign</span>(dev[i]) <span class="op">==</span> sgn) ? run_len <span class="op">+</span> <span class="fl">1</span> <span class="op">:</span> <span class="fl">1</span></span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>            sgn <span class="op">=</span> <span class="fu">sign</span>(dev[i])</span>
-<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span></span>
-<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>            run_len <span class="op">=</span> <span class="fl">0</span>; sgn <span class="op">=</span> <span class="fl">0</span></span>
-<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">end</span></span>
-<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>        longest <span class="op">=</span> <span class="fu">max</span>(longest, run_len)</span>
-<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> <span class="fu">findall</span>(out)</span>
-<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>    span <span class="op">=</span> <span class="fu">isempty</span>(idx) ? (<span class="cn">NaN</span>, <span class="cn">NaN</span>) <span class="op">:</span> (<span class="fu">minimum</span>(theo[idx]), <span class="fu">maximum</span>(theo[idx]))</span>
-<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>    (out <span class="op">=</span> <span class="fu">count</span>(out), longest <span class="op">=</span> longest, lo <span class="op">=</span> span[<span class="fl">1</span>], hi <span class="op">=</span> span[<span class="fl">2</span>],</span>
-<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>     neg_left <span class="op">=</span> <span class="fu">count</span>(dev[<span class="fl">1</span><span class="op">:</span><span class="fu">div</span>(m, <span class="fl">3</span>)] <span class="op">.&lt;</span> <span class="fl">0</span>), third <span class="op">=</span> <span class="fu">div</span>(m, <span class="fl">3</span>))</span>
-<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div id="cell-fig-diagnostic" class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>qres_bin <span class="op">=</span> <span class="fu">residuals</span>(bin; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">6</span>))</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>qres_bb <span class="op">=</span> <span class="fu">residuals</span>(bbin; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">7</span>))</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>w_bin, w_bb <span class="op">=</span> <span class="fu">worm_outside</span>(qres_bin), <span class="fu">worm_outside</span>(qres_bb)</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial     : quantile residual SD %.4f (%.2f Monte Carlo SE from 1), %d of %d outside the envelope, longest same-sign run %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(qres_bin), <span class="fu">abs</span>(<span class="fu">std</span>(qres_bin) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_rqr, w_bin.out, n_fem, w_bin.longest)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : quantile residual SD %.4f (%.2f Monte Carlo SE from 1), %d of %d outside the envelope, longest same-sign run %d</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">std</span>(qres_bb), <span class="fu">abs</span>(<span class="fu">std</span>(qres_bb) <span class="op">-</span> <span class="fl">1</span>) <span class="op">/</span> mcse_rqr, w_bb.out, n_fem, w_bb.longest)</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : those %d sit between theoretical quantile %.2f and %.2f, and %d of the lowest %d deviations are negative</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>        w_bb.out, w_bb.lo, w_bb.hi, w_bb.neg_left, w_bb.third)</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_bb; title <span class="op">=</span> <span class="st">"beta-binomial fit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-fig-diagnostic" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>qres_bin <span class="op">=</span> <span class="fu">residuals</span>(bin; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">6</span>))</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>qres_bb <span class="op">=</span> <span class="fu">residuals</span>(bbin; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">7</span>))</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Binomial     : quantile residual SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_bin))</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"BetaBinomial : quantile residual SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(qres_bb))</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(qres_bb; title <span class="op">=</span> <span class="st">"beta-binomial fit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Binomial     : quantile residual SD 1.2883 (5.21 Monte Carlo SE from 1), 84 of 163 outside the envelope, longest same-sign run 35
-BetaBinomial : quantile residual SD 1.0722 (1.30 Monte Carlo SE from 1), 4 of 163 outside the envelope, longest same-sign run 3
-BetaBinomial : those 4 sit between theoretical quantile -1.92 and -1.62, and 49 of the lowest 54 deviations are negative</code></pre>
+<pre><code>Binomial     : quantile residual SD 1.2883
+BetaBinomial : quantile residual SD 1.0722</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="28">
+<div class="cell-output cell-output-display" data-execution_count="27">
 <div id="fig-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -702,57 +614,18 @@ Figure&nbsp;2: A <strong>detrended</strong> worm plot of the beta-binomial fit: 
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>From 1.29 down to 1.07.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And read that second number against its error bar rather than its
-digits: 1.07 is 1.3 Monte Carlo standard errors from one, which is
-noise. The picture mostly agrees: 4 of 163 points leave the envelope,
-with a longest same-sign run of 3. Put that next to the Poisson worm
-plot at the end of Class 3, which left the envelope for most of its
-length in a systematic S. <strong>A scattered handful outside a
-pointwise envelope is what an envelope is for; a long one-sided run down
-the plot is a diagnosis.</strong> This one has the handful and not the
-run.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Near one, which is as much as the SD of 163 random draws can tell you;
+the picture is the better judge. Put it next to the Poisson worm plot at
+the end of Class 3, which left the envelope for most of its length in a
+systematic S. <strong>A scattered few outside a pointwise envelope is
+what an envelope is for; a long one-sided run down the plot is a
+diagnosis.</strong></p></div>
 <div class="line"><span class="who toto">Toto</span><p>But it is not flat. It sags on the left and bulges in the middle.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It does, and I am glad you said it rather than me, because that is the
-part a caption will not tell you. All 4 of the escaping points sit
-between theoretical quantile -1.9 and -1.6 — one short stretch on the
-left flank. Now the sag itself, and here I am going to make you do the
-thing I told you to do with the SD, because a count of signs is a
-randomisation draw exactly as an SD is.</p></div>
-<div id="worm-seed-sweep" class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How many of the lowest third of the deviations are negative? That is one draw</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># from the residual randomiser, so recount it over two hundred rngs. Only the</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># residuals are redrawn; the fitted model never moves.</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>neg_by_seed <span class="op">=</span> [<span class="fu">worm_outside</span>(<span class="fu">residuals</span>(bbin; type <span class="op">=</span> <span class="op">:</span>quantile,</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>                                      rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(s))).neg_left for s <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">200</span>]</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>neg_med <span class="op">=</span> <span class="fu">median</span>(neg_by_seed)</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>neg_lo, neg_hi <span class="op">=</span> <span class="fu">quantile</span>(neg_by_seed, <span class="fl">0.1</span>), <span class="fu">quantile</span>(neg_by_seed, <span class="fl">0.9</span>)</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>neg_sym <span class="op">=</span> <span class="fu">div</span>(w_bb.third, <span class="fl">2</span>)     <span class="co"># what a symmetric residual would give</span></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>neg_share_above <span class="op">=</span> <span class="fu">mean</span>(neg_by_seed <span class="op">.&gt;</span> neg_sym)   <span class="co"># share of the 200 draws that clear the symmetric count</span></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"negatives among the lowest %d deviations, over 200 rngs: median %.1f, 10th to 90th %.1f to %.1f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>        w_bb.third, neg_med, neg_lo, neg_hi)</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the draw shown above gave: %d;  a symmetric residual would give %d</span><span class="sc">\n</span><span class="st">"</span>, w_bb.neg_left, neg_sym)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>negatives among the lowest 54 deviations, over 200 rngs: median 35.5, 10th to 90th 27.0 to 45.1
-the draw shown above gave: 49;  a symmetric residual would give 27</code></pre>
-</div>
-</div>
-<div class="line"><span class="who itchy">Itchy</span><p>The typical count is 35.5 of 54, with an ordinary range of 27 to 45,
-against the 27 a symmetric residual would give. <strong>The sag is
-real</strong> — 35.5 sits well above 27 in 86% of the two hundred draws,
-and only 14% of them fall back to 27 or lower. And the particular draw
-shown above gives 49, near the top of that range, so quoting
-<em>that</em> number as the evidence would have overstated the shape by
-a third. <strong>That is the same lesson as the SD, on a statistic that
-looks like a count rather than an estimate.</strong> <strong>The sag is
-a shape, it is inside the envelope almost everywhere, and it is honest
-to report it as a shape rather than as a pass.</strong> What it is not
-is the whole-plot S that convicted the Poisson. Deviations in a worm
-plot are <strong>order statistics</strong> — the same residuals sorted
-smallest to largest, one per rank — and therefore heavily
-<strong>autocorrelated</strong>: sorting pins each one between its
-neighbours, so a smooth wander is the ordinary condition; what you
-convict on is a run that leaves the envelope and stays out.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It does, and the sag is where the few escaping points are: one short
+stretch on the left flank. Report that as a shape rather than as a pass.
+What it is not is the S that convicted the Poisson. Class 5 is where you
+learn to count what is outside, and to decide whether a shape is a
+finding.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>So this model is right?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>This model has stopped complaining about the things I know how to ask
 it, which is a much weaker sentence and the only one I am entitled to.
@@ -774,11 +647,11 @@ When θ is small, the extra term dominates. <strong>θ is the price of the
 lie</strong>, and the smaller it is the bigger the lie was — which is
 backwards from what everybody expects, so say it out loud twice. Large
 θ, tidy counts. Small θ, messy counts.</p></div>
-<div id="cell-fit-nb2" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>nb <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> females)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>nb</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-nb2" class="cell-output cell-output-display" data-execution_count="32">
+<div id="cell-fit-nb2" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>nb <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> females)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>nb</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-nb2" class="cell-output cell-output-display" data-execution_count="29">
 <pre><code>Distributional regression fit (NegBinomial2)
   nobs = 163   logLik = -356.5665   converged = true
 
@@ -795,21 +668,21 @@ Scale model (log σ):
   (Intercept)  -0.6914     0.1520  -4.5487  5.397e-06</code></pre>
 </div>
 </div>
-<div id="theta" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(nb, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>d_aic_nb <span class="op">=</span> <span class="fu">aic</span>(pois) <span class="op">-</span> <span class="fu">aic</span>(nb)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>se_pois <span class="op">=</span> <span class="fu">stderror</span>(pois)</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>se_nb <span class="op">=</span> <span class="fu">stderror</span>(nb)</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>se_ratio <span class="op">=</span> se_nb[<span class="fl">2</span>] <span class="op">/</span> se_pois[<span class="fl">2</span>]</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>quasi_ratio <span class="op">=</span> <span class="fu">sqrt</span>(disp_pois)</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta = 1 / sigma^2 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Poisson %.4f  -&gt;  NB2 %.4f   (drop of %.4f)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(pois), <span class="fu">aic</span>(nb), d_aic_nb)</span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on Age  : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">coef</span>(pois, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(nb, <span class="op">:</span>mu)[<span class="fl">2</span>])</span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its SE        : %.4f  -&gt;  %.4f   (a factor of %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>        se_pois[<span class="fl">2</span>], se_nb[<span class="fl">2</span>], se_ratio)</span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quasi-Poisson would have inflated it by sqrt(X2/df) = %.4f</span><span class="sc">\n</span><span class="st">"</span>, quasi_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="theta" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(nb, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>d_aic_nb <span class="op">=</span> <span class="fu">aic</span>(pois) <span class="op">-</span> <span class="fu">aic</span>(nb)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>se_pois <span class="op">=</span> <span class="fu">stderror</span>(pois)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>se_nb <span class="op">=</span> <span class="fu">stderror</span>(nb)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>se_ratio <span class="op">=</span> se_nb[<span class="fl">2</span>] <span class="op">/</span> se_pois[<span class="fl">2</span>]</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>quasi_ratio <span class="op">=</span> <span class="fu">sqrt</span>(disp_pois)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta = 1 / sigma^2 : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Poisson %.4f  -&gt;  NB2 %.4f   (drop of %.4f)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(pois), <span class="fu">aic</span>(nb), d_aic_nb)</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on Age  : %.4f  -&gt;  %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">coef</span>(pois, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">coef</span>(nb, <span class="op">:</span>mu)[<span class="fl">2</span>])</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"its SE        : %.4f  -&gt;  %.4f   (a factor of %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>        se_pois[<span class="fl">2</span>], se_nb[<span class="fl">2</span>], se_ratio)</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"quasi-Poisson would have inflated it by sqrt(X2/df) = %.4f</span><span class="sc">\n</span><span class="st">"</span>, quasi_ratio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>theta = 1 / sigma^2 : 3.9864
 AIC, Poisson 739.9864  -&gt;  NB2 719.1331   (drop of 20.8533)
@@ -826,14 +699,13 @@ name what just happened.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Written on the board. <strong>Overdispersion is a disease of standard
 errors</strong> — and it is not a coincidence, it is a theorem. The
 equations a Poisson fit solves to find β have the right answer as their
-solution, on average, <em>whatever</em> the true variance is — the
-statisticians’ phrase is that the score equations are unbiased
-estimating equations — so the estimate stays trustworthy even when the
-variance model is wrong; the only thing the wrong variance corrupts is
-the standard error. Note the direction, too: the Poisson model does not
-shrink the interval because of overdispersion, it shrinks it because it
-refuses to admit the overdispersion, which is the worst possible failure
-mode. Nobody rejects a paper for being too confident.</p></div>
+solution, on average, <em>whatever</em> the true variance is, so the
+estimate stays trustworthy even when the variance model is wrong; the
+only thing the wrong variance corrupts is the standard error. Note the
+direction, too: the Poisson model does not shrink the interval because
+of overdispersion, it shrinks it because it refuses to admit the
+overdispersion, which is the worst possible failure mode. Nobody rejects
+a paper for being too confident.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>And the quasi-Poisson? My old software offered me that.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>One line, and it is why Ver Hoef and Boveng are first on the reading
 list. The quasi-Poisson keeps the Poisson mean and multiplies every
@@ -842,32 +714,26 @@ against the negative binomial’s 1.388. They are close and they are not
 the same, because they weight the birds differently — the quasi-Poisson
 inflates every bird equally, the negative binomial downweights the
 big-mean birds. On another dataset they disagree about which coefficient
-matters. Now, the σ table, and a warning about the line the engine
-prints above it.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>It says σ = 1 is unit-dependent.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It says that above <strong>every</strong> σ table, and for the Gaussian
-sparrows in twenty minutes it will be true: σ = 1 mm is a curiosity
-about millimetres. Here it is false. For <code>NegBinomial2()</code> σ
-is <strong>dimensionless</strong>, and σ = 1 means θ = 1, that is Var =
-μ + μ², which is a real and interpretable dispersion hypothesis. The z
-printed on that row is a genuine test of it, and it rejects. The engine
-prints that warning without checking which family you asked for, so here
-it prints something untrue. That is a fault in the software rather than
-something for you to learn. Read the line, then decide whether it
-applies to your family.</p></div>
+matters.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>The line above the σ table says σ = 1 is unit-dependent.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>For the Gaussian sparrows in twenty minutes it will be. Here σ is
+dimensionless, σ = 1 means θ = 1, and the z on that row is a real test
+of it, which rejects; the header is a habit of the engine, not a fact
+about the family (<a href="appendix-b-engine.html">Where the engine
+stops</a>).</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Can I see the assumption itself rather than its consequences?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>You can, and this is the picture I would put in a lecture if I were
 allowed only one. Bin the females by age, and for each bin plot the
 observed mean against the observed variance. Then draw what each family
 claims that relationship must be.</p></div>
-<div id="cell-bin-by-age" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>byage <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(females, <span class="op">:</span>Age),</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    nrow <span class="op">=&gt;</span> <span class="op">:</span>n,</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>Fledglings <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m,</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>Fledglings <span class="op">=&gt;</span> var <span class="op">=&gt;</span> <span class="op">:</span>v)</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sort!</span>(byage, <span class="op">:</span>Age)</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>byage</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="bin-by-age" class="cell-output cell-output-display" data-execution_count="35">
+<div id="cell-bin-by-age" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>byage <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(females, <span class="op">:</span>Age),</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    nrow <span class="op">=&gt;</span> <span class="op">:</span>n,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>Fledglings <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>Fledglings <span class="op">=&gt;</span> var <span class="op">=&gt;</span> <span class="op">:</span>v)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sort!</span>(byage, <span class="op">:</span>Age)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>byage</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="bin-by-age" class="cell-output cell-output-display" data-execution_count="32">
 <div><div style="float: left;"><span>4×4 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
 <thead>
@@ -920,21 +786,21 @@ claims that relationship must be.</p></div>
 </div>
 </div>
 </div>
-<div id="cell-fig-mean-variance" class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>mgrid <span class="op">=</span> <span class="fu">collect</span>(<span class="fu">range</span>(<span class="fl">0.9</span> <span class="op">*</span> <span class="fu">minimum</span>(byage.m), <span class="fl">1.1</span> <span class="op">*</span> <span class="fu">maximum</span>(byage.m), length <span class="op">=</span> <span class="fl">100</span>))</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">400</span>))</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"observed mean count"</span>, ylabel <span class="op">=</span> <span class="st">"observed variance"</span>,</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"what each family says the variance must be"</span>)</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, mgrid, mgrid; linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash,</span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"Poisson: var = mean"</span>)</span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, mgrid, mgrid <span class="op">.+</span> mgrid <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> theta; linewidth <span class="op">=</span> <span class="fl">2.5</span>,</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"NB2: var = mean + mean²/θ"</span>)</span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, byage.m, byage.v; markersize <span class="op">=</span> <span class="fl">3</span> <span class="op">.*</span> <span class="fu">sqrt</span>.(byage.n),</span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.75</span>), label <span class="op">=</span> <span class="st">"observed (age bin), area ∝ n"</span>)</span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div id="cell-fig-mean-variance" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>mgrid <span class="op">=</span> <span class="fu">collect</span>(<span class="fu">range</span>(<span class="fl">0.9</span> <span class="op">*</span> <span class="fu">minimum</span>(byage.m), <span class="fl">1.1</span> <span class="op">*</span> <span class="fu">maximum</span>(byage.m), length <span class="op">=</span> <span class="fl">100</span>))</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">400</span>))</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"observed mean count"</span>, ylabel <span class="op">=</span> <span class="st">"observed variance"</span>,</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"what each family says the variance must be"</span>)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, mgrid, mgrid; linewidth <span class="op">=</span> <span class="fl">2</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash,</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"Poisson: var = mean"</span>)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, mgrid, mgrid <span class="op">.+</span> mgrid <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> theta; linewidth <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"NB2: var = mean + mean²/θ"</span>)</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, byage.m, byage.v; markersize <span class="op">=</span> <span class="fl">3</span> <span class="op">.*</span> <span class="fu">sqrt</span>.(byage.n),</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.75</span>), label <span class="op">=</span> <span class="st">"observed (age bin), area ∝ n"</span>)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
 <div id="fig-mean-variance" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-mean-variance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -947,20 +813,20 @@ Figure&nbsp;3: Observed mean against observed variance, females binned by age, w
 </div>
 </div>
 </div>
-<div id="read-the-bins" class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count what the prose would otherwise assert, so the sentence cannot go stale.</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>nb_curve <span class="op">=</span> byage.m <span class="op">.+</span> byage.m <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> theta</span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>n_bins <span class="op">=</span> <span class="fu">nrow</span>(byage)</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>n_above <span class="op">=</span> <span class="fu">count</span>(byage.v <span class="op">.&gt;</span> byage.m)</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>n_nearer <span class="op">=</span> <span class="fu">count</span>(<span class="fu">abs</span>.(byage.v <span class="op">.-</span> nb_curve) <span class="op">.&lt;</span> <span class="fu">abs</span>.(byage.v <span class="op">.-</span> byage.m))</span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>n_below_both <span class="op">=</span> <span class="fu">count</span>((byage.v <span class="op">.&lt;</span> byage.m) <span class="op">.&amp;</span> (byage.v <span class="op">.&lt;</span> nb_curve))</span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>i_small <span class="op">=</span> <span class="fu">argmin</span>(byage.n)</span>
-<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins above the identity line : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_above, n_bins)</span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins nearer the NB2 curve    : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_nearer, n_bins)</span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins below both              : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_below_both, n_bins)</span>
-<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest bin: age %d, n = %d, mean %.3f, variance %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>        byage.Age[i_small], byage.n[i_small], byage.m[i_small], byage.v[i_small])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="read-the-bins" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count what the prose would otherwise assert, so the sentence cannot go stale.</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>nb_curve <span class="op">=</span> byage.m <span class="op">.+</span> byage.m <span class="op">.^</span> <span class="fl">2</span> <span class="op">./</span> theta</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>n_bins <span class="op">=</span> <span class="fu">nrow</span>(byage)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>n_above <span class="op">=</span> <span class="fu">count</span>(byage.v <span class="op">.&gt;</span> byage.m)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>n_nearer <span class="op">=</span> <span class="fu">count</span>(<span class="fu">abs</span>.(byage.v <span class="op">.-</span> nb_curve) <span class="op">.&lt;</span> <span class="fu">abs</span>.(byage.v <span class="op">.-</span> byage.m))</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>n_below_both <span class="op">=</span> <span class="fu">count</span>((byage.v <span class="op">.&lt;</span> byage.m) <span class="op">.&amp;</span> (byage.v <span class="op">.&lt;</span> nb_curve))</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>i_small <span class="op">=</span> <span class="fu">argmin</span>(byage.n)</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins above the identity line : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_above, n_bins)</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins nearer the NB2 curve    : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_nearer, n_bins)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"bins below both              : %d of %d</span><span class="sc">\n</span><span class="st">"</span>, n_below_both, n_bins)</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest bin: age %d, n = %d, mean %.3f, variance %.3f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>        byage.Age[i_small], byage.n[i_small], byage.m[i_small], byage.v[i_small])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>bins above the identity line : 3 of 4
 bins nearer the NB2 curve    : 3 of 4
@@ -977,16 +843,16 @@ is why the marker sizes are on the plot at all. A figure that hides its
 sample sizes will let you believe anything.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So I <em>should</em> have used the negative binomial.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Put it on top of the exposure model and find out.</p></div>
-<div id="nb2-on-exposure" class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>nbe <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> females)</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>theta_e <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(nbe, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta, Age only          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta, Age + log(EggNo)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta_e)</span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Poisson + exposure  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(poe))</span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, NB2     + exposure  : %.4f   (difference %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">aic</span>(nbe), <span class="fu">aic</span>(nbe) <span class="op">-</span> <span class="fu">aic</span>(poe))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="nb2-on-exposure" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>nbe <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age <span class="op">+</span> logEgg), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> females)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>theta_e <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(nbe, <span class="op">:</span>sigma)[<span class="fl">1</span>])</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta, Age only          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"theta, Age + log(EggNo)  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta_e)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, Poisson + exposure  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(poe))</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, NB2     + exposure  : %.4f   (difference %.4f)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">aic</span>(nbe), <span class="fu">aic</span>(nbe) <span class="op">-</span> <span class="fu">aic</span>(poe))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>theta, Age only          : 3.9864
 theta, Age + log(EggNo)  : 29.2025
@@ -1008,18 +874,18 @@ chapter is not called “the negative binomial”.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Because I am going to do it to the sparrows, and the sparrows have a
 <strong>Gaussian</strong> response, where nobody ever said the variance
 was a function of the mean. Load Class 2 back.</p></div>
-<div id="cell-sparrows" class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>raw.Sex <span class="op">=</span> <span class="fu">ifelse</span>.(raw.Sex <span class="op">.==</span> <span class="st">"F"</span>, <span class="st">"female"</span>, <span class="st">"male"</span>)</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Sex, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>n_sp <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d</span><span class="sc">\n</span><span class="st">"</span>, n_sp)</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>Sex), nrow <span class="op">=&gt;</span> <span class="op">:</span>n, <span class="op">:</span>Wing <span class="op">=&gt;</span> std <span class="op">=&gt;</span> <span class="op">:</span>wing_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-sparrows" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/MBodySize.csv"</span>, DataFrame)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>raw.Sex <span class="op">=</span> <span class="fu">ifelse</span>.(raw.Sex <span class="op">.==</span> <span class="st">"F"</span>, <span class="st">"female"</span>, <span class="st">"male"</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">select</span>(raw, <span class="op">:</span>BirdID, <span class="op">:</span>Sex, <span class="op">:</span>Tarsus, <span class="op">:</span>Wing)</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>n_sp <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows: %d</span><span class="sc">\n</span><span class="st">"</span>, n_sp)</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>Sex), nrow <span class="op">=&gt;</span> <span class="op">:</span>n, <span class="op">:</span>Wing <span class="op">=&gt;</span> std <span class="op">=&gt;</span> <span class="op">:</span>wing_sd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>rows: 171</code></pre>
 </div>
-<div id="sparrows" class="cell-output cell-output-display" data-execution_count="41">
+<div id="sparrows" class="cell-output cell-output-display" data-execution_count="38">
 <div><div style="float: left;"><span>2×3 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top" data-quarto-postprocess="true" style="margin-bottom: 6px;">
 <thead>
@@ -1059,12 +925,12 @@ standard deviation for every bird on the island. Here is that model and
 here is the same model with a second formula in the box.</p></div>
 <p class="board"><strong>y_i ~ N(μ_i, σ_i²), μ_i = β0 + β1 tarsus_i + β2 male_i, log σ_i
 = γ0 + γ1 male_i</strong></p>
-<div id="cell-fit-sparrows" class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>fit_const <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>fit_ls <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex), <span class="pp">@formula</span>(sigma <span class="op">~</span> Sex)),</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>fit_ls</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="fit-sparrows" class="cell-output cell-output-display" data-execution_count="42">
+<div id="cell-fit-sparrows" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>fit_const <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex)), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>fit_ls <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Tarsus <span class="op">+</span> Sex), <span class="pp">@formula</span>(sigma <span class="op">~</span> Sex)),</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>fit_ls</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fit-sparrows" class="cell-output cell-output-display" data-execution_count="39">
 <pre><code>Distributional regression fit (Gaussian)
   nobs = 171   logLik = -301.6513   converged = true
   Residual SD (response scale) varies with the σ model: 1.3757 to 1.4528   dof_residual = 166
@@ -1099,16 +965,16 @@ single number to print. This kind of model has a name —
 <strong>location-scale</strong>: a formula on the mean, which is the
 location, and a second formula on σ, which is the scale. Compute the
 ends by hand once, so that the header means something to you.</p></div>
-<div id="sigma-by-sex" class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>s_hat <span class="op">=</span> <span class="fu">exp</span>.(<span class="fu">coef</span>(fit_ls, <span class="op">:</span>sigma))</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>sigma_f <span class="op">=</span> s_hat[<span class="fl">1</span>]</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>sigma_m <span class="op">=</span> s_hat[<span class="fl">1</span>] <span class="op">*</span> s_hat[<span class="fl">2</span>]</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>sd_range <span class="op">=</span> <span class="fu">extrema</span>(<span class="fu">sigma</span>(fit_ls))</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma, females : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_f)</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma, males   : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_m)</span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"constant-sigma model, one number : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sigma</span>(fit_const)[<span class="fl">1</span>])</span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"location-scale model, the range  : %.4f to %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sd_range[<span class="fl">1</span>], sd_range[<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="sigma-by-sex" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>s_hat <span class="op">=</span> <span class="fu">exp</span>.(<span class="fu">coef</span>(fit_ls, <span class="op">:</span>sigma))</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>sigma_f <span class="op">=</span> s_hat[<span class="fl">1</span>]</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>sigma_m <span class="op">=</span> s_hat[<span class="fl">1</span>] <span class="op">*</span> s_hat[<span class="fl">2</span>]</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>sd_range <span class="op">=</span> <span class="fu">extrema</span>(<span class="fu">sigma</span>(fit_ls))</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma, females : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_f)</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma, males   : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sigma_m)</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"constant-sigma model, one number : %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sigma</span>(fit_const)[<span class="fl">1</span>])</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"location-scale model, the range  : %.4f to %.4f mm</span><span class="sc">\n</span><span class="st">"</span>, sd_range[<span class="fl">1</span>], sd_range[<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>sigma, females : 1.3757 mm
 sigma, males   : 1.4528 mm
@@ -1118,31 +984,31 @@ location-scale model, the range  : 1.3757 to 1.4528 mm</code></pre>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p>Females scatter by about 1.38 mm around their line, males by about 1.45
 mm. Males a little <strong>more</strong>, which is not what I would have
-guessed. Now the verdicts, and I already know how this ends because we
-ran it in Class 2.</p></div>
-<div id="sparrow-verdicts" class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>ct_ls <span class="op">=</span> <span class="fu">coeftable</span>(fit_ls)</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>r_sex <span class="op">=</span> <span class="fu">findfirst</span>(<span class="op">==</span>(<span class="st">"sigma: Sex: male"</span>), ct_ls.rownms)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>g1 <span class="op">=</span> ct_ls.cols[<span class="fl">1</span>][r_sex]</span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>se_g1 <span class="op">=</span> ct_ls.cols[<span class="fl">2</span>][r_sex]</span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>z_sex <span class="op">=</span> ct_ls.cols[<span class="fl">3</span>][r_sex]</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>p_sex <span class="op">=</span> ct_ls.cols[<span class="fl">4</span>][r_sex]</span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>d_aic_sp <span class="op">=</span> <span class="fu">aic</span>(fit_ls) <span class="op">-</span> <span class="fu">aic</span>(fit_const)</span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>ratio_sex <span class="op">=</span> <span class="fu">exp</span>(g1)</span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>ratio_lo, ratio_hi <span class="op">=</span> <span class="fu">exp</span>(ct_ls.cols[<span class="fl">5</span>][r_sex]), <span class="fu">exp</span>(ct_ls.cols[<span class="fl">6</span>][r_sex])</span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Smallest sigma ratio this design could have detected at 80% power, alpha = 0.05.</span></span>
-<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>z_a <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.975</span>)</span>
-<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>z_b <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.80</span>)</span>
-<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>mdr <span class="op">=</span> <span class="fu">exp</span>((z_a <span class="op">+</span> z_b) <span class="op">*</span> se_g1)</span>
-<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, constant sigma  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_const))</span>
-<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, sigma ~ Sex     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_ls))</span>
-<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"difference           : %.4f  (positive means the extra term did not pay)</span><span class="sc">\n</span><span class="st">"</span>, d_aic_sp)</span>
-<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma: Sex: male   z = %.4f   p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, z_sex, p_sex)</span>
-<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"male/female sigma ratio : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, ratio_sex, ratio_lo, ratio_hi)</span>
-<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest ratio detectable at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mdr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+guessed. Now the verdicts.</p></div>
+<div id="sparrow-verdicts" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="fu">ci_row</span>(fit_ls, <span class="op">:</span>sigma, <span class="st">"Sex: male"</span>)   <span class="co"># log of the male/female sigma ratio</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co"># By name, not position: same route as ci_row (match the sigma block's own name</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="co"># vector), so this keeps working if a parameter is ever added after sigma.</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>se_g1 <span class="op">=</span> <span class="fu">stderror</span>(fit_ls)[<span class="fu">only</span>(idx for ((p, r), (_, nms)) <span class="kw">in</span> <span class="fu">zip</span>(fit_ls.blocks, fit_ls.coefnames)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                                   if p <span class="op">===</span> <span class="op">:</span>sigma for (idx, nm) <span class="kw">in</span> <span class="fu">zip</span>(r, nms) if nm <span class="op">==</span> <span class="st">"Sex: male"</span>)]</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>z_sex <span class="op">=</span> g.estimate <span class="op">/</span> se_g1</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>p_sex <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> Distributions.<span class="fu">ccdf</span>(Distributions.<span class="fu">Normal</span>(), <span class="fu">abs</span>(z_sex))</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>d_aic_sp <span class="op">=</span> <span class="fu">aic</span>(fit_ls) <span class="op">-</span> <span class="fu">aic</span>(fit_const)</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>ratio_sex <span class="op">=</span> <span class="fu">exp</span>(g.estimate)</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>ratio_lo, ratio_hi <span class="op">=</span> <span class="fu">exp</span>(g.lower), <span class="fu">exp</span>(g.upper)</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Smallest sigma ratio this design could have detected at 80% power, alpha = 0.05.</span></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>z_a <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.975</span>)</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>z_b <span class="op">=</span> Distributions.<span class="fu">quantile</span>(Distributions.<span class="fu">Normal</span>(), <span class="fl">0.80</span>)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>mdr <span class="op">=</span> <span class="fu">exp</span>((z_a <span class="op">+</span> z_b) <span class="op">*</span> se_g1)</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, constant sigma  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_const))</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC, sigma ~ Sex     : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(fit_ls))</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"difference           : %.4f  (positive means the extra term did not pay)</span><span class="sc">\n</span><span class="st">"</span>, d_aic_sp)</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">sigma: Sex: male   z = %.4f   p = %.4f</span><span class="sc">\n</span><span class="st">"</span>, z_sex, p_sex)</span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"male/female sigma ratio : %.4f  [%.4f, %.4f]</span><span class="sc">\n</span><span class="st">"</span>, ratio_sex, ratio_lo, ratio_hi)</span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"smallest ratio detectable at 80%% power : %.4f</span><span class="sc">\n</span><span class="st">"</span>, mdr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>AIC, constant sigma  : 611.5563
 AIC, sigma ~ Sex     : 613.3026
@@ -1167,45 +1033,42 @@ caught four times out of five is 1.35. Anything smaller than that was
 never going to show up, whether or not it is there. <strong>“We could
 not tell them apart, and we could only have seen a 35% difference” is
 the honest report; “the answer is no” is an accepted null wearing a lab
-coat.</strong> Class 2 reports this identical fit in exactly those
-terms, and it is worth turning back to check that it does, because a
-book that says “no” in one chapter and “not detected” in another has not
-decided what it believes.</p></div>
+coat.</strong></p></div>
 <div class="line"><span class="who momo">Momo</span><p>So one of your repairs worked and the other did not.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>One worked, one did not pay, and I am keeping both, because a chapter
 where every experiment succeeds is teaching you a superstition. The
 method is the same, the verdict is data, and the only thing that would
 have been wrong was not asking. Look at what “did not pay” actually
 looks like.</p></div>
-<div id="cell-fig-sparrow-bands" class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit_ls, <span class="op">:</span>mu)          <span class="co"># [intercept, Tarsus, Sex: male]; female is the baseline</span></span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>tg <span class="op">=</span> <span class="fu">collect</span>(<span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus), length <span class="op">=</span> <span class="fl">100</span>))</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>mu_f <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> tg</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>mu_m <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> tg <span class="op">.+</span> b[<span class="fl">3</span>]</span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>is_m <span class="op">=</span> sparrows.Sex <span class="op">.==</span> <span class="st">"male"</span></span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">400</span>))</span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two lines, two widths, one of them unearned"</span>)</span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Bands and lines share one colour per sex (accent = female, warn = male) so a</span></span>
-<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a><span class="co"># reader can match a band to its line by hue, not only by which one sits</span></span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a><span class="co"># higher; the near-equal alpha keeps the WIDTH comparison — the point of this</span></span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co"># figure — the thing that reads as similar, not the shading. Data drawn LAST</span></span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="co"># so no bird is ever painted over by the model on top of it.</span></span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_f <span class="op">.-</span> sigma_f, mu_f <span class="op">.+</span> sigma_f; color <span class="op">=</span> (LIGHT.accent, <span class="fl">0.22</span>),</span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"females, ±σ"</span>)</span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_m <span class="op">.-</span> sigma_m, mu_m <span class="op">.+</span> sigma_m; color <span class="op">=</span> (LIGHT.warn, <span class="fl">0.22</span>),</span>
-<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"males, ±σ"</span>)</span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_f; linewidth <span class="op">=</span> <span class="fl">2.5</span>, color <span class="op">=</span> LIGHT.accent, label <span class="op">=</span> <span class="st">"female mean"</span>)</span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_m; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.warn, label <span class="op">=</span> <span class="st">"male mean"</span>)</span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[.!is_m], sparrows.Wing[.!is_m];</span>
-<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"female"</span>)</span>
-<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[is_m], sparrows.Wing[is_m];</span>
-<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"male"</span>)</span>
-<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div id="cell-fig-sparrow-bands" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">coef</span>(fit_ls, <span class="op">:</span>mu)          <span class="co"># [intercept, Tarsus, Sex: male]; female is the baseline</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>tg <span class="op">=</span> <span class="fu">collect</span>(<span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.Tarsus), <span class="fu">maximum</span>(sparrows.Tarsus), length <span class="op">=</span> <span class="fl">100</span>))</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>mu_f <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> tg</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>mu_m <span class="op">=</span> b[<span class="fl">1</span>] <span class="op">.+</span> b[<span class="fl">2</span>] <span class="op">.*</span> tg <span class="op">.+</span> b[<span class="fl">3</span>]</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>is_m <span class="op">=</span> sparrows.Sex <span class="op">.==</span> <span class="st">"male"</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">400</span>))</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"tarsus (mm)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two lines, two widths, one of them unearned"</span>)</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Bands and lines share one colour per sex (accent = female, warn = male) so a</span></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="co"># reader can match a band to its line by hue, not only by which one sits</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a><span class="co"># higher; the near-equal alpha keeps the WIDTH comparison — the point of this</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="co"># figure — the thing that reads as similar, not the shading. Data drawn LAST</span></span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a><span class="co"># so no bird is ever painted over by the model on top of it.</span></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_f <span class="op">.-</span> sigma_f, mu_f <span class="op">.+</span> sigma_f; color <span class="op">=</span> (LIGHT.accent, <span class="fl">0.22</span>),</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"females, ±σ"</span>)</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="fu">band!</span>(ax, tg, mu_m <span class="op">.-</span> sigma_m, mu_m <span class="op">.+</span> sigma_m; color <span class="op">=</span> (LIGHT.warn, <span class="fl">0.22</span>),</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"males, ±σ"</span>)</span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_f; linewidth <span class="op">=</span> <span class="fl">2.5</span>, color <span class="op">=</span> LIGHT.accent, label <span class="op">=</span> <span class="st">"female mean"</span>)</span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, tg, mu_m; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.warn, label <span class="op">=</span> <span class="st">"male mean"</span>)</span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[.!is_m], sparrows.Wing[.!is_m];</span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"female"</span>)</span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Tarsus[is_m], sparrows.Wing[is_m];</span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>    markersize <span class="op">=</span> <span class="fl">6</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>), label <span class="op">=</span> <span class="st">"male"</span>)</span>
+<span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="44">
 <div id="fig-sparrow-bands" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-sparrow-bands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1236,95 +1099,78 @@ who is who.</p></div>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
 <li><strong>Compare like with like.</strong> A Poisson <em>regression</em> decrees Var(y | x) = μ(x); it says nothing about the variance-to-mean ratio of the raw counts, which also carries the variation the predictors create. Here the raw ratio is 1.69 and a perfectly correct Poisson would still imply 1.15. Check overdispersion on residuals, not on the marginal moments.</li>
-<li><strong>Look for an exposure before you blame the family.</strong> An offset or denominator sitting unused in your data is the commonest cause of “overdispersion” and the cheapest to fix. Here <code>log(EggNo)</code> bought about 87 AIC for one parameter and moved the age rate ratio from 1.26 to 1.09, interval covering one. <strong>A missing covariate and a wrong variance function look identical in a residual plot.</strong></li>
+<li><strong>Look for an exposure before you blame the family.</strong> A denominator sitting unused in your data is the commonest cause of “overdispersion” and the cheapest to fix: here <code>log(EggNo)</code> bought about 87 AIC for one parameter and moved the age rate ratio from 1.26 to 1.09, interval covering one. <strong>A missing covariate and a wrong variance function look identical in a residual plot.</strong></li>
 <li><strong>An offset is a covariate with its coefficient pinned at one.</strong> Fit it free first: if the interval covers one, the offset is the better model; if it does not, the offset would have been a confident mistake.</li>
-<li><strong>Successes out of trials is not a count.</strong> For <em>n</em> &gt; 1 the binomial variance is <em>n</em>·p(1 − p), which is a real claim — the trials within a row are independent — and data can break it. For <em>n</em> = 1 it is an identity, which is why Class 3’s logistic diagnostic could not fail.</li>
+<li><strong>Successes out of trials is not a count.</strong> For <em>n</em> &gt; 1 the binomial variance is <em>n</em>·p(1 − p), a real claim — the trials within a row are independent — that data can break. For <em>n</em> = 1 it is an identity, which is why Class 3’s logistic diagnostic could not fail.</li>
 <li><strong>The beta-binomial frees that claim with one parameter</strong>, as the negative binomial frees Var = μ with θ. Here it bought about 25 AIC and took the Pearson statistic from 1.64 to 1.02.</li>
-<li><strong>AIC compares models of the same response.</strong> Counts and proportions-out-of-a-denominator are different data. Choose between them by the question you are asking, not by the smaller number.</li>
-<li><strong>Overdispersion is a disease of standard errors, and that is a theorem.</strong> The Poisson score equations are unbiased estimating equations for β whatever the true variance, so the point estimate stays consistent; only its standard error was wrong. Here it was wrong by a factor of 1.39, against the quasi-Poisson’s 1.25 — close, not identical, because the two weight observations differently.</li>
-<li><strong>Read the null the engine prints above the σ table, then check it applies to your family.</strong> For a Gaussian, σ = 1 is unit-dependent and rarely interesting. For <code>NegBinomial2()</code> and <code>BetaBinomial()</code>, σ is dimensionless and σ = 1 is a real dispersion hypothesis that the printed z genuinely tests.</li>
+<li><strong>AIC compares models of the same response.</strong> Counts and proportions-out-of-a-denominator are different data; choose between them by the question you are asking, not by the smaller number. The same goes for a Pearson statistic.</li>
+<li><strong>Overdispersion is a disease of standard errors, and that is a theorem.</strong> The Poisson point estimate stays trustworthy whatever the true variance; only its standard error was wrong, here by a factor of 1.39, against the quasi-Poisson’s 1.25 — close, not identical, because the two weight observations differently.</li>
 <li><strong>Judge a band against its own claim.</strong> A ±1 SD band is not supposed to contain the data. Ask the model what coverage it claims and compare: 0.53 against 0.67 for the binomial, 0.66 against 0.67 for the beta-binomial.</li>
 <li><strong>“Not detected” is not “no”.</strong> The sparrows’ σ ratio is 1.06 with an interval of 0.85 to 1.31, and the smallest ratio this design could have caught at 80% power is 1.35. Report the interval and the detectable size, not a verdict.</li>
 <li><strong>A model comparison that goes against you is a result.</strong> The counts earned their beta-binomial parameter and the sparrows lost their σ term by about 1.7 AIC. Reporting only the one that worked is how a literature goes wrong.</li>
-<li><strong>Plot the assumption, not only its consequences.</strong> Mean against variance, binned, with the family’s claim drawn as a curve and marker area showing sample size, is the fastest way to see a variance assumption fail or hold.</li>
-<li><strong>This chapter still pretends rows are independent</strong>, and these files cannot stop it. <code>FemaleSuccess.csv</code> carries no female identifier at all; <code>MBodySize.csv</code> does carry <code>BirdID</code>, but one row per bird, so there is nothing for a random intercept to group. The repeated-measures file is <code>BodySize.csv</code>. Class 6 removes the pretence there, and Class 9 puts today’s freed variance and Class 6’s freed correlation into the same model.</li>
+<li><strong>Plot the assumption, not only its consequences.</strong> Mean against variance, binned, with the family’s claim drawn as a curve and marker area showing sample size.</li>
+<li><strong>What this chapter still pretends.</strong> Every model here treats its rows as strangers, and these files cannot stop it: <code>FemaleSuccess.csv</code> carries no female identifier, and <code>MBodySize.csv</code> is one row per bird. Class 6 ends the pretence on a file that repeats birds, and the standard errors printed here will move when it does.</li>
 </ul>
 <h3 id="julia-stuff" class="anchored">Julia stuff</h3>
 <ul>
 <li><code>drm(bf(@formula(cbind(k, n - k) ~ x)), Binomial(); data = df)</code>: a <strong>grouped</strong> binomial. The response is two columns — successes and failures — and <code>cbind</code> is DRM’s own marker, not R’s function.</li>
 <li><code>drm(bf(@formula(cbind(k, n - k) ~ x), @formula(sigma ~ 1)), BetaBinomial(); data = df)</code>: the overdispersed version. <code>coef(fit, :sigma)</code> is log σ and the precision is φ = 1/σ², so <code>exp(-2 * coef(fit, :sigma)[1])</code>.</li>
-<li><code>drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), NegBinomial2(); data = df)</code>: overdispersed counts, with θ = 1/σ² by the same arithmetic. Neither engine prints θ or φ for you.</li>
-<li><strong>There is no <code>offset</code> in DRM.jl 0.7.1</strong> — a known limitation, reported to the engine’s authors. Add <code>log(exposure)</code> as an ordinary covariate and check whether its interval covers one; <code>drmTMB</code> writes <code>offset(log(exposure))</code> directly.</li>
+<li><code>drm(bf(@formula(y ~ x), @formula(sigma ~ 1)), NegBinomial2(); data = df)</code>: overdispersed counts, with θ = 1/σ² by the same arithmetic.</li>
 <li><code>drm(bf(@formula(y ~ x + g), @formula(sigma ~ g)), Gaussian(); data = df)</code>: a location-scale Gaussian fit. <code>coef(fit, :sigma)</code> is on the log scale; exponentiate for millimetres.</li>
-<li><code>sigma(fit)</code>: the response-scale σ per observation for a Gaussian fit. On a constant-σ fit every element is the same number; on a modelled σ it is a range, which is what the fit header prints. On <code>BetaBinomial()</code> it returns the σ <strong>and</strong> the trial counts, so read θ or φ off <code>coef(fit, :sigma)</code> instead.</li>
-<li><code>coeftable(fit)</code>: row names are prefixed by block, so <code>"mu: Age"</code> and <code>"sigma: Sex: male"</code>. Columns 5 and 6 are the confidence limits, on the <strong>link</strong> scale, so exponentiate them for a rate ratio or a σ ratio.</li>
-<li><code>dof_residual(fit)</code>: exported and needed for a Pearson dispersion statistic, which the engine does not compute for you.</li>
-<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: standard normal under a correct model for every family here. <strong>Pass the <code>rng</code></strong> — and know that <em>which</em> rng you pass moves the second decimal, so quote the SD against its Monte Carlo standard error of 1/√(2n) rather than reading its digits.</li>
+<li><code>sigma(fit)</code>: the response-scale σ per observation for a Gaussian fit. On a constant-σ fit every element is the same number; on a modelled σ it is a range, which is what the fit header prints.</li>
+<li><code>confint(fit; parm = :sigma)</code>: one row per coefficient of that block, each with <code>.estimate</code>, <code>.lower</code> and <code>.upper</code> on the <strong>link</strong> scale, so exponentiate for a rate ratio or a σ ratio. <code>ci_row</code> above picks one row by name.</li>
+<li><code>dof_residual(fit)</code>: the residual degrees of freedom, for a Pearson dispersion statistic.</li>
+<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: standard normal under a correct model for every family here. <strong>Pass the <code>rng</code></strong>, and know that <em>which</em> rng you pass moves the second decimal, so do not read the SD’s digits.</li>
 <li><code>import Distributions</code>: needed here because DRM exports its own <code>Poisson</code>, <code>Binomial</code> and <code>BetaBinomial</code>. Qualify the distribution as <code>Distributions.Poisson(μ)</code> when you want a pmf or a cdf.</li>
 <li><strong>Marker size as sample size.</strong> <code>markersize = 3 .* sqrt.(n)</code> in a binned plot. Area, not radius, is what the eye reads.</li>
 <li><strong>The simulation thread.</strong> Ask the negative-binomial fit to invent two hundred new sets of females, refit each, and watch which parameter is well pinned down and which is not.</li>
 </ul>
-<div id="simulate-refit" class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw new counts from the fitted NB2 model, refit the same model to each,</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and collect two things: the slope on Age, and the dispersion theta.</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(nb; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_pair</span>(y)</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age)</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>            <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> d)</span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(f, <span class="op">:</span>sigma)[<span class="fl">1</span>]))</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>pairs_out <span class="op">=</span> [<span class="fu">refit_pair</span>(ysim[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> <span class="fu">first</span>.(pairs_out)</span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>thetas <span class="op">=</span> <span class="fu">last</span>.(pairs_out)</span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Monte-Carlo SE of a median, so the "bias" claim carries its own error bar.</span></span>
-<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a><span class="co"># The textbook 1.2533 * SD / sqrt(n) is a LARGE-SAMPLE formula and runs wide for a</span></span>
-<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a><span class="co"># statistic this skewed, so resample the refits themselves and use that instead.</span></span>
-<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>rng_boot <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">4321</span>)</span>
-<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>n_ref <span class="op">=</span> <span class="fu">length</span>(thetas)</span>
-<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>boot_med <span class="op">=</span> [<span class="fu">median</span>(thetas[<span class="fu">rand</span>(rng_boot, <span class="fl">1</span><span class="op">:</span>n_ref, n_ref)]) for _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2000</span>]</span>
-<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>mcse_median <span class="op">=</span> <span class="fu">std</span>(boot_med)</span>
-<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>mcse_asymptotic <span class="op">=</span> <span class="fl">1.2533</span> <span class="op">*</span> <span class="fu">std</span>(thetas) <span class="op">/</span> <span class="fu">sqrt</span>(n_ref)</span>
-<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>bias_pct <span class="op">=</span> <span class="fl">100</span> <span class="op">*</span> (<span class="fu">median</span>(thetas) <span class="op">-</span> theta) <span class="op">/</span> theta</span>
-<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on Age    : fitted %.4f, reported SE %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">coef</span>(nb, <span class="op">:</span>mu)[<span class="fl">2</span>], se_nb[<span class="fl">2</span>])</span>
-<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(slopes), <span class="fu">std</span>(slopes))</span>
-<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">theta           : fitted %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
-<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: mean %.4f, median %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(thetas), <span class="fu">median</span>(thetas), <span class="fu">std</span>(thetas))</span>
-<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  median is %+.1f%% of the generating value, %.2f Monte Carlo SE (bootstrap Monte Carlo SE %.4f;</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a>        bias_pct, <span class="fu">abs</span>(<span class="fu">median</span>(thetas) <span class="op">-</span> theta) <span class="op">/</span> mcse_median, mcse_median)</span>
-<span id="cb55-34"><a href="#cb55-34" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  the large-sample formula would have said %.4f, which is wider)</span><span class="sc">\n</span><span class="st">"</span>, mcse_asymptotic)</span>
-<span id="cb55-35"><a href="#cb55-35" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: 10th pct %.4f, 90th pct %.4f, max %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb55-36"><a href="#cb55-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">quantile</span>(thetas, <span class="fl">0.1</span>), <span class="fu">quantile</span>(thetas, <span class="fl">0.9</span>), <span class="fu">maximum</span>(thetas))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="simulate-refit" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw new counts from the fitted NB2 model, refit the same model to each,</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and collect two things: the slope on Age, and the dispersion theta.</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>rng_sim <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">20260907</span>)</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>ysim <span class="op">=</span> <span class="fu">simulate</span>(nb; nsim <span class="op">=</span> <span class="fl">200</span>, rng <span class="op">=</span> rng_sim)</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">refit_pair</span>(y)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(Fledglings <span class="op">=</span> y, Age <span class="op">=</span> females.Age)</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Fledglings <span class="op">~</span> Age), <span class="pp">@formula</span>(sigma <span class="op">~</span> <span class="fl">1</span>)),</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>            <span class="fu">NegBinomial2</span>(); data <span class="op">=</span> d)</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>    (<span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>], <span class="fu">exp</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">coef</span>(f, <span class="op">:</span>sigma)[<span class="fl">1</span>]))</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>pairs_out <span class="op">=</span> [<span class="fu">refit_pair</span>(ysim[<span class="op">:</span>, k]) for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">size</span>(ysim, <span class="fl">2</span>)]</span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> <span class="fu">first</span>.(pairs_out)</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>thetas <span class="op">=</span> <span class="fu">last</span>.(pairs_out)</span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"slope on Age    : fitted %.4f, reported SE %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">coef</span>(nb, <span class="op">:</span>mu)[<span class="fl">2</span>], se_nb[<span class="fl">2</span>])</span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: mean %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">mean</span>(slopes), <span class="fu">std</span>(slopes))</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">theta           : fitted %.4f</span><span class="sc">\n</span><span class="st">"</span>, theta)</span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: mean %.4f, median %.4f, SD %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(thetas), <span class="fu">median</span>(thetas), <span class="fu">std</span>(thetas))</span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"                  refits: 10th pct %.4f, 90th pct %.4f, max %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">quantile</span>(thetas, <span class="fl">0.1</span>), <span class="fu">quantile</span>(thetas, <span class="fl">0.9</span>), <span class="fu">maximum</span>(thetas))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>slope on Age    : fitted 0.2337, reported SE 0.0663
                   refits: mean 0.2361, SD 0.0678
 
 theta           : fitted 3.9864
                   refits: mean 4.2842, median 4.0946, SD 1.2401
-                  median is +2.7% of the generating value, 1.12 Monte Carlo SE (bootstrap Monte Carlo SE 0.0966;
-                  the large-sample formula would have said 0.1099, which is wider)
                   refits: 10th pct 2.8967, 90th pct 5.9290, max 9.2220</code></pre>
 </div>
 </div>
-<p>The numbers above say “strongly asymmetric” six ways; here is the shape itself, so you can see it rather than assemble it from percentiles.</p>
-<div id="cell-fig-theta-refits" class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">360</span>))</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"θ (refit)"</span>, ylabel <span class="op">=</span> <span class="st">"count of refits (of 200)"</span>,</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two hundred refits of one parameter"</span>)</span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax, thetas; bins <span class="op">=</span> <span class="fl">25</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [theta]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.accent,</span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"fitted θ"</span>)</span>
-<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fu">median</span>(thetas)]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> LIGHT.warn,</span>
-<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"median of refits"</span>)</span>
-<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
-<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="50">
+<p>The numbers above say “strongly asymmetric” several ways; here is the shape itself, so you can see it rather than assemble it from percentiles.</p>
+<div id="cell-fig-theta-refits" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">560</span>, <span class="fl">360</span>))</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"θ (refit)"</span>, ylabel <span class="op">=</span> <span class="st">"count of refits (of 200)"</span>,</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"two hundred refits of one parameter"</span>)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist!</span>(ax, thetas; bins <span class="op">=</span> <span class="fl">25</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.55</span>))</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [theta]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dash, color <span class="op">=</span> LIGHT.accent,</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"fitted θ"</span>)</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="fu">vlines!</span>(ax, [<span class="fu">median</span>(thetas)]; linewidth <span class="op">=</span> <span class="fl">2.5</span>, linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> LIGHT.warn,</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">"median of refits"</span>)</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], ax; framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="47">
 <div id="fig-theta-refits" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-theta-refits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1337,14 +1183,14 @@ Figure&nbsp;5: The sampling distribution of θ across the 200 parametric refits:
 </div>
 </div>
 </div>
-<p>The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly <strong>asymmetric</strong> — the mean printed above sits higher than the median, the largest refit is 2.3 times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about 3.99. The median itself is 2.7% off the generating value, which is 1.12 Monte-Carlo standard errors. Read that as <strong>two hundred refits cannot resolve a bias of a few per cent</strong>, not as <em>there is no bias</em>: the two sentences are different, and only the first one is what these two hundred refits measured. Note also which error bar it is measured against. The textbook Monte-Carlo standard error of a median, 1.2533 × SD/√n, is a large-sample approximation, and on a distribution this skewed it comes out at 0.11 where resampling the refits themselves gives 0.097 — so the formula understates the evidence by being too generous with the error bar, which is a nice inversion of the usual complaint. The asymmetry, though, is unmistakable, and it is why an interval read off the likelihood itself beats the plain estimate-plus-or-minus-two-standard-errors kind — the <strong>Wald</strong> interval, which assumes the uncertainty is the same size on both sides — for this parameter, and why quoting a dispersion to three decimal places is theatre. Appendix A takes that apart properly.</p>
+<p>The slope behaves itself: the spread of refitted slopes lands close to the standard error the single fit reported, which is what a standard error promises. θ does not. Its refits are strongly <strong>asymmetric</strong> — the mean printed above sits higher than the median, the largest refit is 2.3 times the estimate, and the tenth and ninetieth percentiles are nowhere near symmetric about 3.99. So quote θ to one decimal, and prefer an interval read off the likelihood itself to the plain estimate-plus-or-minus-two-standard-errors kind — the <strong>Wald</strong> interval, which assumes the uncertainty is the same size on both sides. Appendix A takes that apart properly.</p>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
 <p class="aside">Graded by depth. Details checked on 2026-09-07 against OpenAlex, an open
 catalogue of research papers.</p>
 <ol type="1">
 <li><strong>Ver Hoef, J. M. &amp; Boveng, P. L. (2007) “Quasi-Poisson vs.&nbsp;negative binomial regression: how should we model overdispersed count data?”, <em>Ecology</em> 88:2766–2772.</strong> doi:10.1890/07-0043.1. Start here, and read it before you choose. It sets the negative binomial against the other standard repair, the quasi-Poisson, and the difference is not cosmetic: they weight observations differently, so they can disagree about which coefficient matters. This class computed both inflation factors in one line; the paper is why they are not the same number.</li>
-<li><strong>Lindén, A. &amp; Mäntyniemi, S. (2011) “Using the negative binomial distribution to model overdispersion in ecological count data”, <em>Ecology</em> 92:1414–1421.</strong> doi:10.1890/10-1831.1. The ecologist’s companion to the equation on the board, and the paper that would have caught this chapter’s first mistake: its abstract is about the <strong>mechanisms</strong> that generate overdispersion — sampling, flocking, aggregation, environmental variability — which is exactly the question “is the family wrong, or is something missing from the mean?”.</li>
+<li><strong>Lindén, A. &amp; Mäntyniemi, S. (2011) “Using the negative binomial distribution to model overdispersion in ecological count data”, <em>Ecology</em> 92:1414–1421.</strong> doi:10.1890/10-1831.1. The ecologist’s companion to the equation on the board, and the paper that would have caught Momo’s first mistake: its abstract is about the <strong>mechanisms</strong> that generate overdispersion — sampling, flocking, aggregation, environmental variability — which is exactly the question “is the family wrong, or is something missing from the mean?”.</li>
 <li><strong>Harrison, X. A. (2014) “Using observation-level random effects to model overdispersion in count data in ecology and evolution”, <em>PeerJ</em> 2:e616.</strong> doi:10.7717/peerj.616. The repair this chapter deliberately did not use, because it needs machinery from Class 6. Read it after Class 6 and then come back: it is a third route to the same problem, and knowing three routes is what stops you believing any one of them is the definition of the problem.</li>
 <li><strong>Rigby, R. A. &amp; Stasinopoulos, D. M. (2005) “Generalized additive models for location, scale and shape”, <em>Journal of the Royal Statistical Society Series C</em> 54:507–554.</strong> doi:10.1111/j.1467-9876.2005.00510.x. The framework the last part of this class belongs to, and where rung 11 goes. This is the paper that says out loud that every parameter of a distribution can have a linear predictor, not only the mean. Long, and the introduction alone repays the afternoon.</li>
 <li><strong>Hilbe, J. M. (2011) <em>Negative Binomial Regression</em>, 2nd edition, Cambridge University Press.</strong> doi:10.1017/cbo9780511973420. The reference book, for when you need the parameterisation you were handed rather than the one you like. Own it if counts are your day job; borrow it otherwise, and read the chapters on model selection and on the varieties of negative binomial.</li>
@@ -1354,18 +1200,12 @@ catalogue of research papers.</p>
 <p>Use your own organism where one is named. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 3 and not Class 4.</p>
 <ol type="1">
 <li><p><strong>Read the file before the model.</strong> Take any count response of your own and list every other column. For each one, answer in a sentence: is this a predictor, an exposure, or neither? An exposure is anything that changes how much opportunity a row had — area searched, hours observed, eggs laid, individuals at risk. If you find one, you have found this chapter’s first lesson in your own data.</p></li>
-<li><p><strong>Find the lie, honestly.</strong> Report the variance-to-mean ratio of your raw counts. Then fit a Poisson model and report the Pearson X²/df and the standard deviation of <code>residuals(fit; type = :quantile, rng = MersenneTwister(1))</code> against its Monte Carlo standard error of 1/√(2n). Say which of the three you would put in a paper, and why the other two are still worth having computed.</p></li>
-<li><p><strong>The wrong benchmark.</strong> From your fitted Poisson, compute <code>(mean(fitted(fit)) + var(fitted(fit))) / mean(fitted(fit))</code> — the marginal variance-to-mean ratio a <em>correct</em> Poisson regression implies for your data. Compare it with the raw ratio from question 2 and with one. Then write two sentences: one naming which of the two comparisons is like-for-like, and one saying how much of your apparent overdispersion survives it.</p></li>
 <li><p><strong>Pay the exposure first.</strong> If question 1 found an exposure, add <code>log(exposure)</code> to the mean model. Report both AICs, the coefficient on <code>log(exposure)</code> with its interval, and whether that interval covers one. Then report what happened to the coefficient you actually care about, and say in one sentence whether you would now write a different result.</p></li>
 <li><p><strong>Pay the price.</strong> Refit with <code>NegBinomial2()</code>, with and without the exposure. Report the coefficient, the standard error and the rate ratio in a four-row table, and report θ in both. Then write one sentence naming what changed and one naming what did not.</p></li>
-<li><p><strong>Out of how many?</strong> If your response is a success count out of a known denominator, refit it as <code>cbind(successes, failures)</code> with <code>Binomial()</code> and then <code>BetaBinomial()</code>. Report both AICs, the Pearson X²/df under each, and φ. Then answer in one sentence why you may not compare either AIC with the count models from question 5.</p></li>
+<li><p><strong>Out of how many?</strong> If your response is a success count out of a known denominator, refit it as <code>cbind(successes, failures)</code> with <code>Binomial()</code> and then <code>BetaBinomial()</code>. Report both AICs, the Pearson X²/df under each, and φ. Then answer in one sentence why you may not compare either AIC with the count models from question 3.</p></li>
 <li><p><strong>The referee.</strong> Report the AIC difference for the repair you kept. Then answer: if it had gone the other way, what would you have done, and would you have reported the comparison at all? Two sentences, and be honest in the second one.</p></li>
-<li><p><strong>Momo’s tadpoles.</strong> Count something per pond and fit both families. Draw the mean-against-variance figure from this class, binning by a predictor of your choice, with marker area showing bin sample size. Name the bin you distrust most, say why, and give its n.</p></li>
 <li><p><strong>Eddie’s dunnocks.</strong> Fit <code>Wing ~ Tarsus</code> on Eddie’s data, then add <code>@formula(sigma ~ Sex)</code> to the <code>bf</code>. Report both AICs, the z and p on the σ slope row, <strong>the σ ratio with its interval</strong>, and the smallest ratio your sample size could have detected at 80% power (<code>exp((1.96 + 0.84) * se)</code>). Then write the result as a “not detected, and we could only have seen X” sentence rather than a “no”.</p></li>
-<li><p><strong>Count the band.</strong> Take any fit from this class’s exercises, draw its mean ± 1 SD band, and count how many of your observations fall outside it. Then ask the fitted distribution what fraction it <em>expects</em> to fall inside. Report both. One sentence on which of the two numbers a reader can interpret without the other.</p></li>
 <li><p><strong>The two faces.</strong> Write one paragraph, no code, explaining to a labmate why <code>BetaBinomial()</code>, <code>NegBinomial2()</code> and <code>sigma ~ x</code> are the same move. Your paragraph must contain the phrase “held fixed” and must name what is held fixed in each case.</p></li>
-<li><p><strong>Simulate and watch it wander.</strong> Adapt this class’s last block of code to your own overdispersed fit, with your own seed. Report the SD of the refitted slopes against the reported standard error, and the 10th and 90th percentiles of the refitted dispersion parameter, with the Monte-Carlo standard error of the median. Say which of the two parameters you would be comfortable quoting a symmetric interval for.</p></li>
-<li><p><strong>The pretence, again.</strong> Name the grouping this chapter is pretending away in your own data, and say whether your file actually records it — if it does not, say what a file that did would have to contain. Then say which number on today’s output you expect Class 6 to change, in which direction.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

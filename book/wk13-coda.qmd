@@ -183,7 +183,7 @@ because this book's own chapters ran into it. Two things the Julia engine cannot
 twin can: fit a random slope — a slope allowed to differ from group to group — when the outcome is
 yes/no, which is why Class 7 works on a continuous outcome; and take an offset — a known amount of
 effort or exposure per row, entered with its slope fixed at one — which is why Class 4 carries the
-exposure as an ordinary predictor in Julia and shows the offset in the R box. Both are known
+exposure as an ordinary predictor in Julia and says so, with a pointer to Appendix B. Both are known
 limitations, reported to the engine's authors. Neither is a design decision; both are work.
 
 There is a general lesson in that list, and it is the one to take away. A capability existing somewhere in a package's code is not the same as a capability that is tested,
