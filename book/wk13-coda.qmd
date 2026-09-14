@@ -10,7 +10,7 @@ engines: DRM.jl 0.7.1 at 26f4c4ddc (Julia 1.10.0) · drmTMB 0.7.0 (R 4.6.0)
 tags: [book, coda, location-scale, bivariate, meta-analysis, phylogeny, scope, DRM.jl]
 deck: "A coda, not a rung: no new constant is freed here. One figure below refits a model Class 4 already ran, to show what rung eleven means; the rest is prose, and the constants still waiting are one level up, two of them with chapter numbers already."
 status_tag: Draft
-status_note: "Draft. All ten classes of version 1, Appendix A, the preface and the coda are written and their code runs. This page fits one model, in one code cell, to draw its one figure — the same location-scale model Class 4 fitted, refitted here on the same archived sparrows — and otherwise runs no code and prints no other numbers. The prose is still being revised."
+status_note: "Draft. All ten classes of version 1, the fifth in two hours, Appendices A and B, the preface and the coda are written and their code runs. This page fits one model, in one code cell, to draw its one figure — the same location-scale model Class 4 fitted, refitted here on the same archived sparrows — and otherwise runs no code and prints no other numbers. The prose is still being revised."
 provenance: "This page fits one model, once, in one Julia cell: the location-scale model Class 4 already fitted (Wing ~ Tarsus + Sex, with Sex in σ), refitted here on the same 171 archived Lundy Island sparrows so the rung-eleven figure and the numbers beside it come from this page's own run. It makes no claim about a model that a chapter of this book has not already fitted. The three references in Further reading were checked on 2026-09-07 against OpenAlex, an open catalogue of research papers."
 caveat: "The two rungs described here as version two are an outline, not written chapters; the plan for the whole climb is linked from the landing page. The two engine limitations mentioned below are known and have been reported to the engine's authors; they may have been fixed by the time you read this, so check the engine's own page for their current state."
 footer_note: "Stats Hours with Itchy · Coda · the coda to twelve rungs, ten in version 1 · draft, 2026-09-07"
@@ -23,7 +23,7 @@ fixed; this one frees no new constant — the one model behind its one figure is
 already fitted. It is here because the climb has a shape, and the shape does not stop where the book
 does.
 
-What you have been doing for ten chapters is taking a constant out of a model and letting the data
+What you have been doing for ten rungs is taking a constant out of a model and letting the data
 have an opinion about it. The noise had one shape; you let the family choose it. The spread was a
 fixed function of the mean; you let a predictor into it. Rows were strangers; they stopped being
 strangers. Slopes were shared; they stopped being shared. Groups were independent of one another;
@@ -233,7 +233,7 @@ discover it the hard way.
   nailed down. They arrive overdispersed (more scattered than the family allows) *and* clustered *and* with a
   slope that varies *and* with
   groups that are related to one another, all at once, and the skill this book cannot teach you in
-  ten chapters is deciding which of those to free first, and which to leave alone because your
+  ten rungs is deciding which of those to free first, and which to leave alone because your
   sample size has not earned it.
 
 ---
@@ -252,7 +252,7 @@ the work, and then go and check.
 
 **Toto:** I mostly learned to read the error messages.
 
-**Itchy:** That was Class 1. There were nine more. What can you *do*, Toto?
+**Itchy:** That was Class 1. Nine rungs followed, one of them two hours long. What can you *do*, Toto?
 
 **Toto:** *(after a biscuit)* Fit a model to my water fleas. Eggs on carapace length, with a random
 intercept for clone, because two fleas from one clone are not strangers. Poisson first, and if the
