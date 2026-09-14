@@ -399,7 +399,7 @@ Each is explained where it first appears above; a reader who has done Classes 1 
 - **`randn(rng, n)` and `rand(rng, ["female", "male"], n)`.** Draws from a standard bell curve, and draws with replacement from a list; the generator is always the first argument.
 - **`Random.seed!(k)`, shown once and not used.** Resets the generator the session shares; every later draw with no `rng` comes from it, so a line's answer depends on its history.
 - **`sims[:, k]` and `size(sims, 2)`.** One column of a matrix, the colon meaning *all rows*, and the number of columns (Class 3).
-- **`(slope = ..., lower = ..., upper = ...)` and `r.slope`.** A NamedTuple returned from a function, read by field name (Class 5).
+- **`(slope = ..., lower = ..., upper = ...)` and `r.slope`.** A NamedTuple returned from a function, read by field name (Class 5a, Class 7).
 - **`[f(lo, hi) for (lo, hi) in zip(a, b)]`.** A comprehension over two vectors walked side by side (Class 3).
 - **`mean(covered)` on trues and falses.** The fraction that are true: two hundred yes-or-no answers become a coverage rate in one line.
 - **`sortperm(v)` and `mask[.!mask]`.** The order that would sort `v`, used to rank other vectors the same way; and a mask with every entry flipped (Class 6, Class 8).

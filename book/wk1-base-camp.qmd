@@ -190,7 +190,7 @@ n_females = nrow(females)
 
 **Momo:** And you get `{julia} n_males` and `{julia} n_females`, which add up.
 
-**Itchy:** Which add up to `{julia} n_birds`, and I want you to notice that I checked. Every time you split something, add the pieces back up. It costs one line and it has caught more of my mistakes than any diagnostic in Class 5. Now the grouped question, which is the one you will actually use.
+**Itchy:** Which add up to `{julia} n_birds`, and I want you to notice that I checked. Every time you split something, add the pieces back up. It costs one line and it has caught more of my mistakes than any diagnostic in Class 5a. Now the grouped question, which is the one you will actually use.
 
 ```{julia}
 #| label: grouped-mean

@@ -729,7 +729,7 @@ lrtest(reml_reduced, reml_full)
 - **`"""..."""` above a function.** A **docstring**: documentation attached to the function, shown by `?name` at the prompt.
 - **`function f(seed; J = 12, sigma = 1.0)`.** Keyword arguments **with defaults**: omit one and the default is used; name it to override.
 - **`for j in 1:J, _ in 1:k ... end`.** Two loops on one line, the second inside the first.
-- **`push!(v, x)` with `String[]`, `Float64[]`.** Class 5's growing vectors, now building a whole data frame a row at a time.
+- **`push!(v, x)` with `String[]`, `Float64[]`.** Class 5a's growing vectors, now building a whole data frame a row at a time.
 - **`"P" * lpad(j, 2, '0')`.** Strings are glued with `*`; `lpad` pads to a width. `"Q$j"` pastes a value in directly.
 - **`up += 1` and `cond && (up += 1)`.** Add one to a counter, and run a statement only when the condition holds: a one-line `if`.
 - **`with_logger(NullLogger()) do ... end`.** A **do-block**: a block of code handed to a function as its first argument. `with_logger` runs it with warnings redirected.

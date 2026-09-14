@@ -661,7 +661,7 @@ n_split   = count(A[i, j] > 0 && brood[i] != brood[j] for i in 1:n for j in (i +
 - `heritability(fit)` and `repeatability(fit)`: the two ratios, each returning `estimate`, `bias`, `corrected`, `se` and `ci`. With more than one structured component, pass `component = :name`.
 - `re_sd(fit)[:id]`, `sigma(fit)`, `is_converged(fit)`, `dof(fit)`: the component SDs, the residual SD, whether the optimiser finished, and the parameter count.
 - `lrt_boundary(full, reduced; q = 1)`: the boundary-corrected test for a variance component at zero. Both fits must be ML on the same rows.
-- `residuals(fit; type = :quantile)`: Class 5's quantile residuals, available on a structured fit like any other.
+- `residuals(fit; type = :quantile)`: Class 5a's quantile residuals, available on a structured fit like any other.
 - **The simulation thread.** Every chapter ends by asking the fit to invent data; here the cell is a reminder.
 
 ```{julia}

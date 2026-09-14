@@ -636,7 +636,7 @@ the same claim, but it is the one I actually believe.</p></div>
 <li><strong><code>randn(rng, n)</code> and <code>rand(rng, ["female", "male"], n)</code>.</strong> Draws from a standard bell curve, and draws with replacement from a list; the generator is always the first argument.</li>
 <li><strong><code>Random.seed!(k)</code>, shown once and not used.</strong> Resets the generator the session shares; every later draw with no <code>rng</code> comes from it, so a line’s answer depends on its history.</li>
 <li><strong><code>sims[:, k]</code> and <code>size(sims, 2)</code>.</strong> One column of a matrix, the colon meaning <em>all rows</em>, and the number of columns (Class 3).</li>
-<li><strong><code>(slope = ..., lower = ..., upper = ...)</code> and <code>r.slope</code>.</strong> A NamedTuple returned from a function, read by field name (Class 5).</li>
+<li><strong><code>(slope = ..., lower = ..., upper = ...)</code> and <code>r.slope</code>.</strong> A NamedTuple returned from a function, read by field name (Class 5a, Class 7).</li>
 <li><strong><code>[f(lo, hi) for (lo, hi) in zip(a, b)]</code>.</strong> A comprehension over two vectors walked side by side (Class 3).</li>
 <li><strong><code>mean(covered)</code> on trues and falses.</strong> The fraction that are true: two hundred yes-or-no answers become a coverage rate in one line.</li>
 <li><strong><code>sortperm(v)</code> and <code>mask[.!mask]</code>.</strong> The order that would sort <code>v</code>, used to rank other vectors the same way; and a mask with every entry flipped (Class 6, Class 8).</li>

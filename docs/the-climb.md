@@ -11,7 +11,8 @@ not the topic list.
 | 2 | The one formula you are allowed — the linear model | *the constant is introduced, not yet freed* | 1 |
 | 3 | The shape of the noise — GLMs, logistic and Poisson | the link and variance function, decreed by the family | 1 |
 | 4 | When the family lies about the spread — overdispersion, `sigma ~ x` | variance as a fixed function of the mean | 1 |
-| 5 | Is the model any good? — residuals, diagnostics, model comparison | *(a service chapter)* | 1 |
+| 5a | Is the model any good? — residuals, the worm plot, simulate-and-count | *(a service chapter)* | 1 |
+| 5b | Which model? — AIC, the likelihood-ratio test, marginal vs conditional | *(a service chapter)* | 1 |
 | 6 | Rows are not strangers — random intercepts, repeatability | the correlation between rows, set to zero | 1 |
 | 7 | Not everyone shares a slope — random slopes | the slope, held constant across groups | 1 |
 | 8 | Same model, two answers — REML vs ML, boundaries, optimiser defaults | **the default you never chose** | 1 |

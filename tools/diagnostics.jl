@@ -32,26 +32,6 @@ end
 using LinearAlgebra
 
 """
-    null_counters(fit, refit, ndraw, rng)
-
-Simulate `ndraw` new response vectors from `fit`, refit each one with
-`refit` (a one-argument function: a simulated response in, a new fit out),
-and for every refit compute its randomised-quantile residuals' `n_outside`
-count and standard deviation. Returns `(; outs, sds)` — the diagnostic's own
-null, built by fitting the same model to `ndraw` invented worlds, rather
-than a null drawn from plain normal samples.
-"""
-function null_counters(fit, refit, ndraw, rng)
-    y = simulate(fit; nsim = ndraw, rng = rng)
-    outs = Int[]; sds = Float64[]
-    for k in 1:ndraw
-        r = residuals(refit(y[:, k]); type = :quantile, rng = rng)
-        push!(outs, n_outside(r)); push!(sds, std(r))
-    end
-    (; outs, sds)
-end
-
-"""
     binomial_group_modes(y, eta, group, sigma_b; penalised = true)
 
 Per-group effects for a binomial random-intercept fit, logit(p_i) = eta_i + u_g(i),

@@ -1082,7 +1082,7 @@ class did not have.</p></div>
 <img src="wk9-glmms_files/figure-html/fig-diagnostic-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the identity line while both tails dip back below it, and the spread printed above the plot is above one.
+Figure&nbsp;4: Worm plot of the GLMM’s randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the zero line while both tails dip back below it, and the spread printed above the plot is above one.
 </figcaption>
 </figure>
 </div>
@@ -1140,7 +1140,7 @@ chicks that actually survived  : 0.4350</code></pre>
 <img src="wk9-glmms_files/figure-html/fig-diagnostic-marginal-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-diagnostic-marginal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: The same chicks’ quantile residuals, recomputed against probabilities averaged over the fit’s own distribution of broods instead of a single average brood. The body of the worm now lies close to the identity line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot’s excess was the reference probability, not the model.
+Figure&nbsp;5: The same chicks’ quantile residuals, recomputed against probabilities averaged over the fit’s own distribution of broods instead of a single average brood. The body of the worm now lies close to the zero line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot’s excess was the reference probability, not the model.
 </figcaption>
 </figure>
 </div>
@@ -1171,7 +1171,8 @@ is that chicks in a nest are not on their own; a per-observation check
 cannot see a correlation it has already averaged out. How to simulate a
 diagnostic’s own null — fit the model to worlds it invented, and count
 what the check says there — is <a href="wk5-diagnostics.html">Class
-5</a>’s, with <code>null_counters</code>; it is not repeated this hour.</p></div>
+5a</a>’s, written out there as a loop over a thousand invented worlds;
+it is not repeated this hour.</p></div>
 <h3 id="one-box-and-it-is-earned" class="anchored">One box, and it is earned</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Last thing, and it is the reason Momo will get an email from a
 collaborator. Somebody will fit this in R, and they will get a different

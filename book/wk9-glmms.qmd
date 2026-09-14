@@ -533,7 +533,7 @@ fig_shrinkage(pulled.levels[shown], own.u[shown], pulled.u[shown])
 
 ```{julia}
 #| label: fig-diagnostic
-#| fig-cap: "Worm plot of the GLMM's randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the identity line while both tails dip back below it, and the spread printed above the plot is above one."
+#| fig-cap: "Worm plot of the GLMM's randomised quantile residuals, at randomisation seed 909, judged against a brood sitting at the population average. The body of the worm sits above the zero line while both tails dip back below it, and the spread printed above the plot is above one."
 qres = residuals(glmm_fit; type = :quantile, rng = MersenneTwister(909))
 
 @printf("quantile residuals: mean %.4f, SD %.4f\n", mean(qres), std(qres))
@@ -575,7 +575,7 @@ r_marg = qresid(chicks.Survival, p_marg_row, MersenneTwister(909))
 
 ```{julia}
 #| label: fig-diagnostic-marginal
-#| fig-cap: "The same chicks' quantile residuals, recomputed against probabilities averaged over the fit's own distribution of broods instead of a single average brood. The body of the worm now lies close to the identity line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot's excess was the reference probability, not the model."
+#| fig-cap: "The same chicks' quantile residuals, recomputed against probabilities averaged over the fit's own distribution of broods instead of a single average brood. The body of the worm now lies close to the zero line, though both tails still dip below it, and its spread, printed above, is close to one: the first plot's excess was the reference probability, not the model."
 fig_diagnostic(r_marg; title = "same chicks, marginal reference")
 ```
 
@@ -587,7 +587,7 @@ fig_diagnostic(r_marg; title = "same chicks, marginal reference")
 
 **Toto:** So is the model good or not?
 
-**Itchy:** What you may write is what this shows: against the reference the model itself implies, the per-chick residuals land about where a correct model would put them. Two cautions, both cheap. That spread is one draw of a randomisation, so report the seed. And this check looks at each chick's residual **on its own**, and the thing we spent the hour on is that chicks in a nest are not on their own; a per-observation check cannot see a correlation it has already averaged out. How to simulate a diagnostic's own null — fit the model to worlds it invented, and count what the check says there — is [Class 5](wk5-diagnostics.html)'s, with `null_counters`; it is not repeated this hour.
+**Itchy:** What you may write is what this shows: against the reference the model itself implies, the per-chick residuals land about where a correct model would put them. Two cautions, both cheap. That spread is one draw of a randomisation, so report the seed. And this check looks at each chick's residual **on its own**, and the thing we spent the hour on is that chicks in a nest are not on their own; a per-observation check cannot see a correlation it has already averaged out. How to simulate a diagnostic's own null — fit the model to worlds it invented, and count what the check says there — is [Class 5a](wk5-diagnostics.html)'s, written out there as a loop over a thousand invented worlds; it is not repeated this hour.
 
 ### One box, and it is earned
 

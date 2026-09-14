@@ -550,7 +550,7 @@ slopes = [refit_slope(ysim[:, k]) for k in 1:size(ysim, 2)]
 
 Two things in the cell are new. `function refit_slope(y) ... end` is the long form of the definition Class 1 wrote in one line, for a body that needs several lines; the last expression is what it returns. `ysim` is a matrix with one column per invented world: `ysim[:, k]` is its *k*-th column, a colon in a slot meaning *all of that dimension*, and `size(ysim, 2)` is how many columns it has, so the comprehension refits every world in turn.
 
-The simulated responses are only ever zero and one, because `simulate` draws from the family the fit was given rather than adding normal noise. And the spread of the refitted slopes lands close to the standard error the single fit reported, which is what a standard error **is**: a prediction about how much your estimate would move if the world ran again. When those two numbers disagree badly, believe the simulation. That comparison is most of what Class 5 does for a living.
+The simulated responses are only ever zero and one, because `simulate` draws from the family the fit was given rather than adding normal noise. And the spread of the refitted slopes lands close to the standard error the single fit reported, which is what a standard error **is**: a prediction about how much your estimate would move if the world ran again. When those two numbers disagree badly, believe the simulation. Simulating from the fit and refitting is most of what Class 5a does for a living; putting that spread against the standard error is Appendix A's job.
 
 ---
 

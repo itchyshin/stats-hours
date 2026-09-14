@@ -1114,7 +1114,7 @@ chose before it told you anything.</p></div>
 <li><strong><code>"""..."""</code> above a function.</strong> A <strong>docstring</strong>: documentation attached to the function, shown by <code>?name</code> at the prompt.</li>
 <li><strong><code>function f(seed; J = 12, sigma = 1.0)</code>.</strong> Keyword arguments <strong>with defaults</strong>: omit one and the default is used; name it to override.</li>
 <li><strong><code>for j in 1:J, _ in 1:k ... end</code>.</strong> Two loops on one line, the second inside the first.</li>
-<li><strong><code>push!(v, x)</code> with <code>String[]</code>, <code>Float64[]</code>.</strong> Class 5’s growing vectors, now building a whole data frame a row at a time.</li>
+<li><strong><code>push!(v, x)</code> with <code>String[]</code>, <code>Float64[]</code>.</strong> Class 5a’s growing vectors, now building a whole data frame a row at a time.</li>
 <li><strong><code>"P" * lpad(j, 2, '0')</code>.</strong> Strings are glued with <code>*</code>; <code>lpad</code> pads to a width. <code>"Q$j"</code> pastes a value in directly.</li>
 <li><strong><code>up += 1</code> and <code>cond &amp;&amp; (up += 1)</code>.</strong> Add one to a counter, and run a statement only when the condition holds: a one-line <code>if</code>.</li>
 <li><strong><code>with_logger(NullLogger()) do ... end</code>.</strong> A <strong>do-block</strong>: a block of code handed to a function as its first argument. <code>with_logger</code> runs it with warnings redirected.</li>

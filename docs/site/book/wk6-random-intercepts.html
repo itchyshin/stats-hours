@@ -668,8 +668,8 @@ so a re-measured bird does carry a little fresh information about the
 slope, which is exactly why 273 is not 171. The rule to carry away:
 <strong>when a predictor varies mostly between groups, ignoring the
 grouping makes its standard error too small.</strong> When a predictor
-varies mostly <em>within</em> groups, the same neglect can make it too
-large, and Class 7 will show you one.</p></div>
+varies a great deal <em>within</em> groups, the same neglect can make it
+too large, and Class 7 will show you one.</p></div>
 <h3 id="what-the-second-variance-component-is-for" class="anchored">What the second variance component is for</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Now the part you came for. The fit printed two spreads. Get them out.</p></div>
 <div id="variance-components" class="cell" data-execution_count="12">
@@ -891,9 +891,9 @@ hand you one of them without asking. The marginal residual is the
 distance from the population line, so it still has the bird’s own shift
 inside it. The conditional residual subtracts that shift out, and it is
 the one σ is a claim about. The worm plot is the picture Class 2 showed
-you and Class 5 taught you to read: residuals against what a normal
+you and Class 5a taught you to read: residuals against what a normal
 distribution would give, straight along the middle if all is well. Read
-it for shape only — Class 5 showed that the naive count of points
+it for shape only — Class 5a showed that the naive count of points
 outside the ±2SE band is too generous by about a factor of five, so it
 is not calibrated by eye. One piece of Julia before the cell:
 <code>idx</code> is a <code>Dict</code>, a lookup table from bird name
@@ -1149,7 +1149,7 @@ biology rather than a nuisance.</p></div>
 <ul>
 <li><strong>Non-independence.</strong> Every model in Classes 2 to 5 assumed rows were independent draws. Repeated measurements on the same individual are not, and the assumption is not visible in any diagnostic plot; it is visible in the <em>data file</em>. Look at your identifier columns before you look at your residuals.</li>
 <li><strong>Random intercept.</strong> <code>(1 | group)</code> gives every group its own shift up or down, drawn from a normal distribution with spread σ_b. You do not estimate one intercept per group; you estimate the spread of the intercepts, which costs you one parameter rather than one per group.</li>
-<li><strong>What it does to standard errors.</strong> With a predictor that varies mostly <em>between</em> groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope’s standard error was understated by 22.9%. With a predictor that varies mostly <em>within</em> groups the neglect can go the other way, which is Class 7.</li>
+<li><strong>What it does to standard errors.</strong> With a predictor that varies mostly <em>between</em> groups, ignoring the grouping makes standard errors too small, because you counted repeated measurements as independent evidence. Here the slope’s standard error was understated by 22.9%. With a predictor that varies a great deal <em>within</em> groups the neglect can go the other way, which is Class 7.</li>
 <li><strong>Two spreads, not one.</strong> σ_b is how much individuals differ from each other; σ is how much one individual varies from itself. The single-level model reports something between the two and calls it “the” residual standard deviation, which answers neither question.</li>
 <li><strong>Repeatability, R = σ_b² / (σ_b² + σ²).</strong> A ratio of variance components. Also called the intraclass correlation, because it <em>is</em> the correlation between two measurements on the same individual. Not a coefficient, not a <em>p</em>-value, and much more informative than either.</li>
 <li><strong>Adjusted versus unadjusted R.</strong> With a fixed effect in the model, R is conditional on it. State which one you computed (Nakagawa &amp; Schielzeth 2010). The two answer different biological questions.</li>
@@ -1241,7 +1241,7 @@ the fit it came from  : sigma_b = 1.7541, sigma = 1.0969, R = 0.7189</code></pre
 
 </div>
 <nav class="chapter-nav" aria-label="Chapter">
-  <a class="chapter-nav-link prev" href="wk5-diagnostics.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 5 · Is the model any good?</span></a><a class="chapter-nav-link next" href="wk7-random-slopes.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 7 · Not everyone shares a slope</span></a>
+  <a class="chapter-nav-link prev" href="wk5b-comparison.html"><span class="chapter-nav-dir">Previous</span><span class="chapter-nav-dest">Class 5b · Which model?</span></a><a class="chapter-nav-link next" href="wk7-random-slopes.html"><span class="chapter-nav-dir">Next</span><span class="chapter-nav-dest">Class 7 · Not everyone shares a slope</span></a>
 </nav>
 <footer>
   Stats Hours with Itchy · Class 6 of twelve rungs, ten in version 1, plus a coda · draft; all code run 2026-09-06<br>

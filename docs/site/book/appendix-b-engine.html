@@ -111,108 +111,114 @@ ul.task-list li input[type="checkbox"] {
 <td>—</td>
 </tr>
 <tr class="odd">
+<td>Zero-inflated and hurdle count families</td>
+<td>Not offered: no family with a separate zero process. <code>TruncatedNegBinomial2()</code> fits counts that are known to be positive, which is the second half of a hurdle model, not the whole of one.</td>
+<td>Record <em>whether</em> each unit produced anything as its own column and fit the two processes one at a time with families you already own: <code>Binomial()</code> for the zero, then a count family on the units that produced something.</td>
+<td>—</td>
+</tr>
+<tr class="even">
 <td><code>sigma(fit)</code> on <code>BetaBinomial()</code></td>
 <td>Returns the response-scale σ and the trial counts together, not θ or φ.</td>
 <td>Read φ off <code>coef(fit, :sigma)</code>: the engine stores log σ, so φ = 1/σ² = exp(−2 log σ); the same move gives θ for <code>NegBinomial2()</code>.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>lrtest</code>/<code>anova</code> refusals (Julia)</td>
 <td>Refuses to compare two restricted-likelihood fits with different fixed effects, two fits using different random-effect approximations, or a penalised fit; warns when the tested parameter is a variance component.</td>
 <td>Read the message — it names the fix (fit both by ML, match the approximation, or use the boundary-corrected test).</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>lrt_boundary(fit; q = 2)</code></td>
 <td>Implements the chi-bar-squared mixture for two <em>independent</em> boundary variance components — quarter, half, quarter on 0, 1 and 2 degrees of freedom. The independence assumption is stated in the function’s own docstring. A correlated random slope adds one boundary variance and one interior correlation (the covariance), the Stram and Lee (1994) case, not this one — <code>q = 2</code> here applies the wrong mixture.</td>
 <td>Compute the Stram and Lee mixture by hand: half on χ²(1), half on χ²(2).</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>anova()</code> (drmTMB, R)</td>
 <td>Refuses every likelihood-ratio comparison, not only the invalid ones — an absence in the R package, not a disagreement between the twins.</td>
 <td>Use the Julia engine’s <code>lrtest</code> for a real comparison.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>simulate(fit; nsim = k)</code></td>
 <td>Draws new responses with every random effect set to zero: population-level draws, not draws that reproduce a mixed model’s total spread.</td>
 <td>For a null that should have group effects, add them yourself from the same generator, seeded and passed as an argument.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Correlated random slope, uncentred covariate</td>
 <td>A Gaussian <code>(1 + x | g)</code> can throw <code>DomainError</code> — the log of a negative number — when the covariate sits far from zero.</td>
 <td>Centre the covariate; the near-singular determinant is a numerical artefact of an off-centre origin, not evidence the effect is unidentifiable.</td>
 <td>DRM.jl #762</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>re_sd(fit)</code> on a correlated block</td>
 <td>Returns an empty <code>Dict</code>; the printed covariance block is a Cholesky factor (<code>L11</code>, <code>L22</code>, <code>L21</code>), not σ₀, σ₁ and ρ.</td>
 <td>Use <code>vc(fit)</code> instead — a covariance matrix. Take square roots of the diagonal for the SDs and divide for ρ.</td>
 <td>DRM.jl #763</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>The correlation in a random-slope block</td>
 <td><code>vc(fit)</code> gives the point estimate of ρ and nothing about its precision; no standard error or interval is reported, where the R twin prints a standard error beside it.</td>
 <td>Treat ρ as Class 7 does — a quantity whose sign depends on where the covariate’s zero sits — and do not report it to a precision the engine cannot give.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Binomial()</code> random slopes</td>
 <td>Accepts a random intercept <code>(1 | g)</code> but refuses a correlated random slope <code>(1 + x | g)</code>, where seven other families and the R twin accept one.</td>
 <td>None yet.</td>
 <td>DRM.jl #753</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>confint(fit)</code> on a scale block</td>
 <td>The <code>:resd</code> and <code>:sigma</code> rows come back on the log scale.</td>
 <td>Exponentiate the endpoints for an interval on the standard deviation.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>ranef(fit)</code> on a non-Gaussian fit</td>
 <td>Returns an empty <code>Dict</code>; the failure is silent unless you index it, which raises a <code>KeyError</code>.</td>
 <td>Compute the per-group effects yourself: a one-dimensional penalised maximisation, about six lines, checked against <code>ranef</code> on a Gaussian fit of the same groups.</td>
 <td>DRM.jl #759</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>A second grouping on the binomial route</td>
 <td>Can converge and return <code>Inf</code> standard errors for every level, with no warning.</td>
 <td>Fit a Gaussian control on the same groups: if its standard errors are finite and its log-likelihood rose, the fault is the engine’s binomial route, not your design.</td>
 <td>DRM.jl #761</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Quantile residuals on a GLMM</td>
 <td><code>fitted(fit)</code> sets every random effect to zero, so a residual is judged against the model’s prediction at that point, not the population average — a different number on a nonlinear link.</td>
 <td>Average the fitted curve over groups yourself before judging residuals against it.</td>
 <td>DRM.jl #760</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Quadrature on the binomial <code>(1|g)</code> route</td>
 <td>A fixed 32-node, non-adaptive Gauss–Hermite grid centred at zero; <code>marginal = :AGHQ</code> is rejected.</td>
 <td>Cross-check against <code>lme4::glmer</code> at a high <code>nAGQ</code>, and name the approximation in your methods sentence.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>REML on a structured random effect</td>
 <td><code>method = :REML</code> is rejected for a model such as <code>animal(1 | id)</code>; the error names where REML is available instead.</td>
 <td>Fit by ML (the default) and, if the bias matters, measure it with a simulation from the ML fit.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Two structured groupings in one model</td>
 <td>Both must be written <code>relmat(1 | g)</code> with an explicit relatedness matrix; a plain <code>(1 | g)</code> will not combine with <code>animal()</code>.</td>
 <td>Pass <code>relmat(1 | g)</code> with an identity matrix for the ordinary grouping.</td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>heritability</code>/<code>repeatability</code> intervals</td>
 <td>The <code>ci</code> field is centred on <code>corrected</code>, not on <code>estimate</code>.</td>
 <td>Print <code>estimate</code>, <code>bias</code> and <code>corrected</code> together, and report <code>corrected</code>.</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Convergence warnings at a boundary</td>
 <td>Can print a line naming a file inside the engine’s own source.</td>
 <td>That line is for the engine’s authors, not you; read the rest of the warning.</td>

@@ -89,7 +89,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <span>Draft</span>
     </p>
     <h1>Not everyone shares a slope</h1>
-    <p class="deck">A covariate that was two covariates, one extra term with two extra parameters, a correlation that changes its sign when you move the origin without changing the model at all, and what the slope variance would have been doing if the fixed part had not been given its second coefficient first.</p>
+    <p class="deck">A covariate that was two covariates, one term with two parameters, a correlation that changes sign when you move the origin without changing the model, and what the slope variance would have absorbed had the fixed part not been split first.</p>
     <div class="status">
       <span class="tag">Draft</span>
       <p>Every number and figure on this page was computed when the site was built.</p>
@@ -104,39 +104,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="wrap">
 <blockquote>
-<p><strong>A note on the data.</strong> Same file as Class 6: the repeated body-size measurements on the Lundy sparrows. Class 6 used tarsus length as the predictor and freed the intercept. Today we free the slope, and the first thing the class does is discover, in a cell, that tarsus is the wrong column to try it on. The one failure on the page happened when it was built, and is shown as it happened.</p>
+<p><strong>A note on the data.</strong> Same file as Class 6: the repeated body-size measurements on the Lundy sparrows, keeping the rows that have both a wing and a mass. Class 6 used tarsus as the predictor and freed the intercept. Today the predictor is mass, the column that changes between one capture of a bird and the next, and we free the slope.</p>
 </blockquote>
 <hr>
 <h2 id="objectives" class="anchored">Objectives</h2>
 <p>By the end of this class you should be able to:</p>
 <ol type="1">
 <li>Say what a random slope frees, and check <em>before you fit it</em> whether your covariate varies enough <strong>within</strong> groups for the question to have an answer.</li>
-<li>Split a repeated-measures covariate into its within-group and between-group parts, say what a single coefficient on the unsplit covariate is a blend of, and say why this comes <em>before</em> the random slope.</li>
-<li>Fit <code>(1 + x | group)</code> on the within part and read the two standard deviations and the correlation out of the covariance block the engine returns.</li>
-<li>Explain why the intercept–slope correlation changes, and can change sign, when you move the origin of the covariate without changing the model.</li>
-<li>Compare a random-slope model against a random-intercept model with AIC and with a likelihood-ratio test, and say why the usual reference distribution is wrong when the thing you are testing is a variance.</li>
-<li>Describe what shrinkage does to a group’s <em>slope</em>, and say why a group with three measurements keeps only a little of the slope its own points suggest.</li>
+<li>Split a repeated-measures covariate into its within and between parts, say what one coefficient on the unsplit covariate blends, and why this comes <em>before</em> the random slope.</li>
+<li>Fit <code>(1 + x | group)</code> on the within part and read σ_0, σ_1 and ρ out of the covariance block.</li>
+<li>Explain why ρ changes, and can change sign, when you move the origin of the covariate without changing the model.</li>
+<li>Compare the two models with AIC and a likelihood-ratio test, and say why the usual reference distribution is wrong when the thing tested is a variance.</li>
+<li>Say what shrinkage does to a group’s <em>slope</em>, and why three measurements keep only a little of the slope they suggest.</li>
 </ol>
 <hr>
 <h2 id="the-class" class="anchored">The class</h2>
 <p class="scene">Itchy’s office, 9:00 am. TOTO has come straight from Class 6 with the
-caterpillar plot still open on the laptop. MOMO is here early with a
-question she wrote down last week and did not ask. EDDIE has brought a
-dunnock dataset he intends to break. JARO is in the corridor and will be
-needed before the hour is out.</p>
+caterpillar plot still open. MOMO is here early with a question she
+wrote down last week and did not ask. EDDIE is here. JARO is in the
+corridor.</p>
 <div class="line"><span class="who itchy">Itchy</span><p>Last week I drew you a picture and said one sentence about it that I
 want back before we start. Toto. The picture with all the bird lines in
 it.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>They were all parallel.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>All parallel. Every bird got to sit high or low; none of them got its
-own steepness. That was the restriction, and you could see it in the
-plot. Today we take it out. But not the way you are about to.</p></div>
+own steepness. Today we take that restriction out. But not the way you
+are about to.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Meaning we do not just type it.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Meaning we do not just type it. A random slope asks whether the
 relationship between <em>y</em> and <em>x</em> differs from group to
 group. Before you can ask that, <em>x</em> has to differ within a group;
 otherwise there is nothing for a per-bird slope to be estimated
-<em>from</em>, and the software will find that out about ninety seconds
+<em>from</em>, and the software finds that out about ninety seconds
 after you do, in a worse mood. So: file first.</p></div>
 <h3 id="which-column-actually-moves-within-a-bird" class="anchored">Which column actually moves within a bird</h3>
 <div id="setup" class="cell" data-execution_count="1">
@@ -147,36 +146,35 @@ after you do, in a worse mood. So: file first.</p></div>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"../data/2012/BodySize.csv"</span>, DataFrame; missingstring <span class="op">=</span> <span class="st">"NA"</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's cleaning, one column different: today's covariate is mass, so the</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># rows we need complete are wing and weight.</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">dropmissing</span>(raw, [<span class="op">:</span>Wing, <span class="op">:</span>Weight])</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>w_bar <span class="op">=</span> <span class="fu">mean</span>(sparrows.Weight)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>sparrows.wc <span class="op">=</span> sparrows.Weight <span class="op">.-</span> w_bar     <span class="co"># mass, centred on its own mean</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Each bird's own mean mass, and each capture's departure from it. The third</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># section of this class needs both; nothing before it does.</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>bird_mass <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), <span class="op">:</span>Weight <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>joined <span class="op">=</span> <span class="fu">leftjoin</span>(sparrows, bird_mass, on <span class="op">=</span> <span class="op">:</span>BirdID)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>sparrows.wbar <span class="op">=</span> joined.m <span class="op">.-</span> w_bar          <span class="co"># the bird's own average mass, centred</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>sparrows.wdev <span class="op">=</span> sparrows.Weight <span class="op">.-</span> joined.m   <span class="co"># this capture, relative to that bird</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">mkpath</span>(<span class="st">"../data/ch7"</span>)</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>CSV.<span class="fu">write</span>(<span class="st">"../data/ch7/sparrows-weight.csv"</span>, sparrows)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>bird_ids <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(sparrows.BirdID))</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>birds <span class="op">=</span> <span class="fu">length</span>(bird_ids)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>row_of <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> i <span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(bird_ids))</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>gi <span class="op">=</span> [row_of[b] for b <span class="kw">in</span> sparrows.BirdID]      <span class="co"># each row's bird, as an index</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="cn">nothing</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Class 6's cleaning, with wing and weight the columns kept complete.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sparrows <span class="op">=</span> <span class="fu">dropmissing</span>(raw, [<span class="op">:</span>Wing, <span class="op">:</span>Weight])</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>w_bar <span class="op">=</span> <span class="fu">mean</span>(sparrows.Weight)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>sparrows.wc <span class="op">=</span> sparrows.Weight <span class="op">.-</span> w_bar     <span class="co"># mass, centred on its own mean</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Each bird's own mean mass, and each capture's departure from it.</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>bird_mass <span class="op">=</span> <span class="fu">combine</span>(<span class="fu">groupby</span>(sparrows, <span class="op">:</span>BirdID), <span class="op">:</span>Weight <span class="op">=&gt;</span> mean <span class="op">=&gt;</span> <span class="op">:</span>m)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>joined <span class="op">=</span> <span class="fu">leftjoin</span>(sparrows, bird_mass, on <span class="op">=</span> <span class="op">:</span>BirdID)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>sparrows.wbar <span class="op">=</span> joined.m <span class="op">.-</span> w_bar          <span class="co"># the bird's own average mass, centred</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>sparrows.wdev <span class="op">=</span> sparrows.Weight <span class="op">.-</span> joined.m   <span class="co"># this capture, relative to that bird</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">mkpath</span>(<span class="st">"../data/ch7"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>CSV.<span class="fu">write</span>(<span class="st">"../data/ch7/sparrows-weight.csv"</span>, sparrows)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="fu">nrow</span>(sparrows)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>bird_ids <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(sparrows.BirdID))</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>birds <span class="op">=</span> <span class="fu">length</span>(bird_ids)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>gi <span class="op">=</span> <span class="fu">indexin</span>(sparrows.BirdID, bird_ids)    <span class="co"># each row's bird, as a position in bird_ids</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="cn">nothing</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>The file, cleaned as Class 6 cleaned it, except that the column we need
-complete today is mass rather than tarsus. Two new things in the cell.
+<div class="line"><span class="who itchy">Itchy</span><p>The file, cleaned as Class 6 cleaned it, with mass rather than tarsus
+the column kept complete. Three new things in the cell.
 <code>leftjoin(sparrows, bird_mass, on = :BirdID)</code> attaches each
 bird’s mean mass to every one of its rows, matching on the identifier: a
 <strong>join</strong> does what Class 6’s <code>Dict</code> did by hand.
-And the cell ends with <code>nothing</code>, which is how you stop a
-cell printing its last value when that value is a whole data frame.</p></div>
+<code>indexin(a, b)</code> gives each element of <code>a</code> its
+position in <code>b</code>, the other lookup Class 6 built by hand. And
+the cell ends with <code>nothing</code>, which stops it printing a whole
+data frame.</p></div>
 <div id="counts" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rows %d on %d birds</span><span class="sc">\n\n</span><span class="st">"</span>, n, birds)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -199,17 +197,16 @@ median measurements per bird: 3.0</code></pre>
 <div class="line"><span class="who momo">Momo</span><p>Two, three or four. That is not a lot of points to fit a line through.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>It is not, and hold that thought until the caterpillar, where it becomes
 the whole lesson. First: which of these columns moves <em>within</em> a
-bird? You already have the tool. A repeatability is the share of
-variance that sits <strong>between</strong> individuals, so one minus it
-is the share that sits within. The cell loops over five columns and
-stores what it finds in two lookup tables:
-<code>Dict{Symbol,Float64}()</code> is an empty <code>Dict</code> that
-will hold a number under each column’s name, filled by
-<code>share_within[c] = ...</code>. <code>Float64.(...)</code> converts
-a column to plain decimals. And inside <code>combine</code>,
+bird? You have the tool. A repeatability is the share of variance that
+sits <strong>between</strong> individuals, so one minus it is the share
+within. The cell loops over five columns and stores what it finds in two
+lookup tables: <code>Dict{Symbol,Float64}()</code> is an empty
+<code>Dict</code> that will hold a number under each column’s name,
+filled by <code>share_within[c] = ...</code>. <code>Float64.(...)</code>
+converts a column to plain decimals. And inside <code>combine</code>,
 <code>:y =&gt; (v -&gt; ...) =&gt; :sw</code> is Class 1’s double arrow
-with an anonymous function in the middle, here one that returns
-<code>missing</code> for a bird measured only once, which
+with an anonymous function in the middle, here returning
+<code>missing</code> for a bird measured once, which
 <code>skipmissing</code> then steps over.</p></div>
 <div id="within-bird" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>candidates <span class="op">=</span> [<span class="op">:</span>Tarsus, <span class="op">:</span>BillL, <span class="op">:</span>BillW, <span class="op">:</span>Tail, <span class="op">:</span>Weight]</span>
@@ -239,67 +236,52 @@ Weight      459   0.5824   0.4176       0.9907</code></pre>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Tarsus is nearly all between.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Tarsus is 7.1% within a bird and the rest between, which is Class 6’s
-number arriving as a warning. A grown sparrow’s leg bone does not change
-between captures, so a per-bird slope <em>on tarsus</em> asks 171 birds
-for the steepness of a line through points stacked on top of each other.
-Mass is near the other end of the table: 41.8% of the variation in mass
-is a bird differing from itself.</p></div>
+number arriving as a warning: a per-bird slope <em>on tarsus</em> asks
+171 birds for the steepness of a line through points stacked on top of
+each other. Mass is near the other end of the table: 41.8% of the
+variation in mass is a bird differing from itself.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>Because mass is condition and tarsus is architecture.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Because mass is condition and tarsus is architecture, and that
-distinction is worth more than today’s arithmetic.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>Then why mass? Bill width has a larger within-bird share than mass does.
-It is the largest in the table.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>It is, and I am glad you read the whole column rather than the row I
-pointed at, because that is the trap in this table. <strong>A share does
-not tell you what the variation is made of.</strong> A grown sparrow’s
-bill width is architecture too; its within-bird share is large because
-the trait is a couple of millimetres wide and the calipers are not that
-precise, so most of what moves between captures is the measuring, not
-the bird. Look at the two numbers together: bill width moves 48% of its
-variation within a bird, and that movement is 0.1503 of a millimetre.
-Mass genuinely changes: a sparrow is heavier after a good week and
-lighter after a bad one, and 0.991 grams of within-bird movement is a
-bird, not a ruler.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And that distinction is worth more than today’s arithmetic.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Then why mass? Bill width has the largest within-bird share in the
+table.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>It is, and I am glad you read the whole column, because that is the trap
+in this table. <strong>A share does not tell you what the variation is
+made of.</strong> A grown sparrow’s bill width is architecture too; its
+within-bird share is large because the trait is a couple of millimetres
+wide and the calipers are not that precise, so most of what moves
+between captures is the measuring. Bill width moves 48% of its variation
+within a bird, and that movement is 0.1503 of a millimetre. Mass
+genuinely changes: a sparrow is heavier after a good week and lighter
+after a bad one, and 0.991 grams of within-bird movement is a bird, not
+a ruler.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So the rule is not “pick the biggest share”.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The rule is: <strong>pick a covariate whose within-group variation is a
-thing that happens, not a thing you did.</strong> Then check that its
+thing that happens, not a thing you did</strong>, then check that its
 share is large enough to estimate from. Mass passes both. So today’s
-covariate is <strong>mass</strong>, and today’s question is: when a bird
-is heavier, is its wing measured longer, and <strong>by the same amount
-in every bird</strong>? Look at it before you model it.</p></div>
+question is: when a bird is heavier, is its wing measured longer, and
+<strong>by the same amount in every bird</strong>? Look before you
+model.</p></div>
 <div id="fig-spaghetti-data" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>k_of <span class="op">=</span> <span class="fu">Dict</span>(r.BirdID <span class="op">=&gt;</span> r.k <span class="cf">for</span> r <span class="kw">in</span> <span class="fu">eachrow</span>(per_bird))</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>repeat_ids <span class="op">=</span> [b for b <span class="kw">in</span> bird_ids if k_of[b] <span class="op">&gt;=</span> <span class="fl">3</span>]</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Every twelfth bird in the ordering by mean mass: a rule, not a preference.</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>mean_mass <span class="op">=</span> [<span class="fu">mean</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> b]) for b <span class="kw">in</span> repeat_ids]</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>shown <span class="op">=</span> repeat_ids[<span class="fu">sortperm</span>(mean_mass)][<span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">:</span><span class="fu">length</span>(repeat_ids)]</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>repeat_ids <span class="op">=</span> <span class="fu">sort</span>(per_bird.BirdID[per_bird.k <span class="op">.&gt;=</span> <span class="fl">3</span>])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Every thirteenth bird in the ordering by mean mass: a rule, not a preference.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>mean_mass <span class="op">=</span> [<span class="fu">mean</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> b]) for b <span class="kw">in</span> repeat_ids]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>shown <span class="op">=</span> repeat_ids[<span class="fu">sortperm</span>(mean_mass)][<span class="fl">1</span><span class="op">:</span><span class="fl">13</span><span class="op">:</span><span class="fu">length</span>(repeat_ids)]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> Makie.<span class="fu">wong_colors</span>()</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"mass (g)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"</span><span class="sc">$</span>(<span class="fu">length</span>(shown))<span class="st"> birds, each caught at least three times"</span>)</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.Weight, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.3</span>))</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># One colour per bird; line style and marker shape are second and third channels.</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Style cycles on 3, marker on 4 (coprime with style's 3) so the two</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># non-colour channels alone never repeat together within any run of 12</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># birds — two birds sharing a style still land on different markers.</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>palette <span class="op">=</span> <span class="fu">to_value</span>(Makie.<span class="fu">current_default_theme</span>().palette.color)</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>styles  <span class="op">=</span> [<span class="op">:</span>solid, <span class="op">:</span>dash, <span class="op">:</span>dashdot]</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>markers <span class="op">=</span> [<span class="op">:</span>circle, <span class="op">:</span>rect, <span class="op">:</span>utriangle, <span class="op">:</span>diamond]</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(shown)</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> <span class="fu">sortperm</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> b])</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> <span class="fu">findall</span>(sparrows.BirdID <span class="op">.==</span> b)[rows]</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    col <span class="op">=</span> palette[<span class="fu">mod1</span>(i, <span class="fu">length</span>(palette))]</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    ls <span class="op">=</span> styles[<span class="fu">mod1</span>(i, <span class="fu">length</span>(styles))]</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    mk <span class="op">=</span> markers[<span class="fu">mod1</span>(i, <span class="fu">length</span>(markers))]</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>(ax, sparrows.Weight[m], sparrows.Wing[m]; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> col, marker <span class="op">=</span> mk)</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, sparrows.Weight[m], sparrows.Wing[m]; color <span class="op">=</span> (col, <span class="fl">0.7</span>), linewidth <span class="op">=</span> <span class="fl">1.4</span>, linestyle <span class="op">=</span> ls)</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(shown)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">sort</span>(sparrows[sparrows.BirdID <span class="op">.==</span> b, <span class="op">:</span>], <span class="op">:</span>Weight)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>(ax, d.Weight, d.Wing; markersize <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> cols[i])</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, d.Weight, d.Wing; color <span class="op">=</span> (cols[i], <span class="fl">0.7</span>), linewidth <span class="op">=</span> <span class="fl">1.4</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 <figure>
@@ -310,19 +292,21 @@ in every bird</strong>? Look at it before you model it.</p></div>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spaghetti-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Every twelfth bird, in the ordering by mean mass, among those measured at least three times, with each bird’s own captures joined in order of mass. A bird’s identity is its colour, line style and marker shape together, so that no two of the 8 birds shown share all three. Grey is the whole file. A random slope is the claim that these little segments do not all have the same steepness.
+Figure&nbsp;1: Every thirteenth bird in the ordering by mean mass, among those measured at least three times, its captures joined in order of mass and one colour per bird. Grey is the whole file. A random slope is the claim that these segments do not all have the same steepness.
 </figcaption>
 </figure>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Some of them go up and some of them go down.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Some of them go up and some of them go down, and <em>that</em> is the
-picture of the thing we are about to put a number on. Whether the
-up-and-down is real or is what three points do when you join them is the
-content of the hour.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And <em>that</em> is the thing we are about to put a number on. Whether
+the up-and-down is real or is what three points do when you join them is
+the content of the hour. <code>sort(df, :Weight)</code> in that cell
+puts a data frame’s rows in order of one column;
+<code>Makie.wong_colors()</code> is a list of seven colours that stay
+distinct.</p></div>
 <h3 id="the-slope-you-have-been-sharing" class="anchored">The slope you have been sharing</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Two fits, in order of how much they let the birds get away with. Watch
-the slope, and watch its standard error, because Class 6 left you a
-promise about it that I have to keep today.</p></div>
+the slope and its standard error, because Class 6 left you a promise
+about it.</p></div>
 <div id="two-fits-wc" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pooled_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wc)),                   <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ri_fit     <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wc <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))),      <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
@@ -342,52 +326,49 @@ no bird at all       0.4430     0.0547       2.1253
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>The standard error went <strong>down</strong>. Last week it went up.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Last week it went up, and last week I told you it would not always. Read
-the third column.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Last week I promised you a predictor where it goes the other way. This
+is it. Read the third column.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>The residual standard deviation collapsed.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>From 2.1253 millimetres to 1.1256, which is a factor of 3.6 in residual
+<div class="line"><span class="who itchy">Itchy</span><p>From 2.1253 millimetres to 1.1256, a factor of 3.6 in residual
 <em>variance</em>. <strong>Two things happen at once when you add
 <code>(1 | g)</code></strong>: you stop counting repeated measurements
-as fresh evidence, which pushes the standard error up, and you take an
-enormous amount of noise out of the residual, which pulls it down. Class
-6 showed you the first one winning, on a predictor that barely moves
-within a bird. Which one wins is not settled by which side of one half
-the within-share falls on — mass is 58.2% between-bird, and the second
-still wins: the standard error falls to 0.936 of what it was, a cut of
-6.4%. Keep the two mechanisms; do not keep an arithmetic test.</p></div>
+as fresh evidence, which pushes the standard error up, and you take
+noise out of the residual, which pulls it down. On tarsus there was
+almost no noise for the bird term to take out, so the first won. On mass
+there is a great deal, and the second wins even though mass is still
+58.2% between-bird: the standard error is cut by 6.4%. Keep the two
+mechanisms; which one wins is a fact about the file, not a rule.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>And the slope halved.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>The slope more than halved, from 0.443 to 0.1844 millimetres of wing per
-gram, which is a bigger move than anything Class 6 showed you. That is
-the second thing this predictor is doing, and it is bigger than today’s
-subject. The pooled line is answering a blend of two questions — heavier
-birds are bigger birds, and a given bird gains and loses mass — and
-putting a bird term in the model changes the blend without separating
-it. So separate it now, before we free anything, because it takes one
-line and one parameter.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>More than halved, from 0.443 to 0.1844 millimetres of wing per gram, and
+that is bigger than today’s subject. The pooled line answers a blend of
+two questions — heavier birds are bigger birds, and a given bird gains
+and loses mass — and a bird term changes the blend without separating
+it. So separate it now, before we free anything; it takes one line and
+one parameter.</p></div>
 <h3 id="the-covariate-that-was-two-covariates" class="anchored">The covariate that was two covariates</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Split mass into two columns: the bird’s <strong>own average
 mass</strong>, a fact about the bird, and each capture’s
 <strong>departure from that average</strong>, a fact about the day. The
 setup cell built both, <code>wbar</code> and <code>wdev</code>, and they
 add back up to <code>wc</code>, so nothing has been added to the data.
-Give them separate coefficients.</p></div>
+Give them separate coefficients. The table counts parameters with
+<code>dof</code>, Class 5b’s call: intercept, slopes, σ, and every
+variance the random part carries.</p></div>
 <div id="split" class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># wbar is the bird's own mean mass (centred); wdev is this capture minus that</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># mean. They are orthogonal by construction, and wbar + wdev = wc.</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sep_ri <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>bs, ses <span class="op">=</span> <span class="fu">coef</span>(sep_ri, <span class="op">:</span>mu), <span class="fu">stderror</span>(sep_ri)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">npar</span>(f) <span class="op">=</span> <span class="fu">round</span>(<span class="dt">Int</span>, (<span class="fu">aic</span>(f) <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu">loglik</span>(f)) <span class="op">/</span> <span class="fl">2</span>)     <span class="co"># AIC = 2k - 2 logLik</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-26s %7s %10s %11s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"params"</span>, <span class="st">"logLik"</span>, <span class="st">"AIC"</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f) <span class="kw">in</span> ((<span class="st">"wc + (1|BirdID)"</span>, ri_fit), (<span class="st">"wdev + wbar + (1|BirdID)"</span>, sep_ri))</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-26s %7d %10.4f %11.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">npar</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">within-bird slope  : %+.4f   SE %.4f   z %5.2f</span><span class="sc">\n</span><span class="st">"</span>, bs[<span class="fl">2</span>], ses[<span class="fl">2</span>], bs[<span class="fl">2</span>] <span class="op">/</span> ses[<span class="fl">2</span>])</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird slope : %+.4f   SE %.4f   z %5.2f</span><span class="sc">\n</span><span class="st">"</span>, bs[<span class="fl">3</span>], ses[<span class="fl">3</span>], bs[<span class="fl">3</span>] <span class="op">/</span> ses[<span class="fl">3</span>])</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unsplit, from above: %+.4f</span><span class="sc">\n</span><span class="st">"</span>, b_ri)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>d_aic_split <span class="op">=</span> <span class="fu">aic</span>(ri_fit) <span class="op">-</span> <span class="fu">aic</span>(sep_ri)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">AIC bought by ONE extra fixed parameter: %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># wbar + wdev = wc, and the two are orthogonal by construction.</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sep_ri <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>bs, ses <span class="op">=</span> <span class="fu">coef</span>(sep_ri, <span class="op">:</span>mu), <span class="fu">stderror</span>(sep_ri)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-26s %7s %10s %11s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"params"</span>, <span class="st">"logLik"</span>, <span class="st">"AIC"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f) <span class="kw">in</span> ((<span class="st">"wc + (1|BirdID)"</span>, ri_fit), (<span class="st">"wdev + wbar + (1|BirdID)"</span>, sep_ri))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-26s %7d %10.4f %11.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">dof</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">within-bird slope  : %+.4f   SE %.4f   z %5.2f</span><span class="sc">\n</span><span class="st">"</span>, bs[<span class="fl">2</span>], ses[<span class="fl">2</span>], bs[<span class="fl">2</span>] <span class="op">/</span> ses[<span class="fl">2</span>])</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"between-bird slope : %+.4f   SE %.4f   z %5.2f</span><span class="sc">\n</span><span class="st">"</span>, bs[<span class="fl">3</span>], ses[<span class="fl">3</span>], bs[<span class="fl">3</span>] <span class="op">/</span> ses[<span class="fl">3</span>])</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"unsplit, from above: %+.4f</span><span class="sc">\n</span><span class="st">"</span>, b_ri)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>d_aic_split <span class="op">=</span> <span class="fu">aic</span>(ri_fit) <span class="op">-</span> <span class="fu">aic</span>(sep_ri)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">AIC bought by ONE extra fixed parameter: %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                            params     logLik         AIC
 wc + (1|BirdID)                  4  -883.5938   1775.1876
@@ -403,7 +384,7 @@ AIC bought by ONE extra fixed parameter: 21.2977</code></pre>
 <div class="line"><span class="who toto">Toto</span><p>The two slopes are nothing like each other.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Nothing like each other. Between birds, 0.5832 millimetres of wing per
 gram, with a <em>z</em> of 6.3: bigger birds are heavier birds and have
-longer wings, which is not news and is not a question anyone needed a
+longer wings, which is not news and not a question anyone needed a
 random slope to ask. Within a bird, 0.049, with a standard error of
 0.0563 and a <em>z</em> of 0.87. <strong>On this file there is no
 detectable within-bird effect of mass on wing at all.</strong> And the
@@ -411,34 +392,32 @@ unsplit coefficient from the last cell, 0.1844, sits between them,
 because that is what a blend does.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>So a paper that reports the one coefficient is reporting neither.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>It is reading a between-bird fact and a within-bird fact through one
-number, which is the oldest mistake in the repeated-measures literature.
-And read the AIC: one extra fixed parameter buys 21.3. Remember that
-number, because the random slope, which costs two, is about to buy less.
+number, the oldest mistake in the repeated-measures literature. And read
+the AIC: one extra fixed parameter buys 21.3. Remember that number,
+because the random slope, which costs two, is about to buy less.
 <strong>The cheapest thing on this page is not going to be the random
 slope. It is noticing that a covariate with a within part and a between
-part is two covariates.</strong> That is worth more to you than anything
-else I will say today, and it belongs in every repeated-measures model
-you fit.</p></div>
+part is two covariates.</strong> It belongs in every repeated-measures
+model you fit.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>And the random slope?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Now has a column to go on. A bird can only have its own slope on the
-column that moves within it, and that column is now sitting in the model
-under its own name.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Now has a column to go on: a bird can only have its own slope on the
+column that moves within it, and that column is now in the model under
+its own name.</p></div>
 <h3 id="freeing-the-slope" class="anchored">Freeing the slope</h3>
 <p class="board"><strong>μ_ij = (β0 + u_0j) + (β1 + u_1j) x_ij + β2 m_j, with (u_0j,
 u_1j) ~ N(0, Σ) and y_ij ~ N(μ_ij, σ²)</strong></p>
 <div class="line"><span class="who itchy">Itchy</span><p>Measurement <em>i</em> on bird <em>j</em>. x_ij is <code>wdev</code>,
 the capture’s departure from its own bird’s average mass; m_j is
-<code>wbar</code>, that average, and β2 is the between-bird slope you
-just read. The rest is the same six symbols as Class 6 with two
-additions. u_0j is the bird’s own nudge to the intercept, which is
-exactly last week’s u_j. u_1j is the bird’s own nudge to the
-<strong>slope</strong>, and it is new. They are drawn together, from a
-two-dimensional normal, so there are three numbers in Σ rather than one:
-σ_0 the spread of intercepts, σ_1 the spread of slopes, and ρ the
-correlation between a bird’s intercept and its slope.</p></div>
+<code>wbar</code>, that average, and β2 the between-bird slope you just
+read. The rest is Class 6 with two additions. u_0j is the bird’s own
+nudge to the intercept, exactly last week’s u_j. u_1j is the bird’s own
+nudge to the <strong>slope</strong>, and it is new. They are drawn
+together, from a two-dimensional normal, so Σ holds three numbers rather
+than one: σ_0 the spread of intercepts, σ_1 the spread of slopes, and ρ
+the correlation between a bird’s intercept and its slope.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>Three numbers, and the model gained two parameters rather than one.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Two: σ_1 and ρ. Remember that, because it is what the test is testing.
-In code it is one term, and Toto has already typed it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Two: σ_1 and ρ, and that is what the test will test. In code it is one
+term, and Toto has already typed it.</p></div>
 <div id="fit-uncentred" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> Weight <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> Weight<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
@@ -451,18 +430,17 @@ log was called with a negative real argument but will only return a complex resu
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>That is not a warning, that is a crash.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>That is a crash, and it is the line most people type first, so you will
-meet it on your own data this week. Two things are wrong with it, and
-only one of them crashed. The crash is this engine’s optimiser failing
-on a covariate whose zero sits far outside its range — a sparrow of no
-grams — an arithmetic failure inside the software, not a fact about the
-model, and the next section proves that with a number; the post-mortem
-is in <a href="appendix-b-engine.html">Where the engine stops</a>. The
-cure is to centre: put zero somewhere the data are. The other thing
-wrong is the one we just spent ten minutes on: that line puts the
-per-bird slope on the blended column. Put it on the within column
-instead, which is centred already, on each bird’s own average mass, and
-both problems go at once.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>That is a crash, and it is the line most people type first. Two things
+are wrong with it, and only one of them crashed. The crash is the
+optimiser failing on a covariate whose zero sits far outside its range:
+the lightest bird in the file weighs 23.4 grams, so <code>Weight</code>
+puts every bird’s intercept at a sparrow of no grams. That is an
+arithmetic failure inside the software, not a fact about the model, and
+the table after the next fit proves it; the post-mortem is in <a href="appendix-b-engine.html">Where the engine stops</a>. The cure is to
+centre: put zero somewhere the data are. The other thing wrong is the
+one we just spent ten minutes on: that line puts the per-bird slope on
+the blended column. Put it on the within column, which is centred
+already on each bird’s own average, and both problems go at once.</p></div>
 <div id="cell-fit-within" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>rs_fit <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wdev<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rs_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -494,13 +472,12 @@ Random-effect covariance (Cholesky):
 </div>
 <div class="line"><span class="who toto">Toto</span><p><code>wdev</code> in both places, and <code>wbar</code> staying in the
 fixed part.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Same response, same family, one term more than the last fit, and it
-converges. Read the new block. There is no <code>resd</code> line this
-time; there is a random-effect covariance block, printed in the form the
-optimiser works with rather than as σ_0, σ_1 and ρ. <code>vc(fit)</code>
-hands you Σ itself, and the next cell takes the three numbers out of it:
-<code>V[1, 1]</code> is row one, column one of a matrix,
-<code>V[1, 2]</code> the entry beside it.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Same response, same family, one term more, and it converges. There is no
+<code>resd</code> line this time; there is a random-effect covariance
+block, printed in the form the optimiser works with rather than as σ_0,
+σ_1 and ρ. <code>vc(fit)</code> hands you Σ itself, and the next cell
+takes the three numbers out: <code>V[1, 1]</code> is row one, column one
+of a matrix, <code>V[1, 2]</code> the entry beside it.</p></div>
 <div id="read-the-block" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> <span class="fu">vc</span>(rs_fit)[<span class="op">:</span>BirdID]                      <span class="co"># the 2x2 covariance of (intercept, slope)</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sd0, sd1 <span class="op">=</span> <span class="fu">sqrt</span>(V[<span class="fl">1</span>, <span class="fl">1</span>]), <span class="fu">sqrt</span>(V[<span class="fl">2</span>, <span class="fl">2</span>])</span>
@@ -525,22 +502,19 @@ within-bird slope beta1             : 0.0618   SE 0.0603</code></pre>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>So a bird’s own slope is the within-bird slope plus its nudge, and the
 nudges have a standard deviation of 0.2541.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Which you should immediately compare with the within-bird slope itself,
-0.0618. The spread of the slopes is 4.1 times the average slope: taken
-at face value, a good number of these birds lose measured wing as they
-put on mass, while the average bird gains a little. Whether to take it
-at face value is the second half of the hour.</p></div>
-<h3 id="the-correlation-you-did-not-ask-for" class="anchored">The correlation you did not ask for</h3>
-<div class="line"><span class="who momo">Momo</span><p>I want to go back. You said you could prove the crash was not a real
-difference between models.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>And ρ is how. Fit the same model at four origins, changing nothing else.
+<div class="line"><span class="who itchy">Itchy</span><p>Compare that with the within-bird slope itself, 0.0618: the spread of
+the slopes is 4.1 times the average slope, so at face value a good
+number of these birds lose measured wing as they put on mass, while the
+average bird gains a little. Whether to take it at face value is the
+second half of the hour. First, the proof about the crash.</p></div>
+<h3 id="one-model-written-four-ways" class="anchored">One model, written four ways</h3>
+<div class="line"><span class="who itchy">Itchy</span><p>Fit the same model at four origins, changing nothing else.
 <code>wdev</code> is zero at each bird’s own average mass; move that
-zero five grams down, one gram down, leave it where it is, move it five
-grams up. <code>at_origin</code> does one fit and ends with
-<code>return</code> and a NamedTuple, the explicit way of saying what a
-function hands back; <code>map(at_origin, origins)</code> calls it on
-each origin and collects the four results, which is a comprehension by
-another name.</p></div>
+zero five grams down, one gram down, leave it, move it five grams up.
+<code>at_origin</code> does one fit and ends with <code>return</code>
+and a NamedTuple, the explicit way of saying what a function hands back;
+<code>map(at_origin, origins)</code> calls it on each origin and
+collects the four results, a comprehension by another name.</p></div>
 <div id="origins" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">at_origin</span>(origin)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="fu">DataFrame</span>(BirdID <span class="op">=</span> sparrows.BirdID, Wing <span class="op">=</span> sparrows.Wing, wbar <span class="op">=</span> sparrows.wbar,</span>
@@ -549,7 +523,7 @@ another name.</p></div>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> <span class="fu">vc</span>(f)[<span class="op">:</span>BirdID]</span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    s0, s1 <span class="op">=</span> <span class="fu">sqrt</span>(W[<span class="fl">1</span>, <span class="fl">1</span>]), <span class="fu">sqrt</span>(W[<span class="fl">2</span>, <span class="fl">2</span>])</span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (; sd0 <span class="op">=</span> s0, sd1 <span class="op">=</span> s1, rho <span class="op">=</span> W[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> (s0 <span class="op">*</span> s1),</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>            sigma <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sigma</span>(f)), aic <span class="op">=</span> <span class="fu">aic</span>(f), b1 <span class="op">=</span> <span class="fu">coef</span>(f, <span class="op">:</span>mu)[<span class="fl">2</span>])</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>            sigma <span class="op">=</span> <span class="fu">first</span>(<span class="fu">sigma</span>(f)), aic <span class="op">=</span> <span class="fu">aic</span>(f))</span>
 <span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>origins <span class="op">=</span> [<span class="op">-</span><span class="fl">5.0</span>, <span class="op">-</span><span class="fl">1.0</span>, <span class="fl">0.0</span>, <span class="fl">5.0</span>]</span>
@@ -560,10 +534,8 @@ another name.</p></div>
 <span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-14.1f %9.4f %9.4f %+9.4f %9.5f %12.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
 <span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>            o, r.sd0, r.sd1, r.rho, r.sigma, r.aic)</span>
 <span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">largest AIC difference across the four : %.3e</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">maximum</span>(r.aic <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">-</span> <span class="fu">minimum</span>(r.aic <span class="cf">for</span> r <span class="kw">in</span> rows))</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"largest slope difference across the four: %.3e</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>        <span class="fu">maximum</span>(r.b1 <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">-</span> <span class="fu">minimum</span>(r.b1 <span class="cf">for</span> r <span class="kw">in</span> rows))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">largest AIC difference across the four: %.3e</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">maximum</span>(r.aic <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">-</span> <span class="fu">minimum</span>(r.aic <span class="cf">for</span> r <span class="kw">in</span> rows))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>x = wdev -       sigma_0   sigma_1       rho     sigma          AIC
 -5.0              1.4736    0.2541   -0.1817   1.06945    1749.1383
@@ -571,59 +543,59 @@ another name.</p></div>
 0.0               1.7621    0.2541   +0.5690   1.06945    1749.1383
 5.0               2.6956    0.2541   +0.8432   1.06945    1749.1383
 
-largest AIC difference across the four : 2.046e-12
-largest slope difference across the four: 2.370e-11</code></pre>
+largest AIC difference across the four: 2.046e-12</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>The correlation changed sign.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The correlation changed sign, from -0.1817 five grams below a bird’s own
-average to 0.8432 five grams above it. And read the last two columns
-before anyone gets excited: σ_1 is the same to four decimal places in
-every row, σ is the same, the slope is the same, and the AIC differs by
-2e-12. <strong>These are not four models. This is one model, written
-down four ways.</strong> And that is the proof about the crash: where
-zero sits is not part of the model, so a fit that dies when zero moves
-has died of arithmetic.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>Then what is ρ a statement about?</p></div>
+average to 0.8432 five grams above it. And read the other columns before
+anyone gets excited: σ_1 is the same to four decimal places in every
+row, σ is the same, and the AIC differs by 2e-12. <strong>These are not
+four models. This is one model, written down four ways.</strong> That is
+the proof about the crash: where zero sits is not part of the model, so
+a fit that dies when zero moves has died of arithmetic. Ten grams of
+shift changed nothing; the uncentred line asked for about 28 grams, to a
+mass no sparrow has, and the optimiser could not get there.</p></div>
+<div class="line"><span class="who momo">Momo</span><p>Then what is ρ about?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>ρ is the correlation between a bird’s slope and its intercept, and its
 <strong>intercept is its predicted wing length at x equal to
 zero</strong>. Move zero and you are asking about the bird’s wing length
 at a different mass, so of course the correlation changes. Five grams
 below a bird’s own average is lighter than that bird was ever weighed,
-so “intercept” there means an extrapolation backwards, and a bird with a
-steeper slope necessarily extrapolates to a lower value — hence a
-negative correlation, manufactured by the arithmetic. Five grams above,
-the tilt goes the other way for the same reason. At a bird’s own
-average, ρ is closest to being about the birds and not about the origin,
-and that is the one origin <code>wdev</code> gives every bird for free.
-So: report ρ with its origin in the same sentence, and centre a
-covariate whose zero is outside its range, every time.</p></div>
+so “intercept” there is an extrapolation backwards, and a bird with a
+steeper slope necessarily extrapolates lower — a negative correlation,
+manufactured by the arithmetic. Five grams above, the tilt goes the
+other way. At a bird’s own average, ρ is closest to being about the
+birds and not the origin, and that is the origin <code>wdev</code> gives
+every bird for free. So: report ρ with its origin in the same sentence,
+and centre a covariate whose zero is outside its range, every time.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>Show me the sign change instead of making me read it off a column.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Fair — ρ is a function of one number, where you put zero, and a function
-of one number is a curve, not four separate fits. Shifting the origin by
-<code>a</code> is a change of coordinates with a known formula, so the
-curve comes from the one Σ we already have, without refitting anything.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Fair — ρ is a function of one number, where you put zero, and that is a
+curve, not four fits. Shift the origin by <em>t</em> and each bird’s
+intercept becomes its old intercept plus <em>t</em> times its slope, so
+the board’s Σ moves like this, with nothing refitted:</p></div>
+<blockquote>
+<p class="scene">u_0j’ = u_0j + t u_1j, so Var(u_0’) = σ_0² + 2t ρσ_0σ_1 + t²σ_1²,
+Cov(u_0’, u_1) = ρσ_0σ_1 + tσ_1², and σ_1 does not move.</p>
+</blockquote>
 <div id="cell-fig-origin-rho" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Moving the origin by a: u0' = u0 + a*u1, so Var(u0') = s0^2 - 2a*Cov + a^2*s1^2</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and Cov' = Cov - a*s1^2. sigma_1 and the likelihood cannot move.</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">shifted</span>(a) <span class="op">=</span> [V[<span class="fl">1</span>,<span class="fl">1</span>] <span class="op">-</span> <span class="fl">2</span>a<span class="op">*</span>V[<span class="fl">1</span>,<span class="fl">2</span>] <span class="op">+</span> a<span class="op">^</span><span class="fl">2</span><span class="op">*</span>V[<span class="fl">2</span>,<span class="fl">2</span>]   V[<span class="fl">1</span>,<span class="fl">2</span>] <span class="op">-</span> a<span class="op">*</span>V[<span class="fl">2</span>,<span class="fl">2</span>]</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>              V[<span class="fl">1</span>,<span class="fl">2</span>] <span class="op">-</span> a<span class="op">*</span>V[<span class="fl">2</span>,<span class="fl">2</span>]                 V[<span class="fl">2</span>,<span class="fl">2</span>]]</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rho_at</span>(t) <span class="op">=</span> (S <span class="op">=</span> <span class="fu">shifted</span>(<span class="op">-</span>t); S[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> <span class="fu">sqrt</span>(S[<span class="fl">1</span>, <span class="fl">1</span>] <span class="op">*</span> S[<span class="fl">2</span>, <span class="fl">2</span>]))</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>t_zero <span class="op">=</span> <span class="op">-</span>V[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> V[<span class="fl">2</span>, <span class="fl">2</span>]                      <span class="co"># where the correlation is exactly zero</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>t_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(origins) <span class="op">-</span> <span class="fl">1</span>, <span class="fu">maximum</span>(origins) <span class="op">+</span> <span class="fl">1</span>, length <span class="op">=</span> <span class="fl">200</span>)</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"origin, in grams from the bird's own average mass"</span>,</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"correlation ρ"</span>, title <span class="op">=</span> <span class="st">"One curve, not four fits"</span>)</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">vspan!</span>(ax, <span class="fu">minimum</span>(sparrows.wdev), <span class="fu">maximum</span>(sparrows.wdev); color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.08</span>))</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, t_grid, <span class="fu">rho_at</span>.(t_grid); linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, origins, [r.rho for r <span class="kw">in</span> rows]; markersize <span class="op">=</span> <span class="fl">11</span>, marker <span class="op">=</span> <span class="op">:</span>diamond)</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (t, r) <span class="kw">in</span> <span class="fu">zip</span>(origins, rows)</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">text!</span>(ax, t, r.rho; text <span class="op">=</span> <span class="fu">string</span>(<span class="fu">round</span>(r.rho, digits <span class="op">=</span> <span class="fl">2</span>)),</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>        align <span class="op">=</span> (<span class="op">:</span>center, <span class="op">:</span>bottom), offset <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">8</span>), fontsize <span class="op">=</span> <span class="fl">12</span>)</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rho_at</span>(t) <span class="op">=</span> (V[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">+</span> t <span class="op">*</span> V[<span class="fl">2</span>, <span class="fl">2</span>]) <span class="op">/</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>            <span class="fu">sqrt</span>((V[<span class="fl">1</span>, <span class="fl">1</span>] <span class="op">+</span> <span class="fl">2</span>t <span class="op">*</span> V[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">+</span> t<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> V[<span class="fl">2</span>, <span class="fl">2</span>]) <span class="op">*</span> V[<span class="fl">2</span>, <span class="fl">2</span>])</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>t_zero <span class="op">=</span> <span class="op">-</span>V[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> V[<span class="fl">2</span>, <span class="fl">2</span>]                      <span class="co"># where the correlation is exactly zero</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>t_grid <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(origins) <span class="op">-</span> <span class="fl">1</span>, <span class="fu">maximum</span>(origins) <span class="op">+</span> <span class="fl">1</span>, length <span class="op">=</span> <span class="fl">200</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"origin, in grams from the bird's own average mass"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"correlation ρ"</span>, title <span class="op">=</span> <span class="st">"One curve, not four fits"</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">vspan!</span>(ax, <span class="fu">minimum</span>(sparrows.wdev), <span class="fu">maximum</span>(sparrows.wdev); color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.08</span>))</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">hlines!</span>(ax, [<span class="fl">0.0</span>]; linestyle <span class="op">=</span> <span class="op">:</span>dot, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, t_grid, <span class="fu">rho_at</span>.(t_grid); linewidth <span class="op">=</span> <span class="fl">2</span>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, origins, [r.rho for r <span class="kw">in</span> rows]; markersize <span class="op">=</span> <span class="fl">11</span>, marker <span class="op">=</span> <span class="op">:</span>diamond)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (t, r) <span class="kw">in</span> <span class="fu">zip</span>(origins, rows)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">text!</span>(ax, t, r.rho; text <span class="op">=</span> <span class="fu">string</span>(<span class="fu">round</span>(r.rho, digits <span class="op">=</span> <span class="fl">2</span>)),</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>        align <span class="op">=</span> (<span class="op">:</span>center, <span class="op">:</span>bottom), offset <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">8</span>), fontsize <span class="op">=</span> <span class="fl">12</span>)</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <div id="fig-origin-rho" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -631,30 +603,33 @@ curve comes from the one Σ we already have, without refitting anything.</p></di
 <img src="wk7-random-slopes_files/figure-html/fig-origin-rho-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-origin-rho-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: The correlation ρ as a continuous function of where the within-bird covariate is centred, computed from the one fitted Σ by a change of coordinates, with no refitting. It crosses zero where the curve meets the dotted line: negative to the left, positive to the right. The four diamonds are the four origins from the table above, each labelled with its ρ. The shaded strip is how far any capture in this file sits from its own bird’s average mass; five grams either way is outside it, which is why ρ there is an extrapolation.
+Figure&nbsp;2: ρ as a function of where the within-bird covariate is centred, computed from the one fitted Σ by the shift on the board, with no refitting: negative below the dotted zero line and positive above it, crossing zero to the left of the shaded strip. The four diamonds are the four origins from the table, each labelled with its ρ. The shaded strip is how far any capture sits from its own bird’s average mass; five grams either way is outside it, so ρ there is an extrapolation.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<div class="line"><span class="who itchy">Itchy</span><p>An origin of -3.95 grams — that is where ρ is exactly zero — sits
-outside the strip: no capture in this file is that far from its bird’s
-average, the furthest below being -2.7. Left of it, negative; right of
-it, positive; and the four points are the four rows of that table, now
-impossible to mistake for four different models.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>ρ is exactly zero at an origin of -3.95 grams, outside the strip: no
+capture in this file is that far from its bird’s average, the furthest
+below being -2.7. And the four points are the four rows of that table,
+now impossible to mistake for four models.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Then what is the ρ we have?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>0.569, at each bird’s own average mass, and the reading is: a bird that
-is longer-winged at its own average mass tends to gain more measured
-wing per gram it puts on. It is a within-bird statement, because the
-column it sits on is the within column. Hold it lightly all the same;
-the section after the residuals says why.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>0.569, at each bird’s own average mass: a bird that is longer-winged at
+its own average mass tends to gain more measured wing per gram it puts
+on. A within-bird statement, because the column it sits on is the within
+column. Hold it lightly all the same. This engine prints the correlation
+with no standard error beside it; its R twin prints both (<a href="appendix-b-engine.html">Where the engine stops</a>). Either way, ρ
+is estimated from 171 birds with a median of 3 captures each, which is
+very little, and you will see what three rows do to it. <strong>Fit the
+correlation because leaving it out constrains the model; do not build a
+story on it.</strong></p></div>
 <h3 id="is-the-extra-term-worth-it" class="anchored">Is the extra term worth it</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>Two models, nested, one estimator. Toto, before we test anything, the
 cheap comparison.</p></div>
 <div id="compare-aic" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-30s %8s %12s %12s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"params"</span>, <span class="st">"logLik"</span>, <span class="st">"AIC"</span>)</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f) <span class="kw">in</span> ((<span class="st">"wdev + wbar + (1|BirdID)"</span>, sep_ri), (<span class="st">"wdev + wbar + (1 + wdev|BirdID)"</span>, rs_fit))</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-30s %8d %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">npar</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-30s %8d %12.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">dof</span>(f), <span class="fu">loglik</span>(f), <span class="fu">aic</span>(f))</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>d_aic <span class="op">=</span> <span class="fu">aic</span>(sep_ri) <span class="op">-</span> <span class="fu">aic</span>(rs_fit)</span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">AIC drops by %.4f for two extra parameters</span><span class="sc">\n</span><span class="st">"</span>, d_aic)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -667,9 +642,9 @@ AIC drops by 4.7516 for two extra parameters</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Less than the split bought.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Less than the split bought for one parameter, and AIC has already
-charged two for this one. It is still a drop. Now the test. I am going
-to ask the naive question first and read what the engine says back.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>For one parameter, and AIC has already charged two for this one. It is
+still a drop. Now the test: the naive question first, and read what the
+engine says back.</p></div>
 <div id="cell-naive-lrt" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lrtest</span>(sep_ri, rs_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -680,31 +655,35 @@ to ask the naive question first and read what the engine says back.</p></div>
 </div>
 </div>
 <div class="line"><span class="who momo">Momo</span><p>It gave me the number and told me not to use it.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>σ_1 cannot be negative, so testing it at zero is a test on the boundary
-of the parameter space, and χ² with two degrees of freedom is not the
-right reference. Class 8 takes the boundary apart properly; today you
-need the one fact that fits this step, and Jaro is in the corridor.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Read the warning as three sentences. The first says why the number is
+wrong: σ_1 cannot be negative, so testing it at zero is a test on the
+boundary of the parameter space, and χ² with two degrees of freedom is
+not the right reference. The second says which way it is wrong: too
+large, so the test loses power rather than inventing significance. The
+third names the engine’s own correction, built for two
+<em>independent</em> variances on the boundary — not what we added, one
+variance and one correlation — so we will not use it; <a href="appendix-b-engine.html">Where the engine stops</a> has the two
+mixtures side by side. Class 8 takes the boundary apart properly; today
+you need one fact, and Jaro is in the corridor.</p></div>
 <div class="line"><span class="who jaro">Jaro</span><p><em>(from the doorway)</em> You want the mixture. Self and Liang (1987)
-worked out what the likelihood-ratio statistic does when the null value
-sits on the boundary of the parameter space; Stram and Lee (1994)
-applied it to the mixed model, and their result is stated for exactly
-the step you have just taken — a model with <em>q</em> random effects
-against the same model with <em>q</em> plus one. Here <em>q</em> is one.
-Of the two parameters you added, the variance sits on a boundary and the
-correlation does not — and when the variance goes to zero the
-correlation stops existing at all. For that case the null is a
+worked out what the likelihood-ratio statistic does when the null sits
+on the boundary of the parameter space; Stram and Lee (1994) applied it
+to the mixed model, for exactly the step you have just taken —
+<em>q</em> random effects against <em>q</em> plus one, and here
+<em>q</em> is one. Of the two parameters you added, the variance sits on
+a boundary and the correlation does not, and when the variance goes to
+zero the correlation stops existing at all. For that case the null is a
 <strong>fifty-fifty mixture of chi-squared with one degree of freedom
 and chi-squared with two</strong>. One line of arithmetic.</p></div>
 <div id="boundary-lrt" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>stat <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> (<span class="fu">loglik</span>(rs_fit) <span class="op">-</span> <span class="fu">loglik</span>(sep_ri))</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Stram &amp; Lee (1994): q random effects against q + 1. For q = 1 the null is a</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 50:50 mixture of chi-squared with 1 and 2 degrees of freedom.</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">p_sl</span>(s) <span class="op">=</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">1</span>), s) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">2</span>), s)</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"LR statistic                                  : %.4f</span><span class="sc">\n\n</span><span class="st">"</span>, stat)</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"naive chi-squared(2)                          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">2</span>), stat))</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Stram &amp; Lee mixture, 0.5 chi2(1) + 0.5 chi2(2): %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">p_sl</span>(stat))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Stram &amp; Lee (1994), q = 1: a 50:50 mixture of chi-squared with 1 and 2 df.</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">p_sl</span>(s) <span class="op">=</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">1</span>), s) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">2</span>), s)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"LR statistic                                  : %.4f</span><span class="sc">\n\n</span><span class="st">"</span>, stat)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"naive chi-squared(2)                          : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">ccdf</span>(<span class="fu">Chisq</span>(<span class="fl">2</span>), stat))</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"Stram &amp; Lee mixture, 0.5 chi2(1) + 0.5 chi2(2): %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">p_sl</span>(stat))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>LR statistic                                  : 8.7516
 
@@ -713,41 +692,36 @@ Stram &amp; Lee mixture, 0.5 chi2(1) + 0.5 chi2(2): 0.0078</code></pre>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Both under five percent.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Both under five percent, and neither by a mile, which is exactly when
-the reference distribution earns its keep: 0.013 from the naive
-reference, 0.008 from the mixture. The ordering is the thing to
-remember: the naive reference is the conservative one — it loses power
-rather than inventing significance — and the mixture is the right one
-for this step. The engine’s own boundary correction is built for
-independent variances, a different mixture and not this case; <a href="appendix-b-engine.html">Where the engine stops</a> says which is
-which. <strong>Read the assumptions on a correction before you take its
-p-value.</strong></p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Both under five percent, neither by a mile, which is exactly when the
+reference distribution earns its keep: 0.013 from the naive reference,
+0.008 from the mixture. The naive one is the conservative one; the
+mixture is the right one for this step. <strong>Read the assumptions on
+a correction before you take its p-value.</strong></p></div>
 <div class="line"><span class="who momo">Momo</span><p>And if I still do not believe σ_1? How do I know the model would not
-find a spread of slopes in data that has none?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>You simulate a world with none, refit the bigger model, and count how
-often it says otherwise — a parametric bootstrap of the test, which
-Class 8 builds.</p></div>
+find a spread of slopes in data with none?</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>You simulate a world with none, refit, and count how often it says
+otherwise — a parametric bootstrap of the test, which Class 8 builds.</p></div>
 <h3 id="what-the-model-does-to-a-birds-own-slope" class="anchored">What the model does to a bird’s own slope</h3>
-<div class="line"><span class="who eddie">Eddie</span><p>Here is what I want to know. The model says the spread of slopes is
-0.254. If I fit a line through one bird’s own points, do I get its
-slope?</p></div>
+<div class="line"><span class="who eddie">Eddie</span><p>The model says the spread of slopes is 0.254. If I fit a line through
+one bird’s own points, do I get its slope?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>You do not, and the gap is the lesson. Take the birds with at least
 three captures, fit each bird’s own line by least squares with nothing
-borrowed from anybody, and put those next to what the model predicts for
-the same birds.</p></div>
+borrowed, and put those next to what the model predicts for the same
+birds. <code>B[:, 2]</code> is the whole second column of a matrix;
+<code>enumerate</code> hands the loop each bird with its position.</p></div>
 <div id="own-slopes" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>B <span class="op">=</span> <span class="fu">ranef</span>(rs_fit)[<span class="op">:</span>BirdID]                 <span class="co"># birds x 2: column 1 intercepts, column 2 slopes</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>model_slope <span class="op">=</span> b_rs[<span class="fl">2</span>] <span class="op">.+</span> B[<span class="op">:</span>, <span class="fl">2</span>]</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>own_slope <span class="op">=</span> <span class="fu">Dict</span><span class="dt">{String,Float64}</span>()</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b <span class="kw">in</span> repeat_ids</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> sparrows.BirdID <span class="op">.==</span> b</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> sparrows.wdev[m], sparrows.Wing[m]</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    own_slope[b] <span class="op">=</span> <span class="fu">cov</span>(x, y) <span class="op">/</span> <span class="fu">var</span>(x)</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>ols <span class="op">=</span> [own_slope[b] for b <span class="kw">in</span> repeat_ids]</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> [model_slope[row_of[b]] for b <span class="kw">in</span> repeat_ids]</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>ols <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">length</span>(repeat_ids))            <span class="co"># each bird's own least-squares slope</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>xspread <span class="op">=</span> <span class="fu">zeros</span>(<span class="fu">length</span>(repeat_ids))        <span class="co"># and the spread of its masses</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, b) <span class="kw">in</span> <span class="fu">enumerate</span>(repeat_ids)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> sparrows.BirdID <span class="op">.==</span> b</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> sparrows.wdev[m], sparrows.Wing[m]</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    ols[i] <span class="op">=</span> <span class="fu">cov</span>(x, y) <span class="op">/</span> <span class="fu">var</span>(x)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    xspread[i] <span class="op">=</span> <span class="fu">std</span>(sparrows.Weight[m])</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>mod <span class="op">=</span> model_slope[<span class="fu">indexin</span>(repeat_ids, bird_ids)]</span>
 <span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"birds with at least three captures : %d of %d</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="fu">length</span>(repeat_ids), birds)</span>
 <span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %9s %9s %9s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"SD"</span>, <span class="st">"min"</span>, <span class="st">"max"</span>)</span>
@@ -758,18 +732,12 @@ the same birds.</p></div>
 <span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-24s %9.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"sigma_1 from the fit"</span>, sd1)</span>
 <span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">SD ratio, model to own: %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(mod) <span class="op">/</span> <span class="fu">std</span>(ols))</span>
 <span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Two birds worth reading together, both found from the data rather than</span></span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a><span class="co"># named by hand: the tightest mass spread of any bird with three or more</span></span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a><span class="co"># captures, and the bird whose own slope is the most extreme.</span></span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>xspread <span class="op">=</span> <span class="fu">Dict</span>(b <span class="op">=&gt;</span> <span class="fu">std</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> b]) <span class="cf">for</span> b <span class="kw">in</span> repeat_ids)</span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>tightest <span class="op">=</span> <span class="fu">argmin</span>(xspread)</span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>worst <span class="op">=</span> repeat_ids[<span class="fu">argmin</span>(ols)]</span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"tightest spread  %s: masses %s, within-bird SD %.4f (file average %.4f), own slope %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>        tightest, <span class="fu">string</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> tightest]),</span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>        xspread[tightest], within_sd[<span class="op">:</span>Weight], own_slope[tightest])</span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"worst own slope  %s: masses %s, within-bird SD %.4f, own slope %.4f</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>        worst, <span class="fu">string</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> worst]),</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>        xspread[worst], own_slope[worst])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a><span class="co"># The tightest mass spread and the most extreme own slope, found from the data.</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>tightest, worst <span class="op">=</span> <span class="fu">argmin</span>(xspread), <span class="fu">argmin</span>(ols)</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (lab, i) <span class="kw">in</span> ((<span class="st">"tightest spread"</span>, tightest), (<span class="st">"worst own slope"</span>, worst))</span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-16s %s: masses %s, within-bird SD %.4f, own slope %.4f</span><span class="sc">\n</span><span class="st">"</span>, lab, repeat_ids[i],</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>            <span class="fu">string</span>(sparrows.Weight[sparrows.BirdID <span class="op">.==</span> repeat_ids[i]]), xspread[i], ols[i])</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>birds with at least three captures : 86 of 171
 
@@ -780,7 +748,7 @@ the model, all birds        0.1480   -0.4080    0.7783
 sigma_1 from the fit        0.2541
 
 SD ratio, model to own: 0.1400
-tightest spread  TA14528: masses [25.3, 25.5, 25.7], within-bird SD 0.2000 (file average 0.9907), own slope 0.0000
+tightest spread  TA14528: masses [25.3, 25.5, 25.7], within-bird SD 0.2000, own slope 0.0000
 worst own slope  TA14600: masses [28.5, 28.0, 28.2], within-bird SD 0.2517, own slope -5.7895</code></pre>
 </div>
 </div>
@@ -790,18 +758,24 @@ mean a sparrow’s wing shortening by half a centimetre when it eats. It
 is not real, and the two printed lines name the pair that shows why.
 TA14528 has the tightest mass spread of any bird with three or more
 captures — 0.2 grams, against the file’s average of 0.9907 — and its own
-slope came out at 0.0. TA14600 has an almost identical spread, 0.2517
-grams, and its own slope is -5.7895. Two birds with near-identical, tiny
-mass spreads, one dead flat and one falling off a cliff: that is what
-dividing a difference in wing by a difference in mass that small buys
-you. Draw it.</p></div>
+slope is 0.0. TA14600 has an almost identical spread, 0.2517 grams, and
+its own slope is -5.7895. Near-identical tiny mass spreads, one dead
+flat and one falling off a cliff: that is what dividing a difference in
+wing by a difference in mass that small buys you. Draw it.</p></div>
 <div id="cell-fig-slope-shrinkage" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>sel <span class="op">=</span> <span class="fu">sortperm</span>(ols)[<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">:</span><span class="fu">length</span>(repeat_ids)]</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">fig_shrinkage</span>(repeat_ids[sel], ols[sel], mod[sel])</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>fig.content[<span class="fl">1</span>].ylabel <span class="op">=</span> <span class="st">"slope of wing on mass (mm per g)"</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>fig.content[<span class="fl">1</span>].title <span class="op">=</span> <span class="st">"Shrinkage, now for slopes"</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu">length</span>(sel)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">400</span>))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xticks <span class="op">=</span> (pos, repeat_ids[sel]), xticklabelrotation <span class="op">=</span> <span class="cn">π</span> <span class="op">/</span> <span class="fl">3</span>, xticklabelsize <span class="op">=</span> <span class="fl">10</span>,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"slope of wing on mass (mm per g)"</span>, title <span class="op">=</span> <span class="st">"Shrinkage, now for slopes"</span>)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i, j) <span class="kw">in</span> <span class="fu">enumerate</span>(sel)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, [i <span class="op">-</span> <span class="fl">0.15</span>, i <span class="op">+</span> <span class="fl">0.15</span>], [ols[j], mod[j]]; color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.6</span>))</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, pos <span class="op">.-</span> <span class="fl">0.15</span>, ols[sel]; markersize <span class="op">=</span> <span class="fl">8</span>, label <span class="op">=</span> <span class="st">"the bird's own slope"</span>)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, pos <span class="op">.+</span> <span class="fl">0.15</span>, mod[sel]; markersize <span class="op">=</span> <span class="fl">8</span>, marker <span class="op">=</span> <span class="op">:</span>diamond, label <span class="op">=</span> <span class="st">"the model's slope"</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Legend</span>(fig[<span class="fl">2</span>, <span class="fl">1</span>], ax; orientation <span class="op">=</span> <span class="op">:</span>horizontal, framevisible <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="26">
 <div id="fig-slope-shrinkage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -809,7 +783,7 @@ you. Draw it.</p></div>
 <img src="wk7-random-slopes_files/figure-html/fig-slope-shrinkage-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-slope-shrinkage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Class 6’s caterpillar, now for slopes. Circles are each bird’s own least-squares slope from its points alone; diamonds are what the model predicts for the same bird. The legend keeps Class 6’s wording: read ‘raw mean’ as the bird’s own unshrunk estimate and ‘BLUP’ as the model’s shrunk one. Every sixth bird in the ordering by its own slope is shown, a rule and not a preference.
+Figure&nbsp;3: Class 6’s caterpillar, now for slopes: each bird’s own least-squares slope, and what the model predicts for the same bird. Every sixth bird in the ordering by its own slope, a rule and not a preference.
 </figcaption>
 </figure>
 </div>
@@ -817,37 +791,35 @@ Figure&nbsp;3: Class 6’s caterpillar, now for slopes. Circles are each bird’
 </div>
 <div class="line"><span class="who eddie">Eddie</span><p>The diamonds are almost flat.</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>The diamonds are almost flat, the circles are all over the plot, and the
-ratio of their spreads is 0.14. A bird keeps about 14% of the slope its
+ratio of their spreads is 0.14: a bird keeps about 14% of the slope its
 own points suggest. That is not the model being timid; it is the model
 observing that three points and a within-bird spread of about one gram
-cannot tell it much, and weighting accordingly — Class 6’s arithmetic,
-applied to a slope instead of a mean.</p></div>
+cannot tell it much — Class 6’s arithmetic, applied to a slope instead
+of a mean.</p></div>
 <div class="line"><span class="who momo">Momo</span><p>Then why is the spread of the model’s slopes over all 171 birds, 0.148,
 smaller than σ_1, which is 0.2541?</p></div>
 <div class="line"><span class="who itchy">Itchy</span><p>Because a predicted effect is shrunk and a variance component is not.
-σ_1 is the model’s estimate of how much bird slopes <em>really</em>
-differ; the spread of the predictions is how much the model is willing
-to <em>say</em> they differ given the evidence in front of it. The
-second is the smaller of the two <strong>in expectation</strong>, in
-every mixed model you will ever fit. Quoting the spread of the predicted
-slopes as if it were σ_1 is a common enough mistake that people have
-written papers about it. And compare like with like: 0.1521 is over the
-86 birds with three captures or more, 0.148 is over all 171. Now the
-same fit drawn as lines, which is the picture that names the chapter.</p></div>
+σ_1 is how much bird slopes <em>really</em> differ; the spread of the
+predictions is how much the model is willing to <em>say</em> they differ
+on the evidence, and the second is the smaller <strong>in
+expectation</strong>, in every mixed model you will ever fit. Quoting
+one as the other is a mistake people have written papers about. Now the
+same fit drawn as lines, the picture that names the chapter.</p></div>
 <div id="cell-fig-bird-lines" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fu">minimum</span>(sparrows.wdev), <span class="fu">maximum</span>(sparrows.wdev), length <span class="op">=</span> <span class="fl">50</span>)</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>wbar_of <span class="op">=</span> <span class="fu">Dict</span>(<span class="fu">zip</span>(sparrows.BirdID, sparrows.wbar))   <span class="co"># each bird's own average mass, centred</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"mass, relative to the bird's own average (g)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"</span><span class="sc">$</span>(birds)<span class="st"> intercepts and </span><span class="sc">$</span>(birds)<span class="st"> slopes"</span>)</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.wdev, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.3</span>))</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>birds</span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, xs, (b_rs[<span class="fl">1</span>] <span class="op">+</span> b_rs[<span class="fl">3</span>] <span class="op">*</span> wbar_of[bird_ids[j]] <span class="op">+</span> B[j, <span class="fl">1</span>]) <span class="op">.+</span> (b_rs[<span class="fl">2</span>] <span class="op">+</span> B[j, <span class="fl">2</span>]) <span class="op">.*</span> xs;</span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.20</span>), linewidth <span class="op">=</span> <span class="fl">0.6</span>)</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_rs[<span class="fl">1</span>] <span class="op">.+</span> b_rs[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">3</span>)</span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>wbar_of <span class="op">=</span> bird_mass.m <span class="op">.-</span> w_bar               <span class="co"># each bird's own average mass, centred, in bird order</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>wbar_of <span class="op">=</span> wbar_of[<span class="fu">indexin</span>(bird_ids, bird_mass.BirdID)]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">520</span>, <span class="fl">380</span>))</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(fig[<span class="fl">1</span>, <span class="fl">1</span>]; xlabel <span class="op">=</span> <span class="st">"mass, relative to the bird's own average (g)"</span>, ylabel <span class="op">=</span> <span class="st">"wing (mm)"</span>,</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"</span><span class="sc">$</span>(birds)<span class="st"> intercepts and </span><span class="sc">$</span>(birds)<span class="st"> slopes"</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, sparrows.wdev, sparrows.Wing; markersize <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.3</span>))</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>birds</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, xs, (b_rs[<span class="fl">1</span>] <span class="op">+</span> b_rs[<span class="fl">3</span>] <span class="op">*</span> wbar_of[j] <span class="op">+</span> B[j, <span class="fl">1</span>]) <span class="op">.+</span> (b_rs[<span class="fl">2</span>] <span class="op">+</span> B[j, <span class="fl">2</span>]) <span class="op">.*</span> xs;</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> (<span class="op">:</span>grey, <span class="fl">0.20</span>), linewidth <span class="op">=</span> <span class="fl">0.6</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, xs, b_rs[<span class="fl">1</span>] <span class="op">.+</span> b_rs[<span class="fl">2</span>] <span class="op">.*</span> xs; linewidth <span class="op">=</span> <span class="fl">3</span>)</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <div id="fig-bird-lines" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
@@ -855,323 +827,227 @@ same fit drawn as lines, which is the picture that names the chapter.</p></div>
 <img src="wk7-random-slopes_files/figure-html/fig-bird-lines-output-1.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bird-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: One population line, and one line per bird, each drawn at that bird’s own average mass. Compare with Class 6’s version of this figure, where every line was parallel.
+Figure&nbsp;4: One population line, and one line per bird, each drawn at that bird’s own average mass. In Class 6’s version every line was parallel.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>They fan out.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>They fan out, and they cross, which parallel lines cannot do. That is
-the constant this class freed, visible.
-<code>Dict(zip(sparrows.BirdID, sparrows.wbar))</code> in that cell is a
-lookup table built from two columns side by side, bird to its own
-average mass, so that each line can start from where its bird actually
-sits.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>And they cross, which parallel lines cannot do. That is the constant
+this class freed.</p></div>
 <h3 id="is-the-model-any-good" class="anchored">Is the model any good</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>Residuals, and there is a trap here that is the same trap as Class 6
-wearing a different hat. Ask for the residual the book has taught you to
-plot in every family.</p></div>
-<div id="quantile-residuals" class="cell" data-execution_count="18">
+<div class="line"><span class="who itchy">Itchy</span><p>Residuals, and Class 6’s trap is still set: <code>fitted</code> and
+<code>residuals</code> on these fits are <strong>marginal</strong>, the
+population line with every bird effect set to zero, so a quantile
+residual comes out about twice as wide as it should (the cell’s first
+line) — and under a random slope the width it should have depends on
+<em>x</em> as well, so it is not even wrong by a constant. Subtract the
+bird’s own predicted line — both parts of it now, the intercept nudge
+and the slope nudge — and you have the conditional residual, which is
+what σ is a claim about. And before you draw anything, look for the rows
+a long way from their own bird, because there are some in this file and
+they will set the scale of the plot if you let them.</p></div>
+<div id="cell-fig-worm" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>rq <span class="op">=</span> <span class="fu">residuals</span>(rs_fit; <span class="kw">type</span> <span class="op">=</span> <span class="op">:</span>quantile, rng <span class="op">=</span> <span class="fu">MersenneTwister</span>(<span class="fl">70</span>))</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of the quantile residuals : %.4f   (it should be 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(rq))</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The model's own marginal SD, row by row, with every bird effect set to zero:</span></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Var(y) = sigma_0^2 + 2 rho sigma_0 sigma_1 x + sigma_1^2 x^2 + sigma^2.</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>marg <span class="op">=</span> V[<span class="fl">1</span>, <span class="fl">1</span>] <span class="op">.+</span> <span class="fl">2</span> <span class="op">.*</span> V[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">.*</span> sparrows.wdev <span class="op">.+</span> V[<span class="fl">2</span>, <span class="fl">2</span>] <span class="op">.*</span> sparrows.wdev <span class="op">.^</span> <span class="fl">2</span> <span class="op">.+</span> sigma_e<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sqrt(mean(marginal var))/sigma: %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">sqrt</span>(<span class="fu">mean</span>(marg)) <span class="op">/</span> sigma_e)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>cond <span class="op">=</span> sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(rs_fit) <span class="op">.-</span> B[gi, <span class="fl">1</span>] <span class="op">.-</span> B[gi, <span class="fl">2</span>] <span class="op">.*</span> sparrows.wdev</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of quantile residuals    : %.4f   (it should be 1)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(rq))</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of conditional residuals : %.4f   (sigma is %.4f)</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="fu">std</span>(cond), sigma_e)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Rows more than three residual SDs from their own bird's line, named.</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>bad <span class="op">=</span> <span class="fu">findall</span>(<span class="fu">abs</span>.(cond <span class="op">./</span> <span class="fu">std</span>(cond)) <span class="op">.&gt;</span> <span class="fl">3</span>)</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">setdiff</span>(<span class="fl">1</span><span class="op">:</span>n, bad)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> bad</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> sparrows.BirdID <span class="op">.==</span> sparrows.BirdID[i]</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%s recorded at Wing %.1f; its own wings %s at masses %s</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>            sparrows.BirdID[i], sparrows.Wing[i], <span class="fu">string</span>(sparrows.Wing[m]), <span class="fu">string</span>(sparrows.Weight[m]))</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>bad_below <span class="op">=</span> <span class="fu">count</span>(cond[bad] <span class="op">.&lt;</span> <span class="fl">0</span>)</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">rows flagged: %d, %d below their own bird and %d above</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">length</span>(bad), bad_below, <span class="fu">length</span>(bad) <span class="op">-</span> bad_below)</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardise by a spread those rows cannot set, then draw.</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> cond <span class="op">./</span> <span class="fu">std</span>(cond[keep])</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(z; title <span class="op">=</span> <span class="st">"within-bird residuals, random-slope fit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>SD of the quantile residuals : 1.9358   (it should be 1)
-sqrt(mean(marginal var))/sigma: 1.9399</code></pre>
-</div>
-</div>
-<div class="line"><span class="who momo">Momo</span><p>It is twice what it should be. Is the model that bad?</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>The model is not bad; the residual is not the one you think.
-<code>fitted</code> on these fits is <strong>marginal</strong> — the
-population line, with every bird effect set to zero — exactly as it was
-in Class 6. So a quantile residual here compares each wing to a
-distribution that has had the birds removed from its mean but not from
-its spread, and it divides by σ, which is the <em>within</em>-bird
-spread. Of course it comes out about 1.9 times too wide: that is the
-ratio the model itself predicts, printed in the second line. Nothing is
-wrong with the model. You are holding the wrong residual.</p></div>
-<div class="line"><span class="who eddie">Eddie</span><p>So subtract the bird’s own predicted line, like last week.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Subtract the bird’s own predicted line — both parts of it now, the
-intercept nudge and the slope nudge — and you have the conditional
-residual, which is what σ is a claim about. And before you draw
-anything, look for the rows that are a long way from their own bird,
-because there are some in this file and they will set the scale of the
-plot if you let them.</p></div>
-<div id="cell-fig-worm" class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>cond <span class="op">=</span> sparrows.Wing <span class="op">.-</span> <span class="fu">fitted</span>(rs_fit) <span class="op">.-</span> B[gi, <span class="fl">1</span>] <span class="op">.-</span> B[gi, <span class="fl">2</span>] <span class="op">.*</span> sparrows.wdev</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"SD of conditional residuals : %.4f   (sigma is %.4f)</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">std</span>(cond), sigma_e)</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"shortfall                   : %.1f%%</span><span class="sc">\n\n</span><span class="st">"</span>, <span class="fl">100</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fu">std</span>(cond) <span class="op">/</span> sigma_e))</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Rows more than three residual SDs from their own bird's line, named.</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>bad <span class="op">=</span> <span class="fu">findall</span>(<span class="fu">abs</span>.(cond <span class="op">./</span> <span class="fu">std</span>(cond)) <span class="op">.&gt;</span> <span class="fl">3</span>)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>keep <span class="op">=</span> <span class="fu">setdiff</span>(<span class="fl">1</span><span class="op">:</span>n, bad)</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> bad</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> sparrows.BirdID[i]</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> sparrows.BirdID <span class="op">.==</span> b</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%s recorded at Wing %.1f; its own wings %s at masses %s</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>            b, sparrows.Wing[i], <span class="fu">string</span>(sparrows.Wing[m]), <span class="fu">string</span>(sparrows.Weight[m]))</span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>bad_below <span class="op">=</span> <span class="fu">count</span>(cond[bad] <span class="op">.&lt;</span> <span class="fl">0</span>)</span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardise by a spread those rows cannot set, then count what sits outside</span></span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="co"># the same pointwise band the figure draws: n_outside, from tools/figures.jl,</span></span>
-<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="co"># is the worm-plot arithmetic Class 5 exposed, reused rather than rewritten.</span></span>
-<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>sd_clean <span class="op">=</span> <span class="fu">std</span>(cond[keep])</span>
-<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> cond <span class="op">./</span> sd_clean</span>
-<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>outside <span class="op">=</span> <span class="fu">n_outside</span>(z)</span>
-<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>below <span class="op">=</span> <span class="fu">n_below</span>(z)</span>
-<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>lowest_two <span class="op">=</span> sparrows.BirdID[<span class="fu">sortperm</span>(z)[<span class="fl">1</span><span class="op">:</span><span class="fl">2</span>]]</span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">rows flagged                      : %d, %d below their bird and %d above</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">length</span>(bad), bad_below, <span class="fu">length</span>(bad) <span class="op">-</span> bad_below)</span>
-<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"points outside the pointwise band : %d of %d, %d below it and %d above</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>        outside, n, below, outside <span class="op">-</span> below)</span>
-<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"the two lowest residuals belong to : %s</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">join</span>(lowest_two, <span class="st">", "</span>))</span>
-<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="fu">fig_diagnostic</span>(z; title <span class="op">=</span> <span class="st">"within-bird residuals, random-slope fit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>SD of conditional residuals : 0.8617   (sigma is 1.0695)
-shortfall                   : 19.4%
+<pre><code>SD of quantile residuals    : 1.9358   (it should be 1)
+SD of conditional residuals : 0.8617   (sigma is 1.0695)
 
 TA14516 recorded at Wing 88.0; its own wings [80.0, 88.0] at masses [28.0, 31.3]
 TA14531 recorded at Wing 76.0; its own wings [80.3, 76.0, 82.0, 81.0] at masses [30.3, 30.3, 31.6, 31.8]
 TA14548 recorded at Wing 67.0; its own wings [75.5, 75.0, 76.5, 67.0] at masses [26.6, 25.8, 27.1, 25.5]
 
-rows flagged                      : 3, 2 below their bird and 1 above
-points outside the pointwise band : 6 of 459, 2 below it and 4 above
-the two lowest residuals belong to : TA14548, TA14531</code></pre>
+rows flagged: 3, 2 below their own bird and 1 above</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="29">
 <div id="fig-worm" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig">
 <div aria-describedby="fig-worm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="wk7-random-slopes_files/figure-html/fig-worm-output-2.svg" class="img-fluid">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-worm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Worm plot of the conditional residuals, standardised by their own spread with the flagged rows left out of the divisor and left in the plot. The vertical axis is deviation from the normal quantile, so a well-behaved model gives a flat line inside the band. The two points at the bottom left are the two lowest rows named in the printout above; the run leaving the band at the top right is the upper tail, with the third flagged row at its end.
+Figure&nbsp;5: Worm plot of the conditional residuals, standardised by a spread the flagged rows were left out of, with the rows left in the plot. A well-behaved model gives a flat line inside the band. The two points at the bottom left are the two rows the printout names as sitting below their bird; the row named as sitting above its bird ends the run leaving the band at the top right.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <div class="line"><span class="who toto">Toto</span><p>Short of σ again.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Short of σ again, and for Class 6’s reason, which now applies twice
-over: a shrunk prediction removes slightly <em>less</em> than the bird’s
-real effect, so some of it stays behind in the residual, and here two
-per-bird numbers are being subtracted, neither at full strength. So the
-plot is good for one thing and not the other: it can tell you whether
-the within-bird wobble is symmetric and normal-ish and free of trend,
-and it cannot tell you whether σ is right.</p></div>
-<div class="line"><span class="who momo">Momo</span><p>Then read it, because those two points at the bottom left are a long way
-out.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>They are the two lowest of the 3 rows the cell named, and they belong to
-TA14548 and TA14531. 6 points sit outside the band altogether: those 2
-below it, and 4 above it at the top right, where the upper tail lifts
-out of the band with the third flagged row at its end. The middle of the
-worm is flat, which is the part the plot is for. Read the flagged rows’
-lines in the printout rather than take my word. Of the 3 rows, 2 sit
-below their bird’s line: one is a bird recorded at sixty-seven
-millimetres whose other three wings are all in the middle seventies, the
-other is four to six millimetres below its own three. The remaining row
-sits above its line, a bird caught twice and eight millimetres longer
-the second time. Wing in this file is a whole number in 82% of rows, so
-σ of 1.0695 millimetres is close to the recording granularity, and a
-dropped digit is a live hypothesis alongside a broken primary or a bird
-caught mid-moult. <strong>This is a finding about the file, not about
-random slopes</strong>, so Class 6’s rule applies: report the fit with
-the rows in, and say in one sentence what moves with them out.</p></div>
-<div id="rows-out" class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>keep_ri <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))),        <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>keep_rs <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wdev<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma,             rows in vs out : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(keep_rs)))</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC for the slope, rows in vs out : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic, <span class="fu">aic</span>(keep_ri) <span class="op">-</span> <span class="fu">aic</span>(keep_rs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Short of σ again, for Class 6’s reason: each bird’s two numbers were
+estimated from its own few rows before being subtracted, so the residual
+comes up short, and shrinkage, which leaves a little of each bird’s
+effect behind, only partly offsets that. So the plot can tell you
+whether the within-bird wobble is symmetric, normal-ish and free of
+trend, and not whether σ is right. The middle of the worm is flat, which
+is the part the plot is for. The 3 rows the cell named are the two
+points at the bottom left and the end of the run at the top right; read
+their lines: 2 are a bird recorded far below its own other captures, one
+a bird recorded far above. Wing in this file is a whole number in 82% of
+rows and σ is 1.0695 millimetres, so a dropped digit is as live a
+hypothesis as a broken primary. <strong>This is a finding about the
+file, not about random slopes</strong>, so Class 6’s rule applies:
+report the fit with the rows in, and say in one sentence what moves with
+them out.</p></div>
+<div id="rows-out" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>keep_ri <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span><span class="op">|</span>BirdID))),        <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>keep_rs <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wdev <span class="op">+</span> wbar <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wdev<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows[keep, <span class="op">:</span>])</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>W3 <span class="op">=</span> <span class="fu">vc</span>(keep_rs)[<span class="op">:</span>BirdID]</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>rho3 <span class="op">=</span> W3[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> <span class="fu">sqrt</span>(W3[<span class="fl">1</span>, <span class="fl">1</span>] <span class="op">*</span> W3[<span class="fl">2</span>, <span class="fl">2</span>])</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"sigma,             rows in vs out : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, sigma_e, <span class="fu">first</span>(<span class="fu">sigma</span>(keep_rs)))</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC for the slope, rows in vs out : %.4f vs %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic, <span class="fu">aic</span>(keep_ri) <span class="op">-</span> <span class="fu">aic</span>(keep_rs))</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"rho,               rows in vs out : %+.4f vs %+.4f</span><span class="sc">\n</span><span class="st">"</span>, rho, rho3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>sigma,             rows in vs out : 1.0695 vs 0.9267
-AIC for the slope, rows in vs out : 4.7516 vs 2.1867</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
-│ The fit is at a variance/dispersion boundary, so standard errors for the
-│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
-│ or the bootstrap entry points for those targets.
-│   context = ""
-│   flat_coordinates =
-│    1-element Vector{Int64}:
-│     6
-│   rcond = 1.3030791862288494e-9</code></pre>
+AIC for the slope, rows in vs out : 4.7516 vs 2.1867
+rho,               rows in vs out : +0.5690 vs +1.0000</code></pre>
 </div>
 </div>
 <div class="line"><span class="who itchy">Itchy</span><p><code>sparrows[keep, :]</code> is the rows listed in <code>keep</code>
 and every column. With 3 rows out of 459, σ moves from 1.0695 to 0.9267,
-and the random slope’s advantage in AIC shrinks from 4.75 to 2.19. It
+and the random slope’s advantage in AIC shrinks from 4.75 to 2.19: it
 survives, but it was leaning on those rows harder than the plot
-suggests, and the second fit printed a warning as well as a number: the
-engine says that without those rows the fit sits at a boundary. Which
-number is on the boundary, and which of the 3 rows the slope was leaning
-on, is Exercise 8. Two things you may not do: quote σ from this fit as
-if those rows belonged in it, and read a worm plot standardised by a
-spread that the outliers you are looking for helped to set.</p></div>
-<h3 id="the-number-not-to-build-on" class="anchored">The number not to build on</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>One more thing about ρ before the last section, because it is the
-parameter this chapter has spent twenty minutes warning you about. This
-engine prints the correlation and no standard error beside it; its R
-twin prints both (<a href="appendix-b-engine.html">Where the engine
-stops</a>). Whichever you use, remember what the figure showed: ρ
-depends on where zero is, it changes sign when the origin moves, and on
-171 birds with a median of 3 captures each it is estimated from very
-little — Exercise 8 shows what 3 rows do to it. <strong>Fit the
-correlation because leaving it out constrains the model; do not build a
-story on it.</strong></p></div>
+suggests. And the third line is the promise about ρ: without those rows
+it goes to 1.0, the edge of what a correlation can be, which says the
+model can no longer tell a bird’s intercept nudge from its slope nudge —
+the birds are doing one thing, not two. The engine warns, on that fit,
+that standard errors at such an edge are not to be trusted; it is right.
+Two things you may not do: quote σ from this fit as if those rows
+belonged in it, and read a worm plot standardised by a spread the
+outliers helped to set.</p></div>
 <h3 id="what-the-blended-fit-would-have-said" class="anchored">What the blended fit would have said</h3>
-<div class="line"><span class="who itchy">Itchy</span><p>Last thing before the summary, and it is the model most people fit: the
-random slope on the whole of mass, <code>wc</code>, with nothing split.
-I am fitting it so that you can see what I would have told you if we had
-freed the slope first and split the covariate afterwards.</p></div>
-<div id="blended" class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>blend_rs <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wc <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wc<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>Vb <span class="op">=</span> <span class="fu">vc</span>(blend_rs)[<span class="op">:</span>BirdID]</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>sd1_blend <span class="op">=</span> <span class="fu">sqrt</span>(Vb[<span class="fl">2</span>, <span class="fl">2</span>])</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>rho_blend <span class="op">=</span> Vb[<span class="fl">1</span>, <span class="fl">2</span>] <span class="op">/</span> (<span class="fu">sqrt</span>(Vb[<span class="fl">1</span>, <span class="fl">1</span>]) <span class="op">*</span> sd1_blend)</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>stat_blend <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> (<span class="fu">loglik</span>(blend_rs) <span class="op">-</span> <span class="fu">loglik</span>(ri_fit))</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-30s %7s %10s %9s %9s %11s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"params"</span>, <span class="st">"logLik"</span>, <span class="st">"sigma_1"</span>, <span class="st">"rho"</span>, <span class="st">"AIC"</span>)</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (nm, f, s1, r) <span class="kw">in</span> ((<span class="st">"wc + (1|BirdID)"</span>,           ri_fit,   <span class="cn">NaN</span>,       <span class="cn">NaN</span>),</span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>                       (<span class="st">"wc + (1 + wc|BirdID)"</span>,      blend_rs, sd1_blend, rho_blend),</span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>                       (<span class="st">"wdev + wbar + (1|BirdID)"</span>,  sep_ri,   <span class="cn">NaN</span>,       <span class="cn">NaN</span>),</span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>                       (<span class="st">"wdev + wbar + (1 + wdev|.)"</span>, rs_fit,  sd1,       rho))</span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@printf</span>(<span class="st">"%-30s %7d %10.4f %9s %9s %11.4f</span><span class="sc">\n</span><span class="st">"</span>, nm, <span class="fu">npar</span>(f), <span class="fu">loglik</span>(f),</span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>            <span class="fu">isnan</span>(s1) ? <span class="st">"-"</span> <span class="op">:</span> <span class="pp">@sprintf</span>(<span class="st">"%.4f"</span>, s1),</span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">isnan</span>(r)  ? <span class="st">"-"</span> <span class="op">:</span> <span class="pp">@sprintf</span>(<span class="st">"%+.4f"</span>, r), <span class="fu">aic</span>(f))</span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">AIC bought by ONE extra fixed parameter : %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic_split)</span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC bought by the blended random slope  : %.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">aic</span>(ri_fit) <span class="op">-</span> <span class="fu">aic</span>(blend_rs))</span>
-<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"AIC bought by the separated random slope: %.4f</span><span class="sc">\n</span><span class="st">"</span>, d_aic)</span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"LR for the slope, blended  : %.4f  (p %.3e)</span><span class="sc">\n</span><span class="st">"</span>, stat_blend, <span class="fu">p_sl</span>(stat_blend))</span>
-<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"LR for the slope, separated: %.4f  (p %.3e)</span><span class="sc">\n</span><span class="st">"</span>, stat, <span class="fu">p_sl</span>(stat))</span>
-<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"share of the blended LR that was fixed-effect misspecification: %.1f%%</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> stat <span class="op">/</span> stat_blend))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Last thing, and it is the model most people fit: the random slope on the
+whole of mass, <code>wc</code>, nothing split. Fit it, and see what I
+would have told you if we had freed the slope first and split
+afterwards.</p></div>
+<div id="blended" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>blend_rs <span class="op">=</span> <span class="fu">drm</span>(<span class="fu">bf</span>(<span class="pp">@formula</span>(Wing <span class="op">~</span> wc <span class="op">+</span> (<span class="fl">1</span> <span class="op">+</span> wc<span class="op">|</span>BirdID))), <span class="fu">Gaussian</span>(); data <span class="op">=</span> sparrows)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>sd1_blend <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">vc</span>(blend_rs)[<span class="op">:</span>BirdID][<span class="fl">2</span>, <span class="fl">2</span>])</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>stat_blend <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> (<span class="fu">loglik</span>(blend_rs) <span class="op">-</span> <span class="fu">loglik</span>(ri_fit))</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %9s %9s %12s</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">""</span>, <span class="st">"sigma_1"</span>, <span class="st">"LR"</span>, <span class="st">"AIC bought"</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %9.4f %9.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"blended"</span>,   sd1_blend, stat_blend, <span class="fu">aic</span>(ri_fit) <span class="op">-</span> <span class="fu">aic</span>(blend_rs))</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"%-10s %9.4f %9.4f %12.4f</span><span class="sc">\n</span><span class="st">"</span>, <span class="st">"separated"</span>, sd1,       stat,       d_aic)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@printf</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">share of the blended LR that was fixed-effect misspecification: %.1f%%</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>        <span class="fl">100</span> <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> stat <span class="op">/</span> stat_blend))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                                params     logLik   sigma_1       rho         AIC
-wc + (1|BirdID)                      4  -883.5938         -         -   1775.1876
-wc + (1 + wc|BirdID)                 6  -872.6137    0.4308   +0.2354   1757.2273
-wdev + wbar + (1|BirdID)             5  -871.9449         -         -   1753.8899
-wdev + wbar + (1 + wdev|.)           7  -867.5692    0.2541   +0.5690   1749.1383
+<pre><code>             sigma_1        LR   AIC bought
+blended       0.4308   21.9603      17.9603
+separated     0.2541    8.7516       4.7516
 
-AIC bought by ONE extra fixed parameter : 21.2977
-AIC bought by the blended random slope  : 17.9603
-AIC bought by the separated random slope: 4.7516
-LR for the slope, blended  : 21.9603  (p 9.910e-06)
-LR for the slope, separated: 8.7516  (p 7.836e-03)
 share of the blended LR that was fixed-effect misspecification: 60.1%</code></pre>
 </div>
 </div>
-<div class="line"><span class="who toto">Toto</span><p>σ_1 is nearly twice as big.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>0.4308 against the 0.2541 you have been working with, and the
-likelihood-ratio statistic 21.96 against 8.75: had I put the slope on
-the unsplit column, <strong>60% of the evidence I showed you for random
-slopes would have been evidence for a misspecified fixed part.</strong>
-The mechanism is one line of algebra: a per-bird slope on the blended
-column multiplies <strong>both</strong> parts, u_1j times the within
-deviation <em>and</em> u_1j times the bird’s own average. So the slope
-variance has to absorb the between-versus-within contrast the fixed part
-refused to separate. It is doing two jobs. Give the fixed part its
-second coefficient first and σ_1 only ever has one.</p></div>
+<div class="line"><span class="who toto">Toto</span><p>σ_1 is 1.7 times as big.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>0.4308 against 0.2541, and a likelihood-ratio statistic of 21.96 against
+8.75: had I put the slope on the unsplit column, <strong>60% of the
+evidence I showed you for random slopes would have been evidence for a
+misspecified fixed part.</strong> The mechanism is one line of algebra:
+a per-bird slope on the blended column multiplies <strong>both</strong>
+parts, u_1j times the within deviation <em>and</em> u_1j times the
+bird’s own average, so the slope variance has to absorb the
+between-versus-within contrast the fixed part refused to separate. It is
+doing two jobs. Give the fixed part its second coefficient first and σ_1
+only ever has one.</p></div>
 <div class="line"><span class="who eddie">Eddie</span><p>And the blended random slope buys 17.96 of AIC for two parameters, when
 the split bought 21.3 for one.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Which is the sentence from half an hour ago with its number attached.
-<strong>The cheapest thing on this page was never the random
-slope.</strong> The finding survives the split — birds really do differ
-in slope on this file, by 59% of what the blended model would have said,
-with the rows-out caveat you have just read — but what you write in a
-paper is the separated model’s numbers, because they come from the model
-that asks the within-bird question: AIC improves by 4.75 for the random
-slope, and the boundary-corrected p is 0.008. And the order to do it in,
-which is the sentence to take home: <strong>fit the decomposition first,
-then ask whether the within slope varies.</strong> That is Exercise 1.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p><strong>The cheapest thing on this page was never the random
+slope.</strong> The finding survives the split — birds do differ in
+slope on this file, by 59% of what the blended model would have said,
+with the rows-out caveat — but what you write in a paper is the
+separated model’s numbers, because that is the model that asks the
+within-bird question: AIC improves by 4.75 for the random slope, and the
+boundary-corrected p is 0.008. And the order is the sentence to take
+home: <strong>fit the decomposition first, then ask whether the within
+slope varies.</strong></p></div>
 <h3 id="what-has-to-wait" class="anchored">What has to wait</h3>
 <div class="line"><span class="who itchy">Itchy</span><p>One note and then the summary. Everything today has been Gaussian, and
 the obvious next question is a random slope on a <strong>binary</strong>
-outcome — does the effect of some treatment on survival differ between
-broods. This engine does not yet fit a random slope for a binomial
-response; <a href="appendix-b-engine.html">Where the engine stops</a>
-has the detail. When it does, everything on this page transfers, except
-that you will read the two standard deviations on the log-odds scale.</p></div>
+outcome — does a treatment’s effect on survival differ between broods.
+This engine does not yet fit one (<a href="appendix-b-engine.html">Where
+the engine stops</a>); when it does, everything here transfers, with the
+standard deviations read on the log-odds scale.</p></div>
 <div class="line"><span class="who toto">Toto</span><p>So today’s summary is: not everyone shares a slope.</p></div>
-<div class="line"><span class="who itchy">Itchy</span><p>Today’s summary is: not everyone shares a slope, the model will tell you
-how much they differ, and it will charge you two parameters and one
-correlation you have to interpret carefully.</p></div>
+<div class="line"><span class="who itchy">Itchy</span><p>Not everyone shares a slope, the model will tell you how much they
+differ, and it will charge you two parameters and one correlation you
+have to interpret carefully.</p></div>
 <hr>
 <h2 id="summary" class="anchored">Summary</h2>
 <h3 id="stats-stuff" class="anchored">Stats stuff</h3>
 <ul>
-<li><strong>What a random slope frees.</strong> <code>(1 + x | g)</code> lets each group have its own steepness as well as its own height; the group lines stop being parallel and start crossing.</li>
-<li><strong>Check the covariate before you fit.</strong> A random slope needs <em>x</em> to vary <strong>within</strong> groups; one minus the repeatability of <em>x</em> is the share that does, and what that variation <em>is</em> matters as much as its size: bill width moves within a bird because the calipers do, mass because the bird does.</li>
-<li><strong>A coefficient on a repeated-measures covariate is a blend of two slopes, and splitting them costs one parameter.</strong> Here the between-bird slope was 0.583 and the within-bird slope 0.049, and the split bought more AIC for one parameter than the random slope bought for two. <strong>Fit the decomposition first; then ask whether the within slope varies.</strong></li>
-<li><strong>Standard errors can go either way.</strong> Adding <code>(1 | g)</code> stops counting repeated measurements as fresh evidence, which raises the standard error, and removes noise from the residual, which lowers it; here the residual variance fell by a factor of 3.6 and the standard error fell with it.</li>
-<li><strong>Two parameters, not one.</strong> A random slope adds a variance <strong>and</strong> a covariance, and the model comparison must charge for both.</li>
-<li><strong>The intercept–slope correlation is a statement about where zero is.</strong> Move the origin of <em>x</em> and ρ changes, and can change sign, while the likelihood, the AIC, σ, σ_1 and the fixed slope do not move at all. Report ρ with the origin in the same sentence, or do not report it. A within-group deviation has a natural origin, the group’s own average, and that is the one to report at.</li>
-<li><strong>Centre a covariate whose zero is outside its range, every time.</strong> With a far-away origin the fit can fail outright — an arithmetic failure in the optimiser, not a boundary — and centring removes it without changing the model.</li>
-<li><strong>Testing σ_1 = 0 is a boundary problem, and the mixture matters.</strong> The naive χ²(2) is conservative. Stram and Lee’s (1994) result covers exactly this step, <em>q</em> random effects against <em>q</em> + 1, and gives a fifty-fifty mixture of χ²(1) and χ²(2); read the assumptions of any correction before you take its p-value.</li>
-<li><strong>Shrinkage, now for slopes.</strong> A group’s predicted slope is pulled hard towards the population slope when the group has few measurements or little spread in <em>x</em>; here groups keep about 14% of the slope their own points suggest, and the spread of the predictions is not σ_1.</li>
-<li><strong>Marginal residuals again.</strong> <code>fitted</code> and <code>residuals</code> on these fits are population-level, so a quantile residual comes out about 1.9 times too wide; subtract <em>both</em> of the group’s own numbers for the conditional residual, and read its worm plot for shape, not for σ, because shrinkage leaves part of each group effect behind.</li>
-<li><strong>Never read a worm plot through a standardiser the outliers helped to set.</strong> Find the rows far from their own group first, name them, divide by a spread they cannot move, and say in one sentence what moves with them out.</li>
-<li><strong>A random slope on an unsplit covariate does two jobs.</strong> Its variance absorbs the between-versus-within contrast the fixed part refused to separate; on the blended column σ_1 would have been 0.431 rather than 0.254, and 60% of the likelihood-ratio evidence would have been misspecification.</li>
-<li><strong>Maximal or parsimonious.</strong> Barr et al.&nbsp;(2013) argue for the maximal random-effects structure; Bates et al.&nbsp;(2015) argue that over-parameterised structures should be reduced. This chapter is a small worked example: the random slope survives by AIC, and most of the case the blended model would have made for it evaporates once the fixed part is specified properly.</li>
+<li><strong>What a random slope frees.</strong> <code>(1 + x | g)</code> lets each group have its own steepness as well as its own height; the group lines stop being parallel and cross.</li>
+<li><strong>Check the covariate before you fit.</strong> A random slope needs <em>x</em> to vary <strong>within</strong> groups; one minus the repeatability of <em>x</em> is the share that does, and what that variation <em>is</em> matters as much as its size: bill width moves because the calipers do, mass because the bird does.</li>
+<li><strong>A coefficient on a repeated-measures covariate blends two slopes, and splitting them costs one parameter.</strong> Here between-bird 0.583, within-bird 0.049, and the split bought more AIC for one parameter than the random slope for two. <strong>Fit the decomposition first; then ask whether the within slope varies.</strong></li>
+<li><strong>Standard errors can go either way.</strong> Adding <code>(1 | g)</code> stops counting repeated measurements as fresh evidence, which raises the standard error, and removes noise from the residual, which lowers it; here the second won.</li>
+<li><strong>Two parameters, not one.</strong> A random slope adds a variance <strong>and</strong> a covariance, and the comparison must charge for both.</li>
+<li><strong>ρ is a statement about where zero is.</strong> Move the origin of <em>x</em> and ρ changes, and can change sign, while the likelihood, the AIC, σ, σ_1 and the fixed slope do not move. Report ρ with the origin in the same sentence, and centre a covariate whose zero is outside its range, every time: a far-away origin can crash the optimiser without changing the model.</li>
+<li><strong>Testing σ_1 = 0 is a boundary problem.</strong> The naive χ²(2) is conservative. Stram and Lee (1994) cover exactly this step, <em>q</em> random effects against <em>q</em> + 1: a fifty-fifty mixture of χ²(1) and χ²(2). Read the assumptions of any correction before you take its p-value.</li>
+<li><strong>Shrinkage, now for slopes.</strong> A group’s predicted slope is pulled hard towards the population slope when the group has few measurements or little spread in <em>x</em>; here groups keep about 14% of their own slope, and the spread of the predictions is not σ_1.</li>
+<li><strong>Conditional residuals, and the rows that set the scale.</strong> <code>fitted</code> and <code>residuals</code> are population-level; subtract <em>both</em> of the group’s own numbers, read the worm plot for shape and not for σ, name the rows far from their own group before standardising, and say what moves with them out — here ρ went to the edge of its range.</li>
+<li><strong>A random slope on an unsplit covariate does two jobs.</strong> Its variance absorbs the between-versus-within contrast the fixed part refused to separate; on the blended column σ_1 would have been 0.431 rather than 0.254, and 60% of the likelihood-ratio evidence would have been misspecification — Bates et al.&nbsp;(2015) against Barr et al.&nbsp;(2013), in one file.</li>
 </ul>
 <h3 id="julia-you-used" class="anchored">Julia you used</h3>
 <ul>
-<li><strong><code>leftjoin(df, other, on = :BirdID)</code>.</strong> Attaches the columns of <code>other</code> to every row of <code>df</code> whose key matches. The join that replaces a hand-built <code>Dict</code>.</li>
+<li><strong><code>leftjoin(df, other, on = :BirdID)</code> and <code>indexin(a, b)</code>.</strong> The join attaches the columns of <code>other</code> to every row of <code>df</code> whose key matches; <code>indexin</code> gives each element of <code>a</code> its position in <code>b</code>. The two lookups you no longer build by hand.</li>
 <li><strong><code>nothing</code> as a cell’s last line.</strong> Stops the cell printing a value nobody needs to see.</li>
-<li><strong><code>Dict{Symbol,Float64}()</code> and <code>d[k] = v</code>.</strong> An empty lookup table with declared key and value types, filled one entry at a time. <code>argmin(d)</code> on a Dict returns the <em>key</em> of the smallest value. <code>Dict(zip(a, b))</code> builds one from two columns side by side.</li>
-<li><strong><code>:y =&gt; (v -&gt; cond ? a : missing) =&gt; :sw</code>.</strong> An anonymous function inside <code>combine</code>, and <code>missing</code> as a value a later <code>skipmissing</code> steps over. <code>Float64.(col)</code> converts a column element by element.</li>
-<li><strong><code>V[1, 2]</code>.</strong> Row one, column two of a matrix. <code>B[:, 2]</code> is the whole second column; <code>[a b; c d]</code> writes a small matrix by hand.</li>
+<li><strong><code>Dict{Symbol,Float64}()</code> and <code>d[k] = v</code>.</strong> An empty lookup table with declared key and value types, filled one entry at a time.</li>
+<li><strong><code>:y =&gt; (v -&gt; cond ? a : missing) =&gt; :sw</code>.</strong> An anonymous function inside <code>combine</code>, and <code>missing</code> as a value a later <code>skipmissing</code> steps over.</li>
+<li><strong><code>V[1, 2]</code> and <code>B[:, 2]</code>.</strong> Row one, column two of a matrix; the whole second column.</li>
 <li><strong><code>return (; sd0 = s0, ...)</code> and <code>map(f, xs)</code>.</strong> An explicit return of a NamedTuple, and a function applied to each element of a list with the results collected.</li>
-<li><strong><code>[b for b in ids if k_of[b] &gt;= 3]</code>.</strong> A comprehension with a filter. <code>Dict(r.BirdID =&gt; r.k for r in eachrow(df))</code> builds a lookup from a frame walked row by row.</li>
-<li><strong><code>findall(v)</code>, <code>setdiff(1:n, bad)</code>, <code>df[keep, :]</code>.</strong> The positions where a true/false vector is true, one set of positions with another removed, and the rows at those positions with every column.</li>
-<li><strong><code>isnan(x) ? "-" : @sprintf("%.4f", x)</code>.</strong> The one-line <code>if</code> again, with <code>@sprintf</code>, which is <code>@printf</code> returning a string instead of printing it.</li>
+<li><strong><code>findall(v)</code>, <code>setdiff(1:n, bad)</code>, <code>df[keep, :]</code>.</strong> The positions where a true/false vector is true, one set of positions with another removed, and the rows at those positions.</li>
 </ul>
 <h3 id="calls-you-used" class="anchored">Calls you used</h3>
 <ul>
 <li><code>@formula(y ~ x + (1 + x|g))</code>: the random slope. Everything else about the call is unchanged from Class 6.</li>
 <li><code>vc(fit)[:g]</code>: the 2 × 2 covariance of a correlated block; the diagonal’s square roots are σ₀ and σ₁, the off-diagonal over their product is ρ. Why <code>re_sd</code> is empty here is in <a href="appendix-b-engine.html">Where the engine stops</a>.</li>
-<li><code>ranef(fit)[:g]</code>: groups by terms — intercept deviations in column one, slope deviations in column two, in the order of <code>sort(unique(df.g))</code>.</li>
-<li><code>aic(fit)</code>, <code>loglik(fit)</code>, <code>lrtest(reduced, full)</code>: the comparison and the naive test, which warns when the extra parameters include a variance. The Stram and Lee mixture is one line of <code>Distributions</code>: <code>0.5 * ccdf(Chisq(1), s) + 0.5 * ccdf(Chisq(2), s)</code>.</li>
-<li><code>residuals(fit; type = :quantile, rng = MersenneTwister(seed))</code>: seeded, and marginal on a mixed fit.</li>
+<li><code>ranef(fit)[:g]</code>: intercept deviations in column one, slope deviations in column two, in the order of <code>sort(unique(df.g))</code>.</li>
+<li><code>aic(fit)</code>, <code>loglik(fit)</code>, <code>dof(fit)</code>, <code>lrtest(reduced, full)</code>: the comparison and the naive test, which warns when the extra parameters include a variance. The Stram and Lee mixture is one line: <code>0.5 * ccdf(Chisq(1), s) + 0.5 * ccdf(Chisq(2), s)</code>.</li>
 </ul>
 <hr>
 <h2 id="further-reading" class="anchored">Further reading</h2>
 <p class="aside">Graded by depth. Checked on 2026-09-07 against OpenAlex, an open
 catalogue of research papers.</p>
 <ol type="1">
-<li><strong>Schielzeth, H. &amp; Forstmeier, W. (2009) “Conclusions beyond support: overconfident estimates in mixed models”, <em>Behavioral Ecology</em> 20:416–420.</strong> doi:10.1093/beheco/arn145. Start here. The ecological case for today’s chapter: leaving a random slope out of a model with repeated measures inflates confidence in the fixed effect. Short, concrete, and about animals.</li>
-<li><strong>Barr, D. J., Levy, R., Scheepers, C. &amp; Tily, H. J. (2013) “Random effects structure for confirmatory hypothesis testing: Keep it maximal”, <em>Journal of Memory and Language</em> 68:255–278.</strong> doi:10.1016/j.jml.2012.11.001. One half of the argument: fit the random-effects structure the design justifies, including the slopes, or your fixed-effect test is anticonservative. Read it with item 3 open beside it.</li>
-<li><strong>Bates, D., Kliegl, R., Vasishth, S. &amp; Baayen, H. (2015) “Parsimonious mixed models”, arXiv:1506.04967.</strong> doi:10.48550/arxiv.1506.04967. The other half, and <strong>not</strong> the lme4 paper Class 8 will cite, despite the year and the first author. It argues that maximal models are routinely over-parameterised; this chapter’s example is the last section, where a random slope on the unsplit covariate would have been carrying a fixed effect that had not been specified. A preprint, widely cited, never in a journal.</li>
-<li><strong>Matuschek, H., Kliegl, R., Vasishth, S., Baayen, H. &amp; Bates, D. (2017) “Balancing Type I error and power in linear mixed models”, <em>Journal of Memory and Language</em> 94:305–315.</strong> doi:10.1016/j.jml.2017.01.001. The referee between items 2 and 3, with simulations rather than assertions.</li>
-<li><strong>Stram, D. O. &amp; Lee, J. W. (1994) “Variance components testing in the longitudinal mixed effects model”, <em>Biometrics</em> 50:1171–1177</strong>, doi:10.2307/2533455, <strong>with its published correction, <em>Biometrics</em> (1995) 51:1196</strong>, doi:10.2307/2533038. The direct source for the mixture used in class, stated for exactly this step: <em>q</em> random effects against <em>q</em> + 1. Read the correction as well as the paper.</li>
-<li><strong>Self, S. G. &amp; Liang, K.-Y. (1987) “Asymptotic properties of maximum likelihood estimators and likelihood ratio tests under nonstandard conditions”, <em>Journal of the American Statistical Association</em> 82:605–610.</strong> The theory underneath item 5; open it once to see why the mixture has the weights it has.</li>
-<li><strong>Gelman, A. &amp; Hill, J. (2007) <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>.</strong> Chapters 12 and 13 for varying slopes drawn six ways, and for the between-versus-within decomposition at book length. Ignore the software.</li>
+<li><strong>Schielzeth, H. &amp; Forstmeier, W. (2009) “Conclusions beyond support: overconfident estimates in mixed models”, <em>Behavioral Ecology</em> 20:416–420.</strong> doi:10.1093/beheco/arn145. Start here: leaving a random slope out of a repeated-measures model inflates confidence in the fixed effect. Short, concrete, and about animals.</li>
+<li><strong>Barr, D. J., Levy, R., Scheepers, C. &amp; Tily, H. J. (2013) “Random effects structure for confirmatory hypothesis testing: Keep it maximal”, <em>Journal of Memory and Language</em> 68:255–278.</strong> doi:10.1016/j.jml.2012.11.001. One half of the argument: fit the random-effects structure the design justifies, slopes included, or your fixed-effect test is anticonservative. Read with item 3 beside it.</li>
+<li><strong>Bates, D., Kliegl, R., Vasishth, S. &amp; Baayen, H. (2015) “Parsimonious mixed models”, arXiv:1506.04967.</strong> doi:10.48550/arxiv.1506.04967. The other half, and <strong>not</strong> the lme4 paper Class 8 will cite, despite the year and first author: maximal models are routinely over-parameterised. This chapter’s example is the blended fit, where a random slope on the unsplit covariate carried a fixed effect nobody had specified. A preprint, widely cited, never in a journal.</li>
+<li><strong>Matuschek, H., Kliegl, R., Vasishth, S., Baayen, H. &amp; Bates, D. (2017) “Balancing Type I error and power in linear mixed models”, <em>Journal of Memory and Language</em> 94:305–315.</strong> doi:10.1016/j.jml.2017.01.001. The referee between items 2 and 3, with simulations.</li>
+<li><strong>Stram, D. O. &amp; Lee, J. W. (1994) “Variance components testing in the longitudinal mixed effects model”, <em>Biometrics</em> 50:1171–1177</strong>, doi:10.2307/2533455, <strong>with its published correction, <em>Biometrics</em> (1995) 51:1196</strong>, doi:10.2307/2533038. The direct source for the mixture used in class, stated for exactly this step: <em>q</em> random effects against <em>q</em> + 1. Read the correction as well as the paper; Self and Liang (1987), which Jaro named, is the theory underneath it.</li>
+<li><strong>Gelman, A. &amp; Hill, J. (2007) <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>.</strong> Chapters 12 and 13: varying slopes drawn six ways, and the within-versus-between decomposition at book length. Ignore the software.</li>
 </ol>
 <hr>
 <h2 id="exercises" class="anchored">Exercises</h2>
-<p>Graded by depth: the first three take ten minutes each. Exercises 1 and 8 run on the sparrow file the setup cell wrote, <code>data/ch7/sparrows-weight.csv</code>, which carries <code>wc</code>, <code>wbar</code> and <code>wdev</code> already. Exercises 2 to 7 run on Momo’s tadpole file, <code>data/ch8/tadpoles.csv</code>, which Class 8 simulates from a stated seed and says so: 117 tadpoles in 12 ponds, each with its <code>days</code> since hatching and its body <code>length</code>. On that file the split buys nothing — it costs 1.64 of AIC — because Class 8’s cell drew each tadpole’s age without regard to its pond and gave the whole file one slope; so the tadpole exercises put the random slope on centred <code>days</code> directly, and the truth they are compared against is a σ₁ of zero. Do every exercise on your own organism as well where you have one. A <em>check</em> is a number computed from the named file when this page was built. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 7.</p>
+<p>Graded by depth: the first three take ten minutes each. Exercises 1 to 4 run on the sparrow file the setup cell wrote, <code>data/ch7/sparrows-weight.csv</code>, which carries <code>wc</code>, <code>wbar</code> and <code>wdev</code> already, so the take-home — split first, then free — is practised on real repeated measures. Exercises 5 to 8 run on Momo’s tadpole file, <code>data/ch8/tadpoles.csv</code>, which Class 8 simulates from a stated seed: 117 tadpoles in 12 ponds, each with its <code>days</code> since hatching and its body <code>length</code>. Know what that file can and cannot show. It was drawn with one slope for every pond and ages drawn without regard to pond, so the split has nothing to find (it costs 1.64 of AIC) and the true σ₁ is zero. What it <em>can</em> show is what a random-slope fit, a boundary test and a caterpillar plot do when nobody has their own slope, the case you must be able to recognise. Do every exercise on your own organism as well. A <em>check</em> is a number computed from the named file when this page was built. <strong>For every question, paste your code and then explain in your own words what each line does</strong>, as if to somebody who has done Class 6 and not Class 7.</p>
 <ol type="1">
-<li><p><strong>Within and between, in the right order.</strong> The chapter split mass for wing; do it for <strong>tail</strong>. Drop the rows with no tail (<code>dropmissing</code>), then fit <code>Tail ~ wdev + wbar + (1 | BirdID)</code> against <code>Tail ~ wc + (1 | BirdID)</code>, using the three mass columns as the file has them. Report the two fixed slopes with their standard errors and the AIC of both fits. Two sentences: which of the two slopes the unsplit coefficient was closer to, and how much AIC the one extra fixed parameter bought. <em>Check:</em> within-bird slope -0.016, between-bird slope 0.403, unsplit 0.134; the split buys 9.31 of AIC.</p></li>
-<li><p><strong>Check before you fit.</strong> Compute one minus the repeatability of <code>days</code> itself, the share of its variation that lives within ponds, as the chapter’s table did for every candidate. Then say in one sentence whether <code>days</code> is a thing that happened to each tadpole or a thing that happened to each pond, and why that decides whether a random slope on it is a question with an answer. <em>Check:</em> the within share is 1.0.</p></li>
-<li><p><strong>Both fits, one term.</strong> Fit <code>length ~ dc + (1 | pond)</code> and then <code>(1 + dc | pond)</code>. Before you look, predict whether the standard error on the slope will rise or fall. Report both fixed slopes, both standard errors, the residual SD of each fit, and the covariance block from <code>vc</code>; then explain whichever way the standard error went with <strong>both</strong> effects from class. <em>Check:</em> σ₁ = 0.026 and ρ = 0.45; the standard error moves from 0.0138 to 0.0156.</p></li>
-<li><p><strong>The right mixture.</strong> Compare the two fits of question 3 with <code>lrtest</code>, then with the Stram and Lee mixture <code>p_sl</code> computed by hand as the chapter did. Report both p-values. Write two sentences saying which one you would report and why, <strong>without</strong> using the word “conservative” on its own — say what it is conservative <em>about</em>. Then say what the data-generating process in Class 8’s cell tells you the right answer was. <em>Check:</em> naive p = 0.64, mixture p = 0.49.</p></li>
-<li><p><strong>Move the origin.</strong> Refit the random-slope model with <code>days</code> measured from zero, from its mean, and from day 40, which is beyond the data. Report σ₀, σ₁, ρ and the AIC for each, and say which of the four moved. <em>Check:</em> ρ runs from -0.01 at day zero to 0.77 at day 40, and σ₁ and the AIC do not move at all.</p></li>
-<li><p><strong>The caterpillar, for slopes.</strong> Compute each pond’s own least-squares slope from its points alone, and plot them against the model’s slopes as the chapter’s figure did. Report the ratio of the two spreads. Which pond moved furthest, and is that because it had the fewest tadpoles, the least spread in <code>days</code>, or the most extreme own slope? The numbers decide; say which one you checked. <em>Check:</em> the model’s slopes have 0.29 of the spread of the ponds’ own slopes.</p></li>
-<li><p><strong>Two rows, or a shape?</strong> Compute the conditional residuals of the random-slope fit and, before you draw anything, count the rows more than three residual SDs from their own pond’s line. Draw the worm plot. Then two sentences: what you would do with any flagged rows, and why a file simulated from a Gaussian is the wrong place to expect any. <em>Check:</em> 0 rows flagged.</p></li>
-<li><p><strong>The rows the slope was leaning on.</strong> Back on the sparrow file. Refit the chapter’s separated random-slope model and its random-intercept twin without the 3 rows the class named, and report σ, σ₁, ρ and the within-bird slope beside the full-file values, with the AIC the random slope buys in each case. One of the four numbers lands on the edge of the values it is allowed to take: say which, and what a Σ with that value says about how many separate things the birds are doing. Then refit with only the two lowest rows out and say, from the AIC, which single row the random-slope evidence was leaning on. <em>Check:</em> with all 3 rows out, σ is 0.927, ρ is 1.0 and AIC prefers the random slope by 2.19; with only the two lowest out, ρ is 0.68 and AIC prefers it by 12.82.</p></li>
+<li><p><strong>Within and between, in the right order.</strong> The chapter split mass for wing; do it for <strong>tail</strong>. Drop the rows with no tail, then fit <code>Tail ~ wdev + wbar + (1 | BirdID)</code> against <code>Tail ~ wc + (1 | BirdID)</code>. Report the two fixed slopes with their standard errors and both AICs. Two sentences: which slope the unsplit coefficient was closer to, and how much AIC the one extra fixed parameter bought. <em>Check:</em> within-bird slope -0.016, between-bird slope 0.403, unsplit 0.134; the split buys 9.31 of AIC.</p></li>
+<li><p><strong>Both mechanisms on one screen.</strong> Fit <code>Wing ~ wdev + wbar</code> with no bird term, then with <code>(1 | BirdID)</code>, and put the two standard errors of <code>wdev</code> and the two of <code>wbar</code> side by side. Before you look, predict which goes up and which goes down when the bird term arrives; then say which mechanism from class won for each column, and why the two columns pulled in opposite directions. <em>Check:</em> the standard error of <code>wbar</code> goes from 0.0623 to 0.0927, and of <code>wdev</code> from 0.1052 to 0.0563.</p></li>
+<li><p><strong>The origin you report at.</strong> Refit the chapter’s random-slope model with <code>wdev</code> shifted two grams down and two grams up, inside the shaded strip. Report σ₁, ρ and the AIC of each, then get the same two correlations from the fitted Σ with the shift on the board, without refitting. One sentence: which origin you would report ρ at in a paper, and why. <em>Check:</em> ρ is 0.323 two grams below and 0.722 two grams above, from the fit and from the formula alike, and σ₁ and the AIC do not move.</p></li>
+<li><p><strong>The rows the fit was leaning on.</strong> Refit the chapter’s separated random-slope model and its random-intercept twin without the 3 rows the class named, and report σ, σ₁, ρ, the within-bird slope and the AIC the random slope buys, beside the full-file values. One number lands on the edge of the values it may take: say which, and what a Σ with that value says about how many separate things the birds are doing. Then write the one sentence you would put in a paper about these rows. <em>Check:</em> with the rows out, σ is 0.927, ρ is 1.0 and AIC prefers the random slope by 2.19.</p></li>
+<li><p><strong>Check before you fit.</strong> Compute one minus the repeatability of <code>days</code>, the share of its variation within ponds, as the chapter’s table did. One sentence: is <code>days</code> a thing that happened to each tadpole or to each pond, and why does that decide whether a random slope on it is a question with an answer? <em>Check:</em> the within share is 1.0.</p></li>
+<li><p><strong>Both fits, one term, when the truth is zero.</strong> Fit <code>length ~ dc + (1 | pond)</code> and then <code>(1 + dc | pond)</code>. Report both fixed slopes, both standard errors, and the covariance block from <code>vc</code>. Then say what σ₁ came out as, what Class 8’s cell says it should be, and why a fitted σ₁ is never exactly its true value. <em>Check:</em> σ₁ = 0.026 and ρ = 0.45; the standard error moves from 0.0138 to 0.0156.</p></li>
+<li><p><strong>The right mixture, at the null.</strong> Compare the two fits of question 6 with <code>lrtest</code>, then with the Stram and Lee mixture computed by hand as the chapter did. Report both p-values, say which you would report and why <strong>without</strong> using the word “conservative” on its own — say what it is conservative <em>about</em> — and whether either would have led you to claim a spread of slopes the file does not have. <em>Check:</em> naive p = 0.64, mixture p = 0.49.</p></li>
+<li><p><strong>The caterpillar, for slopes, when nobody has one.</strong> Compute each pond’s own least-squares slope from its points alone, and plot them against the model’s slopes as the chapter’s figure did. Report the ratio of the two spreads against the chapter’s 0.14. Two sentences: no pond really has its own slope, yet the ponds keep more of their own spread than the birds did — which fact about a pond, how many tadpoles or how well spread their ages, explains that; and why are the diamonds still not all on one line? <em>Check:</em> the model’s slopes have 0.29 of the spread of the ponds’ own slopes.</p></li>
 </ol>
 
 <div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden">

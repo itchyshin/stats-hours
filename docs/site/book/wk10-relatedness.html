@@ -1308,7 +1308,7 @@ The matrix is a hypothesis. Test it like one.</p></div>
 <li><code>heritability(fit)</code> and <code>repeatability(fit)</code>: the two ratios, each returning <code>estimate</code>, <code>bias</code>, <code>corrected</code>, <code>se</code> and <code>ci</code>. With more than one structured component, pass <code>component = :name</code>.</li>
 <li><code>re_sd(fit)[:id]</code>, <code>sigma(fit)</code>, <code>is_converged(fit)</code>, <code>dof(fit)</code>: the component SDs, the residual SD, whether the optimiser finished, and the parameter count.</li>
 <li><code>lrt_boundary(full, reduced; q = 1)</code>: the boundary-corrected test for a variance component at zero. Both fits must be ML on the same rows.</li>
-<li><code>residuals(fit; type = :quantile)</code>: Class 5’s quantile residuals, available on a structured fit like any other.</li>
+<li><code>residuals(fit; type = :quantile)</code>: Class 5a’s quantile residuals, available on a structured fit like any other.</li>
 <li><strong>The simulation thread.</strong> Every chapter ends by asking the fit to invent data; here the cell is a reminder.</li>
 </ul>
 <div id="simulate-refit" class="cell" data-execution_count="20">

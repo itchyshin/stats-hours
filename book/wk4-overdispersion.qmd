@@ -367,7 +367,7 @@ fig_diagnostic(qres_bb; title = "beta-binomial fit")
 
 **Toto:** But it is not flat. It sags on the left and bulges in the middle.
 
-**Itchy:** It does, and the sag is where the few escaping points are: one short stretch on the left flank. Report that as a shape rather than as a pass. What it is not is the S that convicted the Poisson. Class 5 is where you learn to count what is outside, and to decide whether a shape is a finding.
+**Itchy:** It does, and the sag is where the few escaping points are: one short stretch on the left flank. Report that as a shape rather than as a pass. What it is not is the S that convicted the Poisson. Class 5a is where you learn to count what is outside, and to decide whether a shape is a finding.
 
 **Toto:** So this model is right?
 
@@ -616,7 +616,7 @@ fig
 
 **Toto:** So when *is* modelling σ worth it?
 
-**Itchy:** When the spread is genuinely a function of something you measured, and that is a chapter of its own — **rung 11, modelling the spread itself, which is held for version two of this book**. Today you have seen the syntax and one honest not-detected, which is the right amount for a Tuesday. Class 5 is next and is about nothing but diagnostics, which is where the worm plot and the coverage arithmetic get done properly. And every model on this page is still fixed effects only. Class 6 is where rows stop being strangers, on a file that records who is who.
+**Itchy:** When the spread is genuinely a function of something you measured, and that is a chapter of its own — **rung 11, modelling the spread itself, which is held for version two of this book**. Today you have seen the syntax and one honest not-detected, which is the right amount for a Tuesday. Class 5a is next and is about nothing but diagnostics, which is where the worm plot and the counting of what sits outside its band get done properly; Class 5b follows, on choosing between models. And every model on this page is still fixed effects only. Class 6 is where rows stop being strangers, on a file that records who is who.
 
 ---
 

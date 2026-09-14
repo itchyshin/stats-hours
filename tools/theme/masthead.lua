@@ -36,7 +36,7 @@ local function link_landing_page(text)
 end
 
 -- Fixed reading order for the previous/next foot-nav: the preface, then
--- Classes 1-10, then Appendix A, then the coda. Each entry is looked up by
+-- Classes 1-10 (5 in two hours), then Appendices A and B, then the coda. Each entry is looked up by
 -- its own `chapter` field (plus `kicker`, which is what already tells the
 -- preface and the coda apart from a numbered class -- see `rung` below), so
 -- adding a fourteenth chapter later means adding one row here, not touching
@@ -53,8 +53,10 @@ local CHAPTERS = {
     name = "Class 3 · The shape of the noise" },
   { chapter = "4",  kicker = "", file = "wk4-overdispersion.html",
     name = "Class 4 · When the family lies about the spread" },
-  { chapter = "5",  kicker = "", file = "wk5-diagnostics.html",
-    name = "Class 5 · Is the model any good?" },
+  { chapter = "5a", kicker = "", file = "wk5-diagnostics.html",
+    name = "Class 5a · Is the model any good?" },
+  { chapter = "5b", kicker = "", file = "wk5b-comparison.html",
+    name = "Class 5b · Which model?" },
   { chapter = "6",  kicker = "", file = "wk6-random-intercepts.html",
     name = "Class 6 · Rows are not strangers" },
   { chapter = "7",  kicker = "", file = "wk7-random-slopes.html",
@@ -107,7 +109,7 @@ local function take_h1(blocks)
   for i, b in ipairs(blocks) do
     if b.t == "Header" and b.level == 1 then
       local text = pandoc.utils.stringify(b.content)
-      local bare = text:match("^Class%s+%d+:%s*(.*)$")
+      local bare = text:match("^Class%s+%d+%a?:%s*(.*)$")
       table.remove(blocks, i)
       return bare or text
     end
@@ -170,7 +172,7 @@ function Pandoc(doc)
   local kicker_raw = get(meta, "kicker")
   local rung = kicker_raw
   if rung == "" then
-    local label = tostring(chapter):match("^%d+$") and "Class" or "Appendix"
+    local label = tostring(chapter):match("^%d+%a?$") and "Class" or "Appendix"
     rung = label .. " " .. chapter
   end
   local masthead = string.format([[
